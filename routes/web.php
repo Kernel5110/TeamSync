@@ -2,8 +2,12 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\IndexController;
 
-Route::get('/', [PageController::class, 'index'])->name('index');
+// Ruta principal usando IndexController
+Route::get('/', [IndexController::class, 'index'])->name('index');
+
+// Otras rutas
 Route::get('/login', [PageController::class, 'login'])->name('login');
 Route::get('/start', [PageController::class, 'start'])->name('start');
 Route::get('/event', [PageController::class, 'event'])->name('event');
