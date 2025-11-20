@@ -18,8 +18,7 @@
                     <li><a href="{{ route('index') }}">Inicio</a></li>
                     <li><a href="{{ route('event') }}">Eventos</a></li>
                     <li><a href="{{ route('team') }}">Equipo</a></li>
-                    <li><a href="#">Perfil</a></li>
-                    <li><a href="#">Admin</a></li>
+                    <li><a href="#">Perfil</a></li>\
                     <li><a href="{{ route('login') }}" class="btn-login">Iniciar Sesion</a></li>
                 </ul>
             </nav>
