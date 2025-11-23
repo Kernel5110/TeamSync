@@ -51,4 +51,9 @@ class PageController extends Controller
     public function registrar(){
         return view('registrar');
     }
+    public function perfil()
+    {
+        // Nota: Aquí se pasarán los datos del usuario real más adelante
+        return view('perfil');
+    }
 }

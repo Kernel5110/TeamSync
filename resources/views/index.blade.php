@@ -12,6 +12,7 @@
         <div class="hero-buttons">
             <a href="#" class="btn-primary">Únete Ahora →</a>
             <a href="#" class="btn-secondary">Ver Eventos</a>
+
         </div>
     </section>
     <section class="why-teamsync-section">
