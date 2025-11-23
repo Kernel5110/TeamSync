@@ -45,4 +45,10 @@ class PageController extends Controller
     {
         return view('team');
     }
+    /**
+     * Mostrar la página de registrarse
+     */
+    public function registrar(){
+        return view('registrar');
+    }
 }
