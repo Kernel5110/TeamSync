@@ -10,7 +10,8 @@ export default defineConfig({
                 'resources/css/index.css',
                 'resources/css/registrar.css',
                 'resources/css/perfil.css',
-                'resources/js/app.js'
+                'resources/js/app.js',
+                'resources/css/login.css',
             ],
             refresh: true,
         }),

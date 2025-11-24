@@ -1,86 +1,154 @@
-.contenedor-registrar{
-    width: 100%;
-    height: 530px;
-    display:flex;
-    justify-content: center;
-    background-color: white;
-    padding: 60px 0px;
+/* Reset básico */
+* {
+    box-sizing: border-box;
 }
-.tarjeta{
-    width: 400px;
-    height: 550px;
-    background: linear-gradient(135deg, #6b4cf6, #7a60f7, #9ddaff);
-    padding: 40px 40px;
-    color:white;
-    border-radius: 10px;
+
+body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background-color: #f8f9ff;
+}
+
+.contenedor-registrar {
+    width: 100%;
+    min-height: calc(100vh - 80px); /* Ocupa el alto de la pantalla menos el header */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 20px;
+}
+
+.tarjeta {
+    width: 100%;
+    max-width: 500px; /* Un poco más ancho para que quepan bien los nombres */
+    /* EL MISMO DEGRADADO DEL LOGIN */
+    background: linear-gradient(180deg, #5b4eff 0%, #84caff 100%);
+    padding: 40px 30px;
+    border-radius: 24px;
+    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.15);
+    color: white;
     text-align: center;
 }
-.tarjeta h1{
-    font-size: 24px;
+
+.tarjeta h1 {
+    font-size: 28px;
+    margin: 0 0 10px 0;
+    font-weight: 700;
 }
-.tarjeta p{
-    font-size: 11px;
+
+.tarjeta p {
+    font-size: 14px;
+    margin: 0 0 30px 0;
+    opacity: 0.9;
 }
-.arriba{
-    display:flex;
-    flex-direction: row;
-    gap: 20px;
-    padding: 0px 4px;
-}
-.arriba input{
-    width: 145px;
-    border-radius: 10px;
-    height: 30px;
-    padding: 10px 20px;
-    border: none;
-}
-.medio{
-    display: flex;
-    padding: 10px;
-    flex-direction: column;
-    gap: 8px;
-}
-label{
+
+/* Estilos generales para etiquetas */
+label {
+    display: block;
     text-align: left;
     font-size: 13px;
-    font-weight:600;
+    font-weight: 600;
+    margin-bottom: 5px;
+    margin-left: 4px; /* Pequeño ajuste visual */
 }
-input{
-    border-radius: 10px;
-    height: 30px;
-    padding: 10px 20px;
+
+/* Estilos unificados para Inputs y Selects */
+input, select {
+    width: 100%;
+    border-radius: 12px;
+    height: 42px;
+    /* 40px a la izquierda para dejar espacio al icono (usuario, carta, etc) */
+    padding: 10px 15px 10px 40px; 
     border: none;
     outline: none;
+    background-color: #f3f4f6;
+    color: #333;
+    font-size: 14px;
+    transition: all 0.2s;
 }
-select{
-    border-radius: 10px;
-    height: 30px;
-    padding: 5px 20px;
-    border: none;
-    outline: none;
-}
-.boton{
-    width: 100%;
-    padding: 20px;
-}
-.btn-registrar{
-    width: 100%;
-    padding: 5px 20px;
-    border-radius: 10px;
-    border: none;
-    background-color:rgb(161, 161, 255);
-    color:white;
-    font-weight: bold;
+select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    
+    /* Solo el select lleva la flecha de fondo */
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 10px center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    
+    /* Padding extra a la derecha para que el texto no tape la flecha */
+    padding-right: 35px; 
     cursor: pointer;
 }
-.abajo{
-    text-align:center;
-    font-size: 14px;
+
+input:focus, select:focus {
+    background-color: white;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
 }
-.abajo span{
-    margin-right: 5px;
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
 }
-.abajo a{
+.input-icon {
+    position: absolute;
+    left: 12px; /* Posición desde la izquierda */
+    display: flex;
+    align-items: center;
+    color: #9ca3af; /* Color gris suave para el icono */
+    pointer-events: none; /* Para que el click pase a través del icono hacia el input */
+}
+
+/* Fila superior (Nombre y Apellido) */
+.arriba {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.arriba div {
+    flex: 1; /* Esto hace que ambos inputs midan exactamente lo mismo */
+}
+
+/* Contenedor central */
+.medio {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Espacio uniforme entre campos */
+    margin-bottom: 25px;
+}
+
+/* Botón (Estilo Cristal igual al Login) */
+.btn-registrar {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(5px);
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-bottom: 20px;
+}
+
+.btn-registrar:hover {
+    background-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Pie de tarjeta */
+.abajo {
+    font-size: 13px;
+    opacity: 0.9;
+}
+
+.abajo a {
     font-weight: bold;
     color: white;
+    text-decoration: underline;
+    margin-left: 5px;
 }

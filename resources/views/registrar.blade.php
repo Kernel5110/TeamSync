@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Registrarse - TeamSync')
+
 @push('styles')
     @vite(['resources/css/registrar.css'])
 @endpush
@@ -7,45 +9,90 @@
 @section('content')
     <div class="contenedor-registrar">
         <div class="tarjeta">
-            <h1>Crear cuenta</h2>
-            <p>Únete a TeanSync y forma parte de equipos increibles</p>
-            <form>
+            <h1>Crear cuenta</h1>
+            <p>Únete a TeamSync y forma parte de equipos increíbles</p>
+            
+            <form action="#" method="POST">
+                @csrf
+
                 <div class="arriba">
                     <div>
                         <label for="nombre">Nombre</label>
-                        <br>
-                        <input type="text" placeholder="Nombre" name="nombre">
+                        <div class="input-wrapper">
+                            <span class="input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                            </span>
+                            <input type="text" id="nombre" name="nombre" placeholder="Nombre" required>
+                        </div>
                     </div>
                     <div>
                         <label for="apellido">Apellido</label>
-                        <br>
-                        <input type="text" placeholder="Apellido" name="apellido">
+                        <div class="input-wrapper">
+                            <span class="input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                            </span>
+                            <input type="text" id="apellido" name="apellido" placeholder="Apellido" required>
+                        </div>
                     </div>
                 </div>
+
                 <div class="medio">
-                    <label for="institucion">Institución</label>
-                    <select id="institucion">
-                        <option value="ITO" selected>Instituto Tecnologico de Oaxaca</option>
-                        <option value="ITD">Instituto Tecnologico de Durango</option>
-                        <option value="ITA">Instituto Tecnologico de Aguascalientes</option>
-                    </select>
-                    <label for="carrera">Carrera</label>
-                    <select id="carrera">
-                        <option value="Ing. Sistemas" selected>Ing. Sistemas</option>
-                        <option value="Ing. Civil">Ing. Civil</option>
-                        <option value="Ing. Electrónica">Ing. Electrónica</option>
-                        <option value="Ing. Electrica">Ing. Electrica</option>
-                    </select>
-                    <label for="correo">Correo</label>
-                    <input type="email" placeholder="tu@email.com" name="correo">
-                    <label for="contraseña">Contraseña</label>
-                    <input type="password" placeholder="••••••••" name="contraseña">
+                    <div>
+                        <label for="institucion">Institución</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><path d="M9 22v-4h6v4"></path><path d="M8 6h.01"></path><path d="M16 6h.01"></path><path d="M8 10h.01"></path><path d="M16 10h.01"></path><path d="M8 14h.01"></path><path d="M16 14h.01"></path></svg>
+                            </span>
+                            <select id="institucion" name="institucion">
+                                <option value="" disabled selected>TecNM Campus...</option>
+                                <option value="ITO">Instituto Tecnológico de Oaxaca</option>
+                                <option value="ITD">Instituto Tecnológico de Durango</option>
+                                <option value="ITA">Instituto Tecnológico de Aguascalientes</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="carrera">Carrera</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+                            </span>
+                            <select id="carrera" name="carrera">
+                                <option value="" disabled selected>Selecciona tu carrera</option>
+                                <option value="Ing. Sistemas">Ing. Sistemas</option>
+                                <option value="Ing. Civil">Ing. Civil</option>
+                                <option value="Ing. Electrónica">Ing. Electrónica</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="correo">Correo</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></svg>
+                            </span>
+                            <input type="email" id="correo" placeholder="tu@email.com" name="correo" required>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="contraseña">Contraseña</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                            </span>
+                            <input type="password" id="contraseña" placeholder="••••••••" name="contraseña" required>
+                        </div>
+                    </div>
                 </div>
-                <div class="boton">
-                    <button class="btn-registrar">Registrar</button>
-                </div>
+
+                <button type="submit" class="btn-registrar">Registrar</button>
+
                 <div class="abajo">
-                    <span>¿Ya tienes cuenta?</span><a href="">Iniciar Sesión</a>
+                    <span>¿Ya tienes cuenta?</span>
+                    <a href="{{ route('login') }}">Iniciar Sesión</a>
                 </div>
             </form>
         </div>

@@ -14,3 +14,5 @@ Route::get('/event', [PageController::class, 'event'])->name('event');
 Route::get('/team', [PageController::class, 'team'])->name('team');
 Route::get('/registrar', [PageController::class, 'registrar'])->name('registrar');
 Route::get('/perfil', [PageController::class, 'perfil'])->name('perfil');
+
+Route::get('/login-demo', [PageController::class, 'login'])->name('login');
