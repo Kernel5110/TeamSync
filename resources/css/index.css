@@ -192,19 +192,20 @@ a {
 .main-content {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 0 40px;
+    padding: 60px 40px;
 }
 
 /* Hero Section */
 .hero-section {
     text-align: center;
-    padding: 80px 0 100px;
+    padding: 40px 0 100px;
     background: linear-gradient(135deg, rgba(144, 48, 128, 0.05) 0%, rgba(74, 144, 226, 0.05) 100%);
     border-radius: 20px;
     margin-bottom: 80px;
     animation: fadeIn 0.8s ease-out;
     position: relative;
     overflow: hidden;
+    height: 470px;
 }
 
 .hero-section::before {
@@ -239,6 +240,7 @@ a {
     line-height: 1.8;
     animation: fadeInUp 0.8s ease-out 0.4s both;
     position: relative;
+    height: 130px;
 }
 
 .hero-buttons {
@@ -306,14 +308,14 @@ a {
 .btn-secondary::before {
     content: '';
     position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
+    top: 0%;
+    left: -100%;
+    width: 100%;
+    height: 100%;
     border-radius: 50%;
     background: var(--color-team-purple);
     transform: translate(-50%, -50%);
-    transition: width 0.5s, height 0.5s;
+    transition: left 0.5s;
 }
 
 .btn-secondary:hover::before {
@@ -322,9 +324,8 @@ a {
 }
 
 .btn-secondary:hover {
-    color: white !important;
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-md);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: var(--shadow-xl);
 }
 
 .btn-secondary:hover * {
@@ -339,7 +340,7 @@ a {
 /* Why TeamSync Section */
 .why-teamsync-section {
     text-align: center;
-    padding: 80px 0;
+    padding: 20px 0;
     margin-bottom: 60px;
 }
 
@@ -396,7 +397,7 @@ a {
     border-radius: 50%;
 }
 
-/* Colores específicos para cada tarjeta */
+
 .card:nth-child(1)::after {
 background: var(--color-purple-gradient-start);
 }
