@@ -12,7 +12,7 @@
         <h1 class="auth-title">Crear Cuenta</h1>
         <p class="auth-subtitle">Ingresa tus credenciales para acceder a TeamSync</p>
 
-        <form action="#" method="POST" class="auth-form">
+        <form action="{{ route('login.post') }}" method="POST" class="auth-form">
             @csrf <div class="input-group">
                 <label for="email">Correo</label>
                 <div class="input-wrapper">

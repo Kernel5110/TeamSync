@@ -35,7 +35,8 @@ class PageController extends Controller
      */
     public function event()
     {
-        return view('event');
+        $eventos = \App\Models\Evento::all();
+        return view('event', compact('eventos'));
     }
 
     /**

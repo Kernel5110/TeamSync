@@ -12,7 +12,7 @@
             <h1>Crear cuenta</h1>
             <p>Únete a TeamSync y forma parte de equipos increíbles</p>
             
-            <form action="#" method="POST">
+            <form action="{{ route('register.post') }}" method="POST">
                 @csrf
 
                 <div class="arriba">
@@ -60,9 +60,9 @@
                             </span>
                             <select id="carrera" name="carrera">
                                 <option value="" disabled selected>Selecciona tu carrera</option>
-                                <option value="Ing. Sistemas">Ing. Sistemas</option>
-                                <option value="Ing. Civil">Ing. Civil</option>
-                                <option value="Ing. Electrónica">Ing. Electrónica</option>
+                                @foreach($carreras as $carrera)
+                                    <option value="{{ $carrera->id }}">{{ $carrera->nombre }}</option>
+                                @endforeach
                             </select>
                         </div>
                     </div>

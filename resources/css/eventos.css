@@ -1,0 +1,188 @@
+.contenedor-eventos {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    gap: 2rem;
+}
+
+.tarjeta-evento {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e5e7eb;
+    position: relative;
+    overflow: hidden;
+}
+
+.tarjeta-evento::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: #22c55e; /* Green by default */
+}
+
+.tarjeta-evento:nth-child(even)::before {
+    background: #22c55e;
+}
+
+.tarjeta-evento:nth-child(odd)::before {
+    background: #22c55e; /* Adjust if needed based on image, looks like both green */
+}
+
+.evento-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+}
+
+.evento-titulo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.icono-evento {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.icono-hackatec {
+    background-color: #22c55e;
+}
+
+.icono-innovatec {
+    background-color: #22c55e; /* Or purple if needed */
+}
+
+.evento-titulo h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #4f46e5; /* Purple text */
+    margin: 0;
+}
+
+.badge-proximo {
+    background-color: #22c55e;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.evento-descripcion {
+    color: #6b7280;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+.evento-detalles {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+}
+
+.detalle-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: #6b7280;
+}
+
+.detalle-item svg {
+    color: #8b5cf6; /* Purple icons */
+}
+
+.evento-acciones {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.btn-registrar {
+    background-color: #4f46e5; /* Purple button */
+    color: white;
+    border: none;
+    padding: 0.75rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    text-align: center;
+    text-decoration: none;
+}
+
+.btn-registrar:hover {
+    background-color: #4338ca;
+}
+
+.btn-detalles {
+    background-color: white;
+    color: #4f46e5;
+    border: 1px solid #4f46e5;
+    padding: 0.75rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    text-align: center;
+    text-decoration: none;
+}
+
+.btn-detalles:hover {
+    background-color: #f5f3ff;
+}
+
+/* Contact Section */
+.contacto-seccion {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    border-radius: 16px;
+    padding: 3rem;
+    text-align: center;
+    color: white;
+    margin-top: 3rem;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.contacto-seccion h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.contacto-seccion p {
+    margin-bottom: 2rem;
+    opacity: 0.9;
+}
+
+.btn-contacto {
+    background-color: white;
+    color: #4f46e5;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-contacto:hover {
+    transform: translateY(-2px);
+}

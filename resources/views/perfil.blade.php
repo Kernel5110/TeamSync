@@ -33,10 +33,12 @@
 
     <div class="container">
         <div class="profile-header">
-            <div class="profile-avatar">AG</div>
+            <div class="profile-avatar">
+                {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
+            </div>
 
             <div class="profile-info">
-                <h1>Ana García</h1>
+                <h1>{{ Auth::user()->name }}</h1>
                 <p>&lt;> Programador</p>
                 <p>Estudiante de Ingeniería en Sistemas apasionada por el desarrollo web y la inteligencia artificial.</p>
                 <div class="profile-badges">
@@ -86,9 +88,9 @@
             <div class="details-card">
                 <h3><span class="material-icons">person</span> Información Personal</h3>
                 <div class="details-list">
-                    <p><span class="material-icons">email</span> ana.garcia@estudiante.mx</p>
-                    <p><span class="material-icons">date_range</span> Miembro desde Enero 2024</p>
-                    <p><span class="material-icons">school</span> Instituto Tecnológico de Monterrey</p>
+                    <p><span class="material-icons">email</span> {{ Auth::user()->email }}</p>
+                    <p><span class="material-icons">date_range</span> Miembro desde {{ Auth::user()->created_at->format('M Y') }}</p>
+                    <p><span class="material-icons">school</span> {{ Auth::user()->participante->institucion ?? 'No especificada' }}</p>
                 </div>
             </div>
 
