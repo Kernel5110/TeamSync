@@ -26,6 +26,17 @@ class RegisterController extends Controller
             'carrera' => 'required|exists:carreras,id',
             'correo' => 'required|string|email|max:255|unique:users,email',
             'contraseña' => 'required|string|min:8',
+        ], [
+            'nombre.required' => 'El nombre es obligatorio.',
+            'apellido.required' => 'El apellido es obligatorio.',
+            'institucion.required' => 'La institución es obligatoria.',
+            'carrera.required' => 'Selecciona una carrera válida.',
+            'carrera.exists' => 'La carrera seleccionada no es válida.',
+            'correo.required' => 'El correo electrónico es obligatorio.',
+            'correo.email' => 'Ingresa un correo electrónico válido.',
+            'correo.unique' => 'Este correo ya está registrado.',
+            'contraseña.required' => 'La contraseña es obligatoria.',
+            'contraseña.min' => 'La contraseña debe tener al menos 8 caracteres.',
         ]);
 
         $user = User::create([
@@ -39,6 +50,8 @@ class RegisterController extends Controller
             'carrera_id' => $request->carrera,
             'institucion' => $request->institucion,
         ]);
+
+        $user->assignRole('competidor');
 
         Auth::login($user);
 

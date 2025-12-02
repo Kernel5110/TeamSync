@@ -16,8 +16,52 @@ class TeamController extends Controller
         $participante = $user->participante;
         $equipo = $participante ? $participante->equipo : null;
         $eventos = Evento::all(); // For creating a team
+        
+        $allTeams = null;
+        if ($user->hasRole('admin')) {
+            $allTeams = Equipo::with(['participantes.user', 'evento'])->get();
+        }
 
-        return view('team', compact('equipo', 'eventos'));
+        return view('team', compact('equipo', 'eventos', 'allTeams'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        if (!Auth::user()->can('edit teams')) {
+            abort(403);
+        }
+
+        $equipo = Equipo::findOrFail($id);
+
+        $request->validate([
+            'nombre' => 'required|string|max:255',
+            'evento_id' => 'required|exists:eventos,id',
+        ]);
+
+        $equipo->update([
+            'nombre' => $request->nombre,
+            'evento_id' => $request->evento_id,
+        ]);
+
+        return redirect()->route('team')->with('success', 'Equipo actualizado correctamente.');
+    }
+
+    public function destroy($id)
+    {
+        if (!Auth::user()->can('delete teams')) {
+            abort(403);
+        }
+
+        $equipo = Equipo::findOrFail($id);
+        
+        // Optional: Handle participants before deleting (e.g., set team_id to null)
+        foreach ($equipo->participantes as $participante) {
+            $participante->update(['equipo_id' => null, 'rol' => null]);
+        }
+
+        $equipo->delete();
+
+        return redirect()->route('team')->with('success', 'Equipo eliminado correctamente.');
     }
 
     public function store(Request $request)

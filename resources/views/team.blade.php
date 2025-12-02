@@ -108,6 +108,124 @@
         @endif
     </div>
 
+    @role('admin')
+        <div class="contenedor-equipo" style="margin-top: 40px;">
+            <div class="header-equipo">
+                <div>
+                    <h2>Administración de Equipos</h2>
+                    <p>Vista global de todos los equipos registrados</p>
+                </div>
+            </div>
+
+            @if(isset($allTeams) && $allTeams->count() > 0)
+                <div class="tarjeta-miembros">
+                    <table class="tabla-miembros">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre del Equipo</th>
+                                <th>Evento</th>
+                                <th>Miembros</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($allTeams as $t)
+                                <tr>
+                                    <td>{{ $t->id }}</td>
+                                    <td>{{ $t->nombre }}</td>
+                                    <td>{{ $t->evento->nombre ?? 'N/A' }}</td>
+                                    <td>{{ $t->participantes->count() }}</td>
+                                    <td>
+                                        <button class="btn-editar-equipo" 
+                                                data-id="{{ $t->id }}" 
+                                                data-nombre="{{ $t->nombre }}" 
+                                                data-evento-id="{{ $t->evento_id }}"
+                                                style="background: none; border: none; cursor: pointer; color: #4f46e5; margin-right: 10px;">
+                                            <span class="material-icons">edit</span>
+                                        </button>
+                                        <form action="{{ route('team.destroy', $t->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('¿Estás seguro de eliminar este equipo?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" style="background: none; border: none; cursor: pointer; color: #ef4444;">
+                                                <span class="material-icons">delete</span>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <p>No hay equipos registrados en el sistema.</p>
+            @endif
+        </div>
+    @endrole
+
+    <!-- Modal Editar Equipo (Admin) -->
+    <div id="modal-editar-equipo" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" id="close-editar-equipo">&times;</span>
+            <h2 style="margin-bottom: 1.5rem;">Editar Equipo</h2>
+            <form action="" method="POST" id="form-editar-equipo">
+                @csrf
+                @method('PUT')
+                <div class="form-group">
+                    <label for="edit-nombre">Nombre del Equipo</label>
+                    <input type="text" id="edit-nombre" name="nombre" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-evento_id">Evento</label>
+                    <select id="edit-evento_id" name="evento_id" required>
+                        @foreach($eventos as $evento)
+                            <option value="{{ $evento->id }}">{{ $evento->nombre }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <button type="submit" class="btn-submit">Actualizar Equipo</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Admin Edit Team Logic
+            const modalEditar = document.getElementById('modal-editar-equipo');
+            const btnsEditar = document.querySelectorAll('.btn-editar-equipo');
+            const closeEditar = document.getElementById('close-editar-equipo');
+            const formEditar = document.getElementById('form-editar-equipo');
+            const inputNombre = document.getElementById('edit-nombre');
+            const selectEvento = document.getElementById('edit-evento_id');
+
+            btnsEditar.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    const nombre = this.getAttribute('data-nombre');
+                    const eventoId = this.getAttribute('data-evento-id');
+
+                    formEditar.action = "/team/" + id;
+                    inputNombre.value = nombre;
+                    selectEvento.value = eventoId;
+
+                    modalEditar.style.display = 'flex';
+                });
+            });
+
+            if(closeEditar) {
+                closeEditar.onclick = function() {
+                    modalEditar.style.display = 'none';
+                }
+            }
+
+            window.onclick = function(event) {
+                if (event.target == modalEditar) {
+                    modalEditar.style.display = 'none';
+                }
+            }
+        });
+    </script>
+
     <!-- Modal Crear Equipo -->
     <div id="modal-crear-equipo" class="modal">
         <div class="modal-content">

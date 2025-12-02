@@ -46,10 +46,10 @@
             <div class="footer-section footer-legal">
                 <h4>Legal</h4>
                 <ul>
-                    <li><a href="#">Términos y Condiciones</a></li>
-                    <li><a href="#">Política de Privacidad</a></li>
-                    <li><a href="#">Política de Cookies</a></li>
-                    <li><a href="#">Aviso Legal</a></li>
+                    <li><a href="#" class="legal-link" data-title="Términos y Condiciones" data-content="Al utilizar TeamSync, aceptas cumplir con nuestros términos de servicio. Nos reservamos el derecho de modificar estos términos en cualquier momento. El uso continuado de la plataforma implica la aceptación de dichos cambios.">Términos y Condiciones</a></li>
+                    <li><a href="#" class="legal-link" data-title="Política de Privacidad" data-content="En TeamSync, valoramos tu privacidad. Recopilamos información personal solo para mejorar tu experiencia en la plataforma. No compartimos tus datos con terceros sin tu consentimiento explícito, salvo cuando sea requerido por la ley.">Política de Privacidad</a></li>
+                    <li><a href="#" class="legal-link" data-title="Política de Cookies" data-content="Utilizamos cookies para mejorar la funcionalidad de nuestro sitio y personalizar tu experiencia. Puedes configurar tu navegador para rechazar las cookies, pero esto podría afectar el funcionamiento de algunas características de la plataforma.">Política de Cookies</a></li>
+                    <li><a href="#" class="legal-link" data-title="Aviso Legal" data-content="TeamSync es una marca registrada. Todo el contenido de este sitio web, incluyendo textos, gráficos y logotipos, está protegido por leyes de derechos de autor. Queda prohibida su reproducción sin autorización previa.">Aviso Legal</a></li>
                 </ul>
             </div>
 
@@ -61,13 +61,13 @@
                             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
                             <circle cx="12" cy="10" r="3"></circle>
                         </svg>
-                        <span>Av. Universidad 123, Ciudad</span>
+                        <span>125, esquina Calzada Tecnológico, Centro, C.P. 68030, Oaxaca de Juárez, Oaxaca, México.</span>
                     </li>
                     <li>
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
                         </svg>
-                        <span>+1 (555) 123-4567</span>
+                        <span>+52 951 306 0854</span>
                     </li>
                     <li>
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -92,4 +92,48 @@
             <p class="footer-credits">Hecho con ❤️ para innovadores</p>
         </div>
     </div>
+
+    <!-- Legal Modal -->
+    <div id="modal-legal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" id="close-legal">&times;</span>
+            <h2 id="legal-title"></h2>
+            <p id="legal-content"></p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const modalLegal = document.getElementById('modal-legal');
+            const closeLegal = document.getElementById('close-legal');
+            const legalTitle = document.getElementById('legal-title');
+            const legalContent = document.getElementById('legal-content');
+            const legalLinks = document.querySelectorAll('.legal-link');
+
+            legalLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const title = this.getAttribute('data-title');
+                    const content = this.getAttribute('data-content');
+                    
+                    legalTitle.textContent = title;
+                    legalContent.textContent = content;
+                    
+                    modalLegal.style.display = 'flex';
+                });
+            });
+
+            if(closeLegal) {
+                closeLegal.onclick = function() {
+                    modalLegal.style.display = 'none';
+                }
+            }
+
+            window.addEventListener('click', function(event) {
+                if (event.target == modalLegal) {
+                    modalLegal.style.display = 'none';
+                }
+            });
+        });
+    </script>
 </footer>

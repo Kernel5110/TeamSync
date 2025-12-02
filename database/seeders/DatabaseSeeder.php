@@ -15,12 +15,28 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $this->call(RoleSeeder::class);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        $admin = User::factory()->create([
+            'name' => 'Admin User',
+            'email' => 'admin@gmail.com',
+            'password' => bcrypt('12345'),
         ]);
+        $admin->assignRole('admin');
+
+        $competitor = User::factory()->create([
+            'name' => 'Competitor User',
+            'email' => 'competitor@example.com',
+            'password' => bcrypt('password'),
+        ]);
+        $competitor->assignRole('competidor');
+
+        $judge = User::factory()->create([
+            'name' => 'Judge User',
+            'email' => 'judge@example.com',
+            'password' => bcrypt('password'),
+        ]);
+        $judge->assignRole('juez');
 
         $this->call(CarreraSeeder::class);
         $this->call(EventoSeeder::class);

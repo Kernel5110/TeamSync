@@ -188,6 +188,72 @@ a {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
+/* User Profile Header Styles */
+.user-profile-item {
+    display: flex;
+    align-items: center;
+}
+
+.user-profile-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    padding: 5px 10px;
+    border-radius: 20px;
+    transition: background-color 0.3s ease;
+}
+
+.user-profile-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.user-name {
+    color: white;
+    font-weight: 600;
+    font-size: 0.95em;
+}
+
+.user-avatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+}
+
+.user-avatar svg {
+    width: 20px;
+    height: 20px;
+    color: var(--color-team-purple);
+}
+
+.btn-logout {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    padding: 5px;
+    margin-left: 10px;
+    transition: color 0.3s ease, transform 0.2s;
+    display: flex;
+    align-items: center;
+}
+
+.btn-logout:hover {
+    color: white;
+    transform: translateX(2px);
+}
+
+.btn-logout svg {
+    width: 24px;
+    height: 24px;
+}
+
 /* Main Content */
 .main-content {
     max-width: 1400px;
@@ -399,21 +465,22 @@ a {
 
 
 .card:nth-child(1)::after {
-background: var(--color-purple-gradient-start);
+    background: var(--color-purple-gradient-start);
 }
 
 .card:nth-child(2)::after {
-background: #7e59ff; /* Color intermedio entre los dos */
+    background: #7e59ff;
+    /* Color intermedio entre los dos */
 }
 
 .card:nth-child(3)::after {
-background: var(--color-purple-gradient-end);
+    background: var(--color-purple-gradient-end);
 }
 
 .card:hover::after {
-opacity: 0.2;
-width: 140px;
-height: 140px;
+    opacity: 0.2;
+    width: 140px;
+    height: 140px;
     height: 140px;
 }
 
@@ -493,7 +560,81 @@ height: 140px;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 30px;
     margin-top: 50px;
+
     padding: 0 20px;
+}
+
+/* Modal Styles (Global) */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    /* Higher z-index to overlay everything including header */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background-color: white;
+    padding: 30px;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    position: relative;
+    animation: modalSlideIn 0.3s ease-out;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+@keyframes modalSlideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.close-modal {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.2s;
+    z-index: 10;
+}
+
+.close-modal:hover,
+.close-modal:focus {
+    color: #000;
+    text-decoration: none;
+}
+
+.modal h2 {
+    margin-top: 0;
+    color: #1f2937;
+    font-size: 24px;
+    margin-bottom: 15px;
+    padding-right: 30px;
+}
+
+.modal p {
+    color: #6b7280;
+    margin-bottom: 20px;
+    line-height: 1.6;
 }
 
 /* CTA Banner */

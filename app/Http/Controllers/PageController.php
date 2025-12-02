@@ -36,7 +36,13 @@ class PageController extends Controller
     public function event()
     {
         $eventos = \App\Models\Evento::all();
-        return view('event', compact('eventos'));
+        $equipo = null;
+        
+        if (auth()->check() && auth()->user()->participante) {
+            $equipo = auth()->user()->participante->equipo;
+        }
+
+        return view('event', compact('eventos', 'equipo'));
     }
 
     /**
@@ -54,7 +60,92 @@ class PageController extends Controller
     }
     public function perfil()
     {
-        // Nota: Aquí se pasarán los datos del usuario real más adelante
-        return view('perfil');
+        $user = auth()->user();
+        return view('perfil', compact('user'));
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $user = auth()->user();
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'institucion' => 'nullable|string|max:255',
+        ]);
+
+        $user->update([
+            'name' => $request->name,
+            'email' => $request->email,
+        ]);
+
+        if ($user->participante) {
+            $user->participante->update([
+                'institucion' => $request->institucion,
+            ]);
+        } else {
+            // Create participant record if it doesn't exist (though it should for competitors)
+            \App\Models\Participante::create([
+                'usuario_id' => $user->id,
+                'institucion' => $request->institucion ?? 'No especificada',
+                'carrera_id' => 1, // Default or handle appropriately
+            ]);
+        }
+
+        return redirect()->route('perfil')->with('success', 'Perfil actualizado correctamente.');
+    }
+
+    public function storeEvent(Request $request)
+    {
+        if (!auth()->user()->can('create events')) {
+            abort(403);
+        }
+
+        $request->validate([
+            'nombre' => 'required|string|max:255',
+            'descripcion' => 'required|string',
+            'fecha_inicio' => 'required|date',
+            'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
+            'ubicacion' => 'required|string|max:255',
+            'capacidad' => 'required|integer|min:1',
+        ]);
+
+        \App\Models\Evento::create($request->all());
+
+        return redirect()->route('event')->with('success', 'Evento creado correctamente.');
+    }
+
+    public function updateEvent(Request $request, $id)
+    {
+        if (!auth()->user()->can('edit events')) {
+            abort(403);
+        }
+
+        $evento = \App\Models\Evento::findOrFail($id);
+
+        $request->validate([
+            'nombre' => 'required|string|max:255',
+            'descripcion' => 'required|string',
+            'fecha_inicio' => 'required|date',
+            'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
+            'ubicacion' => 'required|string|max:255',
+            'capacidad' => 'required|integer|min:1',
+        ]);
+
+        $evento->update($request->all());
+
+        return redirect()->route('event')->with('success', 'Evento actualizado correctamente.');
+    }
+
+    public function deleteEvent($id)
+    {
+        if (!auth()->user()->can('delete events')) {
+            abort(403);
+        }
+
+        $evento = \App\Models\Evento::findOrFail($id);
+        $evento->delete();
+
+        return redirect()->route('event')->with('success', 'Evento eliminado correctamente.');
     }
 }

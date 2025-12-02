@@ -24,7 +24,8 @@
     left: 0;
     right: 0;
     height: 6px;
-    background: #22c55e; /* Green by default */
+    background: #22c55e;
+    /* Green by default */
 }
 
 .tarjeta-evento:nth-child(even)::before {
@@ -32,7 +33,8 @@
 }
 
 .tarjeta-evento:nth-child(odd)::before {
-    background: #22c55e; /* Adjust if needed based on image, looks like both green */
+    background: #22c55e;
+    /* Adjust if needed based on image, looks like both green */
 }
 
 .evento-header {
@@ -63,13 +65,15 @@
 }
 
 .icono-innovatec {
-    background-color: #22c55e; /* Or purple if needed */
+    background-color: #22c55e;
+    /* Or purple if needed */
 }
 
 .evento-titulo h2 {
     font-size: 1.5rem;
     font-weight: 700;
-    color: #4f46e5; /* Purple text */
+    color: #4f46e5;
+    /* Purple text */
     margin: 0;
 }
 
@@ -103,7 +107,8 @@
 }
 
 .detalle-item svg {
-    color: #8b5cf6; /* Purple icons */
+    color: #8b5cf6;
+    /* Purple icons */
 }
 
 .evento-acciones {
@@ -113,7 +118,8 @@
 }
 
 .btn-registrar {
-    background-color: #4f46e5; /* Purple button */
+    background-color: #4f46e5;
+    /* Purple button */
     color: white;
     border: none;
     padding: 0.75rem;
@@ -185,4 +191,115 @@
 
 .btn-contacto:hover {
     transform: translateY(-2px);
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background-color: white;
+    padding: 30px;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    position: relative;
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.close-modal {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.close-modal:hover,
+.close-modal:focus {
+    color: #000;
+    text-decoration: none;
+}
+
+.modal h2 {
+    margin-top: 0;
+    color: #1f2937;
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.modal p {
+    color: #6b7280;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #374151;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.btn-confirmar {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-confirmar:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
 }
