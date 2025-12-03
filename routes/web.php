@@ -30,3 +30,8 @@ Route::post('/registrar', [RegisterController::class, 'register'])->name('regist
 Route::get('/perfil', [PageController::class, 'perfil'])->name('perfil')->middleware('auth');
 Route::post('/perfil/update', [PageController::class, 'updateProfile'])->name('perfil.update')->middleware('auth');
 Route::get('/login-demo', [PageController::class, 'login'])->name('login');
+
+// Participation Routes
+use App\Http\Controllers\ParticipationController;
+Route::get('/evento/{id}/participar', [ParticipationController::class, 'show'])->name('participation.show')->middleware('auth');
+Route::post('/evento/{id}/participar', [ParticipationController::class, 'upload'])->name('participation.upload')->middleware('auth');

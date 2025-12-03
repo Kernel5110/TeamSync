@@ -12,6 +12,8 @@ export default defineConfig({
                 'resources/css/perfil.css',
                 'resources/js/app.js',
                 'resources/css/login.css',
+                'resources/css/eventos.css',
+                'resources/css/participation.css',
             ],
             refresh: true,
         }),

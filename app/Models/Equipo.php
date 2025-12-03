@@ -9,7 +9,7 @@ class Equipo extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['nombre', 'evento_id'];
+    protected $fillable = ['nombre', 'evento_id', 'submission_path'];
 
     public function evento()
     {

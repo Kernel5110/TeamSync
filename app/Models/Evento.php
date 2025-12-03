@@ -17,6 +17,7 @@ class Evento extends Model
         'fecha_fin',
         'ubicacion',
         'capacidad',
+        'problem_statement',
     ];
 
     protected $casts = [

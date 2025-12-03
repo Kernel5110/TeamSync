@@ -68,6 +68,10 @@
                        data-capacidad="{{ $evento->capacidad }}">
                         Ver Detalles
                     </a>
+
+                    <a href="{{ route('participation.show', $evento->id) }}" class="btn-participar" style="background-color: #10b981; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: background-color 0.2s;">
+                        Participar
+                    </a>
                     
                     @can('edit events')
                         <button class="btn-editar-evento" 
