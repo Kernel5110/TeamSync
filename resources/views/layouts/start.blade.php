@@ -3,9 +3,7 @@
 @section('title', 'Comenzar - TeamSync')
 @section('meta_description', 'Comienza tu viaje en TeamSync. Configura tu perfil y únete a la comunidad de innovadores.')
 
-@push('styles')
-    @vite(['resources/css/start.css'])
-@endpush
+
 
 @section('content')
     <div class="start-container">

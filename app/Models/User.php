@@ -47,6 +47,10 @@ class User extends Authenticatable
         ];
     }
 
+    public function eventosComoJuez()
+    {
+        return $this->belongsToMany(Evento::class, 'evento_juez', 'user_id', 'evento_id');
+    }
 
     public function participante()
     {

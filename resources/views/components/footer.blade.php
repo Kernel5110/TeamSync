@@ -36,7 +36,9 @@
                 <ul>
                     <li><a href="{{ route('index') }}">Inicio</a></li>
                     <li><a href="{{ route('event') }}">Eventos</a></li>
-                    <li><a href="{{ route('team') }}">Equipos</a></li>
+                    @unlessrole('juez')
+                        <li><a href="{{ route('team') }}">Equipos</a></li>
+                    @endunlessrole
                     <li><a href="#">Sobre Nosotros</a></li>
                     <li><a href="#">Cómo Funciona</a></li>
                     <li><a href="#">Preguntas Frecuentes</a></li>

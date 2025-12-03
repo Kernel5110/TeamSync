@@ -13,17 +13,18 @@ class ParticipationController extends Controller
     public function show($evento_id)
     {
         $evento = Evento::findOrFail($evento_id);
+        $user = Auth::user();
+
         // Check if user has a team in this event
-        // Assuming user is a participant and belongs to a team. 
-        // For simplicity, let's assume the user is part of a team linked to this event.
-        // In a real app, we'd need to find the user's team for this event.
-        
-        // Let's find the team where the current user is a participant
-        // This logic depends on how participants are linked to users and teams.
-        // Based on previous context, there is a 'participantes' table and 'User' model.
-        // Let's assume we can get the team via the user.
-        
-        // For now, I'll pass the event. The view can handle showing the upload form if the user is eligible.
+        $equipo = Equipo::where('evento_id', $evento_id)
+            ->whereHas('participantes', function($query) use ($user) {
+                $query->where('usuario_id', $user->id);
+            })->first();
+
+        if (!$equipo) {
+            return redirect()->route('event')->with('error', 'Debes registrar un equipo para participar en este evento.');
+        }
+
         return view('participation', compact('evento'));
     }
 

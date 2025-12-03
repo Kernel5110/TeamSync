@@ -1,8 +1,6 @@
 @extends('layouts.app')
 
-@push('styles')
-    @vite(['resources/css/participation.css'])
-@endpush
+
 
 @section('content')
 <div class="contenedor-participacion">

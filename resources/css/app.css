@@ -1,4 +1,13 @@
 @import 'tailwindcss';
+@import './index.css';
+@import './register.css';
+@import './profile.css';
+@import './login.css';
+@import './events.css';
+@import './participation.css';
+@import './evaluation.css';
+@import './teams.css';
+@import './start.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';

@@ -2,9 +2,7 @@
 
 @section('title', 'Registrarse - TeamSync')
 
-@push('styles')
-    @vite(['resources/css/registrar.css'])
-@endpush
+
 
 @section('content')
     <div class="contenedor-registrar">

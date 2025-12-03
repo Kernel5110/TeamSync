@@ -24,4 +24,14 @@ class Evento extends Model
         'fecha_inicio' => 'date',
         'fecha_fin' => 'date',
     ];
+
+    public function equipos()
+    {
+        return $this->hasMany(Equipo::class);
+    }
+
+    public function jueces()
+    {
+        return $this->belongsToMany(User::class, 'evento_juez', 'evento_id', 'user_id');
+    }
 }

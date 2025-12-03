@@ -2,9 +2,7 @@
 
 @section('title', 'Iniciar Sesión - TeamSync')
 
-@push('styles')
-    @vite('resources/css/login.css')
-@endpush
+
 
 @section('content')
 <div class="auth-container">

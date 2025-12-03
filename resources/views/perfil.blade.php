@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perfil de Usuario - TeamSync</title>
 
-    @vite(['resources/css/perfil.css'])
+
 
     {{-- Fuentes e Iconos --}}
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -63,7 +63,9 @@
 
         <div class="profile-stats-nav">
             <a href="#" class="nav-item active" data-tab="resumen">Resumen</a>
-            <a href="#" class="nav-item" data-tab="equipos">Equipos</a>
+            @unlessrole('juez')
+                <a href="#" class="nav-item" data-tab="equipos">Equipos</a>
+            @endunlessrole
             <a href="#" class="nav-item" data-tab="logros">Logros</a>
         </div>
 

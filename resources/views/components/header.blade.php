@@ -8,7 +8,9 @@
             <ul id="main-nav-ul">
                 <li><a href="{{ route('index') }}">Inicio</a></li>
                 <li><a href="{{ route('event') }}">Eventos</a></li>
-                <li><a href="{{ route('team') }}">Equipo</a></li>
+                @unlessrole('juez')
+                    <li><a href="{{ route('team') }}">Equipo</a></li>
+                @endunlessrole
                 @auth
                     <li class="user-profile-item">
                         <a href="{{ route('perfil') }}" class="user-profile-link">

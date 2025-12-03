@@ -2,9 +2,7 @@
 
 @section('title', 'Eventos - TeamSync')
 
-@push('styles')
-    @vite(['resources/css/eventos.css'])
-@endpush
+
 
 @section('content')
     <div class="contenedor-eventos">
@@ -69,9 +67,30 @@
                         Ver Detalles
                     </a>
 
-                    <a href="{{ route('participation.show', $evento->id) }}" class="btn-participar" style="background-color: #10b981; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: background-color 0.2s;">
-                        Participar
-                    </a>
+                    @hasrole('juez')
+                        @if($evento->jueces->contains(auth()->user()->id))
+                            <a href="{{ route('event.evaluate', $evento->id) }}" class="btn-participar" style="background-color: #8b5cf6; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: background-color 0.2s;">
+                                Evaluar
+                            </a>
+                        @endif
+                    @else
+                        @php
+                            $hasTeam = \App\Models\Equipo::where('evento_id', $evento->id)
+                                ->whereHas('participantes', function($q) {
+                                    $q->where('usuario_id', auth()->id());
+                                })->exists();
+                        @endphp
+                        
+                        @if($hasTeam)
+                            <a href="{{ route('participation.show', $evento->id) }}" class="btn-participar" style="background-color: #3b82f6; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: background-color 0.2s;">
+                                Subir Archivos
+                            </a>
+                        @else
+                            <button class="btn-registrar btn-participar" data-id="{{ $evento->id }}" data-nombre="{{ $evento->nombre }}" style="background-color: #10b981; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: background-color 0.2s; border: none; cursor: pointer;">
+                                Participar
+                            </button>
+                        @endif
+                    @endhasrole
                     
                     @can('edit events')
                         <button class="btn-editar-evento" 
