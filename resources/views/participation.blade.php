@@ -22,6 +22,19 @@
                 </div>
             </div>
 
+            @if(isset($rank) && $rank <= 3)
+                <div class="seccion-ganador" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 2px solid #fbbf24; border-radius: 12px; padding: 20px; margin-bottom: 30px; text-align: center;">
+                    <span class="material-icons" style="font-size: 48px; color: #d97706; margin-bottom: 10px;">emoji_events</span>
+                    <h2 style="color: #92400e; margin-bottom: 10px;">¡Felicidades!</h2>
+                    <p style="color: #b45309; font-size: 1.1rem; margin-bottom: 20px;">
+                        Tu equipo ha obtenido el <strong>{{ $rank }}º Lugar</strong> en este evento.
+                    </p>
+                    <a href="{{ route('event.certificate', ['evento_id' => $evento->id, 'equipo_id' => $equipo->id]) }}" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; background-color: #d97706; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; transition: background-color 0.2s;">
+                        <span class="material-icons">download</span> Descargar Certificado
+                    </a>
+                </div>
+            @endif
+
             <div class="seccion-upload">
                 <h2>Subir Solución</h2>
                 
@@ -37,17 +50,66 @@
                     </div>
                 @endif
 
-                <form action="{{ route('participation.upload', $evento->id) }}" method="POST" enctype="multipart/form-data" class="form-upload">
+                <form action="{{ route('participation.upload', $evento->id) }}" method="POST" class="form-upload">
                     @csrf
+                    
                     <div class="form-group">
-                        <label for="submission">Seleccionar archivo (PDF, ZIP, DOCX - Max 10MB)</label>
-                        <input type="file" name="submission" id="submission" class="input-file" required>
+                        <label for="project_name">Nombre del Proyecto</label>
+                        <input type="text" name="project_name" id="project_name" class="input-text" required placeholder="Ej. Sistema de Gestión Inteligente">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="technologies">Tecnologías a usar</label>
+                        <input type="text" name="technologies" id="technologies" class="input-text" required placeholder="Ej. Laravel, Vue.js, MySQL">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="github_repo">Repositorio de GitHub</label>
+                        <input type="url" name="github_repo" id="github_repo" class="input-text" required placeholder="https://github.com/usuario/repo">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="github_pages">GitHub Pages (Opcional)</label>
+                        <input type="url" name="github_pages" id="github_pages" class="input-text" placeholder="https://usuario.github.io/repo">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="project_description">Descripción y Avances</label>
+                        <textarea name="project_description" id="project_description" class="input-textarea" rows="5" required placeholder="Describe tu proyecto y los avances realizados..."></textarea>
                     </div>
                     
                     <button type="submit" class="btn-subir">
-                        Subir Archivo
+                        Guardar Información
                     </button>
                 </form>
+
+                <div class="timeline-section" style="margin-top: 40px;">
+                    <h2>Línea de Tiempo de Avances</h2>
+                    <div class="timeline">
+                        <!-- Example Timeline Items -->
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content">
+                                <h3>Inicio del Proyecto</h3>
+                                <p>Definición de la idea y formación del equipo.</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content">
+                                <h3>Prototipado</h3>
+                                <p>Diseño de mockups y arquitectura de base de datos.</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content">
+                                <h3>Desarrollo MVP</h3>
+                                <p>Implementación de funcionalidades core.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

@@ -22,6 +22,7 @@
     <meta property="twitter:image" content="{{ asset('img/logo.png') }}">
     
     <title>@yield('title', 'TeamSync - Potencia la colaboración en competencias de innovación')</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
 </head>

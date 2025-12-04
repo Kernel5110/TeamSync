@@ -25,13 +25,41 @@ class ParticipationController extends Controller
             return redirect()->route('event')->with('error', 'Debes registrar un equipo para participar en este evento.');
         }
 
-        return view('participation', compact('evento'));
+        // Calculate Rank
+        $rank = null;
+        $eventTeams = $evento->equipos;
+        
+        // Only calculate if there are evaluations
+        if ($eventTeams->count() > 0) {
+            $ranking = $eventTeams->map(function ($e) {
+                $evaluations = $e->evaluations;
+                if ($evaluations->isEmpty()) return ['id' => $e->id, 'score' => 0];
+                $score = $evaluations->sum(function ($eval) {
+                    return $eval->score_innovation + $eval->score_social_impact + $eval->score_technical_viability;
+                }) / $evaluations->count();
+                return ['id' => $e->id, 'score' => $score];
+            })->sortByDesc('score')->values();
+
+            $foundRank = $ranking->search(function ($item) use ($equipo) {
+                return $item['id'] == $equipo->id;
+            });
+
+            if ($foundRank !== false) {
+                $rank = $foundRank + 1;
+            }
+        }
+
+        return view('participation', compact('evento', 'equipo', 'rank'));
     }
 
     public function upload(Request $request, $evento_id)
     {
         $request->validate([
-            'submission' => 'required|file|mimes:pdf,zip,rar,doc,docx|max:10240', // 10MB max
+            'project_name' => 'required|string|max:255',
+            'technologies' => 'required|string',
+            'github_repo' => 'required|url',
+            'github_pages' => 'nullable|url',
+            'project_description' => 'required|string',
         ]);
 
         $evento = Evento::findOrFail($evento_id);
@@ -62,13 +90,15 @@ class ParticipationController extends Controller
              return back()->with('error', 'No eres parte de un equipo en este evento.');
         }
 
-        if ($request->hasFile('submission')) {
-            $path = $request->file('submission')->store('submissions', 'public');
-            $equipo->submission_path = $path;
-            $equipo->save();
+        $equipo->update([
+            'project_name' => $request->project_name,
+            'technologies' => $request->technologies,
+            'github_repo' => $request->github_repo,
+            'github_pages' => $request->github_pages,
+            'project_description' => $request->project_description,
+        ]);
 
-            return back()->with('success', 'Archivo subido exitosamente.');
-        }
+        return back()->with('success', 'Información del proyecto actualizada exitosamente.');
 
         return back()->with('error', 'Error al subir el archivo.');
     }

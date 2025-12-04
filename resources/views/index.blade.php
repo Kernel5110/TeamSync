@@ -10,7 +10,7 @@
             dinámicos y competitivos.
         </p>
         <div class="hero-buttons">
-            <a href="{{ route('team') }}" class="btn-primary">Únete Ahora →</a>
+            <a href="{{ route('registrar') }}" class="btn-primary">Únete Ahora →</a>
             <a href="{{ route('event') }}" class="btn-secondary">Ver Eventos</a>
 
         </div>

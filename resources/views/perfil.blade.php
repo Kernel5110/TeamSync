@@ -1,35 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Perfil de Usuario - TeamSync</title>
 
-
-
-    {{-- Fuentes e Iconos --}}
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-</head>
-<body>
-    <nav class="navbar">
-        <div class="logo">
-            <span class="material-icons">people</span> TeamSync
-        </div>
-        <div class="nav-links">
-            <a href="#">Inicio</a>
-            <a href="#">Eventos</a>
-            <a href="#">Equipo</a>
-            <a href="#" class="active">Perfil</a>
-            <a href="#">Admin</a>
-        </div>
-        <div class="auth-buttons">
-            <button>Iniciar Sesión</button>
-        </div>
-    </nav>
 
     <div class="container">
         @if(session('success'))
@@ -54,6 +26,9 @@
             </div>
 
             <div class="profile-actions">
+                @role('admin')
+                    <button id="btn-crear-juez" style="background-color: #8b5cf6; color: white;"><span class="material-icons">gavel</span> Crear Juez</button>
+                @endrole
                 <button id="btn-editar-perfil"><span class="material-icons">edit</span> Editar</button>
                 <div class="settings-icon">
                     <span class="material-icons">settings</span>
@@ -168,6 +143,41 @@
         </div>
     </div>
 
+    <!-- Create Judge Modal -->
+    <div id="modal-crear-juez" class="modal">
+        <div class="modal-content profile-modal-content">
+            <div class="modal-header">
+                <h2>Crear Juez</h2>
+                <span class="close-modal" id="close-crear-juez">&times;</span>
+            </div>
+            <form action="{{ route('admin.createJudge') }}" method="POST" class="profile-form">
+                @csrf
+                <div class="form-group">
+                    <label for="juez-name">Nombre Completo</label>
+                    <div class="input-with-icon">
+                        <span class="material-icons">person</span>
+                        <input type="text" id="juez-name" name="name" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="juez-email">Correo Electrónico</label>
+                    <div class="input-with-icon">
+                        <span class="material-icons">email</span>
+                        <input type="email" id="juez-email" name="email" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="juez-password">Contraseña</label>
+                    <div class="input-with-icon">
+                        <span class="material-icons">lock</span>
+                        <input type="password" id="juez-password" name="password" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn-confirmar">Crear Juez</button>
+            </form>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Tab Navigation
@@ -213,13 +223,32 @@
                 });
             }
 
+            // Create Judge Modal Logic
+            const modalJuez = document.getElementById('modal-crear-juez');
+            const btnJuez = document.getElementById('btn-crear-juez');
+            const closeJuez = document.getElementById('close-crear-juez');
+
+            if(btnJuez) {
+                btnJuez.addEventListener('click', function() {
+                    modalJuez.style.display = 'flex';
+                });
+            }
+
+            if(closeJuez) {
+                closeJuez.addEventListener('click', function() {
+                    modalJuez.style.display = 'none';
+                });
+            }
+
             window.addEventListener('click', function(event) {
                 if (event.target == modalEditar) {
                     modalEditar.style.display = 'none';
                 }
+                if (event.target == modalJuez) {
+                    modalJuez.style.display = 'none';
+                }
             });
         });
     </script>
-</body>
-</html>
+
 @endsection

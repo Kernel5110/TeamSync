@@ -12,10 +12,33 @@
             </div>
         @endif
 
+
+
+        <style>
+            #modal-evento .modal-content,
+            #modal-assign-judge .modal-content {
+                background-color: #ffffff !important;
+                opacity: 1 !important;
+            }
+            
+            /* Ensure form inputs have solid background */
+            .profile-form input,
+            .profile-form textarea,
+            .profile-form select {
+                background-color: #f9fafb !important;
+            }
+            
+            .profile-form input:focus,
+            .profile-form textarea:focus,
+            .profile-form select:focus {
+                background-color: #ffffff !important;
+            }
+        </style>
+
         @can('create events')
-            <div style="width: 100%; display: flex; justify-content: flex-end; margin-bottom: 20px;">
-                <button id="btn-crear-evento" class="btn-confirmar" style="width: auto; padding: 10px 20px;">
-                    <span class="material-icons" style="vertical-align: middle; margin-right: 5px;"></span> Crear Evento
+            <div style="position: absolute; top: 100px; right: 20px; z-index: 100;">
+                <button id="btn-crear-evento" class="btn-confirmar" style="width: auto; padding: 8px 15px; font-size: 0.9rem;">
+                    <span class="material-icons" style="vertical-align: middle; margin-right: 5px; font-size: 1.1rem;">add</span> Crear Evento
                 </button>
             </div>
         @endcan
@@ -35,6 +58,14 @@
                     </div>
                     <span class="badge-proximo">Próximo</span>
                 </div>
+                
+                @if($evento->categoria)
+                    <div style="margin-bottom: 10px;">
+                        <span style="background-color: #e0e7ff; color: #4338ca; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600;">
+                            {{ $evento->categoria }}
+                        </span>
+                    </div>
+                @endif
 
                 <p class="evento-descripcion">
                     {{ $evento->descripcion }}
@@ -56,7 +87,7 @@
                 </div>
 
                 <div class="evento-acciones">
-                    <a href="#" class="btn-registrar" data-id="{{ $evento->id }}" data-nombre="{{ $evento->nombre }}">Registrar Equipo</a>
+
                     <a href="#" class="btn-detalles" 
                        data-nombre="{{ $evento->nombre }}"
                        data-descripcion="{{ $evento->descripcion }}"
@@ -67,6 +98,10 @@
                         Ver Detalles
                     </a>
 
+                    <a href="{{ route('event.ranking', $evento->id) }}" class="btn-ranking" style="background-color: #f59e0b; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: background-color 0.2s; display: inline-flex; align-items: center; gap: 5px;">
+                        <span class="material-icons" style="font-size: 18px;">emoji_events</span> Ranking
+                    </a>
+
                     @hasrole('juez')
                         @if($evento->jueces->contains(auth()->user()->id))
                             <a href="{{ route('event.evaluate', $evento->id) }}" class="btn-participar" style="background-color: #8b5cf6; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: background-color 0.2s;">
@@ -74,48 +109,60 @@
                             </a>
                         @endif
                     @else
-                        @php
-                            $hasTeam = \App\Models\Equipo::where('evento_id', $evento->id)
-                                ->whereHas('participantes', function($q) {
-                                    $q->where('usuario_id', auth()->id());
-                                })->exists();
-                        @endphp
-                        
-                        @if($hasTeam)
-                            <a href="{{ route('participation.show', $evento->id) }}" class="btn-participar" style="background-color: #3b82f6; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: background-color 0.2s;">
-                                Subir Archivos
-                            </a>
-                        @else
-                            <button class="btn-registrar btn-participar" data-id="{{ $evento->id }}" data-nombre="{{ $evento->nombre }}" style="background-color: #10b981; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: background-color 0.2s; border: none; cursor: pointer;">
-                                Participar
-                            </button>
-                        @endif
+                        @unlessrole('admin')
+                            @php
+                                $userParticipante = auth()->user()->participante;
+                                $userTeamId = $userParticipante ? $userParticipante->equipo_id : null;
+                                
+                                $hasTeamInEvent = \App\Models\Equipo::where('evento_id', $evento->id)
+                                    ->whereHas('participantes', function($q) {
+                                        $q->where('usuario_id', auth()->id());
+                                    })->exists();
+                            @endphp
+                            
+                            @if($hasTeamInEvent)
+                                <a href="{{ route('participation.show', $evento->id) }}" class="btn-ver-proyecto" style="background-color: #10b981; color: white; padding: 0.75rem; border-radius: 9999px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: background-color 0.2s; display: inline-block; text-align: center;">
+                                    Ver Proyecto
+                                </a>
+                            @else
+                                <button class="btn-registrar" data-id="{{ $evento->id }}" data-nombre="{{ $evento->nombre }}" style="background-color: #4f46e5; color: white; padding: 0.75rem; border-radius: 9999px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: background-color 0.2s; border: none; cursor: pointer;">
+                                    Participar
+                                </button>
+                            @endif
+                        @endunlessrole
                     @endhasrole
-                    
-                    @can('edit events')
-                        <button class="btn-editar-evento" 
+
+                </div>
+
+                @role('admin')
+                    <div class="admin-actions">
+                        <button class="btn-admin-action judge btn-assign-judge" data-id="{{ $evento->id }}" title="Asignar Juez">
+                            <span class="material-icons">gavel</span>
+                        </button>
+                        
+                        <button class="btn-admin-action edit btn-editar-evento" 
                                 data-id="{{ $evento->id }}"
                                 data-nombre="{{ $evento->nombre }}"
                                 data-descripcion="{{ $evento->descripcion }}"
                                 data-fecha-inicio="{{ $evento->fecha_inicio->format('Y-m-d') }}"
                                 data-fecha-fin="{{ $evento->fecha_fin->format('Y-m-d') }}"
                                 data-ubicacion="{{ $evento->ubicacion }}"
+                                data-ubicacion="{{ $evento->ubicacion }}"
                                 data-capacidad="{{ $evento->capacidad }}"
-                                style="background: none; border: none; cursor: pointer; color: #4f46e5;">
+                                data-categoria="{{ $evento->categoria }}"
+                                title="Editar Evento">
                             <span class="material-icons">edit</span>
                         </button>
-                    @endcan
-                    
-                    @can('delete events')
+                        
                         <form action="{{ route('event.delete', $evento->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('¿Estás seguro de eliminar este evento?');">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" style="background: none; border: none; cursor: pointer; color: #ef4444;">
+                            <button type="submit" class="btn-admin-action delete" title="Eliminar Evento">
                                 <span class="material-icons">delete</span>
                             </button>
                         </form>
-                    @endcan
-                </div>
+                    </div>
+                @endrole
             </div>
         @endforeach
     </div>
@@ -180,7 +227,7 @@
 
     <!-- Modal Crear/Editar Evento -->
     <div id="modal-evento" class="modal">
-        <div class="modal-content profile-modal-content">
+        <div class="modal-content profile-modal-content" style="background-color: white !important;">
             <div class="modal-header">
                 <h2 id="modal-evento-titulo">Crear Evento</h2>
                 <span class="close-modal" id="close-evento">&times;</span>
@@ -224,11 +271,61 @@
                 <div class="form-group">
                     <label for="evento-capacidad">Capacidad</label>
                     <div class="input-with-icon">
-                        <span class="material-icons"></span>
+                        <span class="material-icons">group</span>
                         <input type="number" id="evento-capacidad" name="capacidad" required>
                     </div>
                 </div>
+                <div class="form-group">
+                    <label for="evento-categoria">Categoría</label>
+                    <div class="input-with-icon">
+                        <span class="material-icons">category</span>
+                        <select id="evento-categoria-select" name="categoria_select" style="width: 100%; padding: 12px 12px 12px 40px; border: 1px solid #e5e7eb; background-color: #f9fafb; border-radius: 8px; font-size: 15px; outline: none; color: #1f2937;">
+                            <option value="">Seleccionar Categoría</option>
+                            <option value="Fintech">Fintech</option>
+                            <option value="Healthtech">Healthtech</option>
+                            <option value="Edtech">Edtech</option>
+                            <option value="Agrotech">Agrotech</option>
+                            <option value="Cybersecurity">Cybersecurity</option>
+                            <option value="AI & Machine Learning">AI & Machine Learning</option>
+                            <option value="Blockchain">Blockchain</option>
+                            <option value="IoT">IoT</option>
+                            <option value="Otro">Otro (Crear nueva)</option>
+                        </select>
+                    </div>
+                    <div class="input-with-icon" id="container-nueva-categoria" style="display: none; margin-top: 10px;">
+                        <span class="material-icons">add_circle</span>
+                        <input type="text" id="evento-categoria-input" name="categoria_input" placeholder="Escribe la nueva categoría" disabled>
+                    </div>
+                    <!-- Hidden input to store the final value sent to backend -->
+                    <input type="hidden" id="evento-categoria-final" name="categoria">
+                </div>
                 <button type="submit" class="btn-confirmar">Guardar Evento</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Asignar Juez -->
+    <div id="modal-assign-judge" class="modal">
+        <div class="modal-content profile-modal-content" style="max-width: 500px !important;">
+            <div class="modal-header">
+                <h2>Asignar Juez</h2>
+                <span class="close-modal" id="close-assign-judge">&times;</span>
+            </div>
+            <form id="form-assign-judge" method="POST" class="profile-form">
+                @csrf
+                <div class="form-group">
+                    <label for="judge-select">Seleccionar Juez</label>
+                    <div class="input-with-icon">
+                        <span class="material-icons">hammer</span>
+                        <select id="judge-select" name="user_id" style="width: 100%; padding: 12px 12px 12px 40px; border: 1px solid #e5e7eb; background-color: #f9fafb; border-radius: 8px; font-size: 15px; outline: none; color: #1f2937;" required>
+                            <option value="">Seleccione un juez...</option>
+                            @foreach(\App\Models\User::role('juez')->get() as $juez)
+                                <option value="{{ $juez->id }}">{{ $juez->name }} ({{ $juez->email }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn-confirmar">Asignar Juez</button>
             </form>
         </div>
     </div>
@@ -333,15 +430,102 @@
                     inputEventoInicio.value = this.getAttribute('data-fecha-inicio');
                     inputEventoFin.value = this.getAttribute('data-fecha-fin');
                     inputEventoUbicacion.value = this.getAttribute('data-ubicacion');
+                    inputEventoUbicacion.value = this.getAttribute('data-ubicacion');
                     inputEventoCapacidad.value = this.getAttribute('data-capacidad');
+                    
+                    const categoria = this.getAttribute('data-categoria');
+                    const selectCategoria = document.getElementById('evento-categoria-select');
+                    const inputCategoria = document.getElementById('evento-categoria-input');
+                    const containerNueva = document.getElementById('container-nueva-categoria');
+                    const finalCategoria = document.getElementById('evento-categoria-final');
+
+                    // Check if category is in the list
+                    let found = false;
+                    for (let i = 0; i < selectCategoria.options.length; i++) {
+                        if (selectCategoria.options[i].value === categoria) {
+                            selectCategoria.value = categoria;
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (!found && categoria) {
+                        selectCategoria.value = 'Otro';
+                        containerNueva.style.display = 'block';
+                        inputCategoria.disabled = false;
+                        inputCategoria.value = categoria;
+                    } else {
+                        selectCategoria.value = categoria || "";
+                        containerNueva.style.display = 'none';
+                        inputCategoria.disabled = true;
+                        inputCategoria.value = '';
+                    }
+                    
+                    // Update hidden input
+                    finalCategoria.value = categoria || "";
 
                     modalEvento.style.display = 'flex';
                 });
             });
 
+            // Category logic for Create/Edit
+            const selectCategoria = document.getElementById('evento-categoria-select');
+            const inputCategoria = document.getElementById('evento-categoria-input');
+            const containerNueva = document.getElementById('container-nueva-categoria');
+            const finalCategoria = document.getElementById('evento-categoria-final');
+
+            if(selectCategoria) {
+                selectCategoria.addEventListener('change', function() {
+                    if(this.value === 'Otro') {
+                        containerNueva.style.display = 'block';
+                        inputCategoria.disabled = false;
+                        inputCategoria.focus();
+                        finalCategoria.value = inputCategoria.value;
+                    } else {
+                        containerNueva.style.display = 'none';
+                        inputCategoria.disabled = true;
+                        finalCategoria.value = this.value;
+                    }
+                });
+
+                inputCategoria.addEventListener('input', function() {
+                    finalCategoria.value = this.value;
+                });
+                
+                // Also handle form submit to ensure value is set
+                const formEvento = document.getElementById('form-evento');
+                formEvento.addEventListener('submit', function() {
+                    if(selectCategoria.value === 'Otro') {
+                        finalCategoria.value = inputCategoria.value;
+                    } else {
+                        finalCategoria.value = selectCategoria.value;
+                    }
+                });
+            }
+
             if(closeEvento) {
                 closeEvento.addEventListener('click', function() {
                     modalEvento.style.display = 'none';
+                });
+            }
+
+            // Assign Judge Modal Logic
+            const modalAssignJudge = document.getElementById('modal-assign-judge');
+            const btnsAssignJudge = document.querySelectorAll('.btn-assign-judge');
+            const closeAssignJudge = document.getElementById('close-assign-judge');
+            const formAssignJudge = document.getElementById('form-assign-judge');
+
+            btnsAssignJudge.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const eventId = this.getAttribute('data-id');
+                    formAssignJudge.action = "/evento/" + eventId + "/assign-judge";
+                    modalAssignJudge.style.display = 'flex';
+                });
+            });
+
+            if(closeAssignJudge) {
+                closeAssignJudge.addEventListener('click', function() {
+                    modalAssignJudge.style.display = 'none';
                 });
             }
 
@@ -355,6 +539,9 @@
                 }
                 if (event.target == modalEvento) {
                     modalEvento.style.display = 'none';
+                }
+                if (event.target == modalAssignJudge) {
+                    modalAssignJudge.style.display = 'none';
                 }
             }
 

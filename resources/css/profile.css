@@ -1,11 +1,3 @@
-body {
-    font-family: 'Inter', sans-serif;
-    background-color: #f0f2f5;
-    color: #333;
-    margin: 0;
-    padding: 0;
-}
-
 .container {
     max-width: 1200px;
     margin: 20px auto;
@@ -317,10 +309,13 @@ body {
 
 /* Modal Styles Specific to Profile */
 .profile-modal-content {
+    background-color: white !important;
     padding: 0 !important;
-    overflow: hidden;
+    overflow-y: auto !important;
+    max-height: 90vh;
     border-radius: 15px !important;
-    max-width: 450px !important;
+    max-width: 900px !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
 
 .modal-header {
@@ -372,19 +367,28 @@ body {
     font-size: 20px;
 }
 
-.input-with-icon input {
+.input-with-icon input,
+.input-with-icon select {
     width: 100%;
-    padding: 12px 12px 12px 40px;
+    padding: 10px 12px 10px 60px !important;
     /* Space for icon */
-    border: 1px solid #ddd;
+    box-sizing: border-box;
+    border: 1px solid #e5e7eb;
+    background-color: #f9fafb;
     border-radius: 8px;
     font-size: 15px;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    line-height: 1.5;
+    transition: all 0.2s;
     outline: none;
+    color: #1f2937;
+    appearance: none;
+    /* Remove default arrow for select */
 }
 
-.input-with-icon input:focus {
+.input-with-icon input:focus,
+.input-with-icon select:focus {
     border-color: #2575fc;
+    background-color: white;
     box-shadow: 0 0 0 3px rgba(37, 117, 252, 0.1);
 }
 

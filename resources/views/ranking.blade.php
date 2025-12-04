@@ -1,0 +1,116 @@
+@extends('layouts.app')
+
+@section('title', 'Ranking del Evento - TeamSync')
+
+@section('content')
+<div class="container" style="max-width: 1000px; margin: 0 auto; padding: 40px 20px;">
+    <div class="header-section" style="text-align: center; margin-bottom: 50px;">
+        <h1 style="font-size: 2.5rem; font-weight: 800; color: #1f2937; margin-bottom: 10px;">Ranking de Ganadores</h1>
+        <p style="color: #6b7280; font-size: 1.2rem;">{{ $evento->nombre }}</p>
+    </div>
+
+    @if($ranking->isEmpty())
+        <div style="text-align: center; padding: 50px; background: white; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+            <span class="material-icons" style="font-size: 64px; color: #9ca3af; margin-bottom: 20px;">emoji_events</span>
+            <h3 style="font-size: 1.5rem; color: #374151; margin-bottom: 10px;">Aún no hay resultados</h3>
+            <p style="color: #6b7280;">Las evaluaciones aún no han comenzado o no hay equipos registrados.</p>
+        </div>
+    @else
+        <!-- Top 3 Podium (Visual) -->
+        @if($ranking->count() >= 3)
+            <div class="podium-container" style="display: flex; justify-content: center; align-items: flex-end; gap: 20px; margin-bottom: 60px;">
+                <!-- 2nd Place -->
+                <div class="podium-item" style="text-align: center; width: 200px;">
+                    <div style="margin-bottom: 10px;">
+                        <span class="material-icons" style="font-size: 40px; color: #94a3b8;">emoji_events</span>
+                    </div>
+                    <div style="background: white; padding: 20px; border-radius: 12px 12px 0 0; border-top: 4px solid #94a3b8; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); height: 180px; display: flex; flex-direction: column; justify-content: center;">
+                        <h3 style="font-weight: 700; color: #1f2937; margin-bottom: 5px;">{{ $ranking[1]['equipo']->nombre }}</h3>
+                        <p style="color: #64748b; font-weight: 600; font-size: 1.2rem;">{{ $ranking[1]['average_score'] }} pts</p>
+                        <div style="margin-top: 10px; font-size: 0.9rem; color: #94a3b8;">2º Lugar</div>
+                        <a href="{{ route('event.certificate', ['evento_id' => $evento->id, 'equipo_id' => $ranking[1]['equipo']->id]) }}" target="_blank" style="margin-top: 10px; font-size: 0.8rem; color: #4f46e5; text-decoration: none; font-weight: 600;">Ver Certificado</a>
+                    </div>
+                </div>
+                
+                <!-- 1st Place -->
+                <div class="podium-item" style="text-align: center; width: 220px;">
+                    <div style="margin-bottom: 10px;">
+                        <span class="material-icons" style="font-size: 50px; color: #fbbf24;">emoji_events</span>
+                    </div>
+                    <div style="background: white; padding: 20px; border-radius: 12px 12px 0 0; border-top: 4px solid #fbbf24; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); height: 220px; display: flex; flex-direction: column; justify-content: center; position: relative; z-index: 10;">
+                        <h3 style="font-weight: 800; color: #1f2937; margin-bottom: 5px; font-size: 1.3rem;">{{ $ranking[0]['equipo']->nombre }}</h3>
+                        <p style="color: #d97706; font-weight: 700; font-size: 1.5rem;">{{ $ranking[0]['average_score'] }} pts</p>
+                        <div style="margin-top: 10px; font-size: 1rem; color: #fbbf24; font-weight: 700;">1º Lugar</div>
+                        <a href="{{ route('event.certificate', ['evento_id' => $evento->id, 'equipo_id' => $ranking[0]['equipo']->id]) }}" target="_blank" style="margin-top: 15px; font-size: 0.9rem; color: #4f46e5; text-decoration: none; font-weight: 600; background-color: #e0e7ff; padding: 4px 10px; border-radius: 4px;">Ver Certificado</a>
+                    </div>
+                </div>
+
+                <!-- 3rd Place -->
+                <div class="podium-item" style="text-align: center; width: 200px;">
+                    <div style="margin-bottom: 10px;">
+                        <span class="material-icons" style="font-size: 40px; color: #b45309;">emoji_events</span>
+                    </div>
+                    <div style="background: white; padding: 20px; border-radius: 12px 12px 0 0; border-top: 4px solid #b45309; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); height: 150px; display: flex; flex-direction: column; justify-content: center;">
+                        <h3 style="font-weight: 700; color: #1f2937; margin-bottom: 5px;">{{ $ranking[2]['equipo']->nombre }}</h3>
+                        <p style="color: #b45309; font-weight: 600; font-size: 1.2rem;">{{ $ranking[2]['average_score'] }} pts</p>
+                        <div style="margin-top: 10px; font-size: 0.9rem; color: #b45309;">3º Lugar</div>
+                        <a href="{{ route('event.certificate', ['evento_id' => $evento->id, 'equipo_id' => $ranking[2]['equipo']->id]) }}" target="_blank" style="margin-top: 10px; font-size: 0.8rem; color: #4f46e5; text-decoration: none; font-weight: 600;">Ver Certificado</a>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        <!-- Full Ranking Table -->
+        <div class="card" style="background: white; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); overflow: hidden;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead style="background-color: #f9fafb; border-bottom: 1px solid #e5e7eb;">
+                    <tr>
+                        <th style="padding: 16px 24px; text-align: left; font-size: 0.85rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Posición</th>
+                        <th style="padding: 16px 24px; text-align: left; font-size: 0.85rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Equipo</th>
+                        <th style="padding: 16px 24px; text-align: left; font-size: 0.85rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Integrantes</th>
+                        <th style="padding: 16px 24px; text-align: center; font-size: 0.85rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Evaluaciones</th>
+                        <th style="padding: 16px 24px; text-align: right; font-size: 0.85rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Puntaje Promedio</th>
+                    </tr>
+                </thead>
+                <tbody style="divide-y: 1px solid #e5e7eb;">
+                    @foreach($ranking as $index => $item)
+                        <tr style="transition: background-color 0.2s; hover: background-color: #f9fafb;">
+                            <td style="padding: 16px 24px; white-space: nowrap;">
+                                <div style="display: flex; align-items: center;">
+                                    @if($index == 0)
+                                        <span class="material-icons" style="color: #fbbf24; margin-right: 8px;">emoji_events</span>
+                                    @elseif($index == 1)
+                                        <span class="material-icons" style="color: #94a3b8; margin-right: 8px;">emoji_events</span>
+                                    @elseif($index == 2)
+                                        <span class="material-icons" style="color: #b45309; margin-right: 8px;">emoji_events</span>
+                                    @else
+                                        <span style="font-weight: 600; color: #6b7280; width: 24px; text-align: center;">{{ $index + 1 }}</span>
+                                    @endif
+                                </div>
+                            </td>
+                            <td style="padding: 16px 24px;">
+                                <div style="font-weight: 600; color: #1f2937;">{{ $item['equipo']->nombre }}</div>
+                                <div style="font-size: 0.85rem; color: #6b7280;">{{ $item['equipo']->project_name ?? 'Sin nombre de proyecto' }}</div>
+                            </td>
+                            <td style="padding: 16px 24px;">
+                                <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                                    @foreach($item['equipo']->participantes as $participante)
+                                        <span style="background-color: #f3f4f6; color: #4b5563; padding: 2px 8px; border-radius: 9999px; font-size: 0.75rem;">{{ $participante->user->name }}</span>
+                                    @endforeach
+                                </div>
+                            </td>
+                            <td style="padding: 16px 24px; text-align: center; color: #6b7280;">
+                                {{ $item['evaluators_count'] }}
+                            </td>
+                            <td style="padding: 16px 24px; text-align: right;">
+                                <span style="font-weight: 700; color: #4f46e5; font-size: 1.1rem;">{{ $item['average_score'] }}</span>
+                                <span style="font-size: 0.85rem; color: #9ca3af;">/ 30</span>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    @endif
+</div>
+@endsection

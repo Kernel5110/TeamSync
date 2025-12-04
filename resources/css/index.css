@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-
 :root {
     --color-team-purple: #8F00FF;
     --color-team-accent: #E5007D;
@@ -29,7 +27,7 @@ body {
     padding: 0;
     background-color: var(--color-background);
     color: var(--color-text-dark);
-    padding-top: 80px;
+    padding-top: 150px;
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;

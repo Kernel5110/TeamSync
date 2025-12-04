@@ -10,15 +10,7 @@ class Evento extends Model
     /** @use HasFactory<\Database\Factories\EventoFactory> */
     use HasFactory;
 
-    protected $fillable = [
-        'nombre',
-        'descripcion',
-        'fecha_inicio',
-        'fecha_fin',
-        'ubicacion',
-        'capacidad',
-        'problem_statement',
-    ];
+    protected $fillable = ['nombre', 'descripcion', 'fecha_inicio', 'fecha_fin', 'ubicacion', 'capacidad', 'problem_statement', 'categoria'];
 
     protected $casts = [
         'fecha_inicio' => 'date',

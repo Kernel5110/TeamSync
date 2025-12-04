@@ -17,13 +17,19 @@
             <h2 style="margin-bottom: 1.5rem; font-size: 1.5rem; font-weight: 600;">Equipos Participantes</h2>
             <div class="teams-list">
                 @forelse($evento->equipos as $equipo)
-                    <div class="team-card" onclick="selectTeam(this, '{{ $equipo->nombre }}', {{ $equipo->id }})">
-                        <div class="team-name">{{ $equipo->nombre }}</div>
-                        <div class="team-members">
-                            {{ $equipo->participantes->map(fn($p) => $p->user->name ?? 'Participante')->join(', ') }}
+                    <a href="{{ route('event.evaluate.team', ['evento_id' => $evento->id, 'equipo_id' => $equipo->id]) }}" style="text-decoration: none; color: inherit;">
+                        <div class="team-card" style="cursor: pointer; transition: transform 0.2s; border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; margin-bottom: 10px; background: white;">
+                            <div class="team-name" style="font-weight: 600; font-size: 1.1rem; color: #1f2937; margin-bottom: 5px;">{{ $equipo->nombre }}</div>
+                            <div class="team-members" style="font-size: 0.9rem; color: #6b7280; margin-bottom: 10px;">
+                                {{ $equipo->participantes->map(fn($p) => $p->user->name ?? 'Participante')->join(', ') }}
+                            </div>
+                            @if(in_array($equipo->id, $evaluatedTeams))
+                                <span class="status-badge status-completed" style="background-color: #d1fae5; color: #065f46; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600;">Evaluado</span>
+                            @else
+                                <span class="status-badge status-pending" style="background-color: #f3f4f6; color: #4b5563; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">Evaluar</span>
+                            @endif
                         </div>
-                        <span class="status-badge status-pending">Pendiente</span>
-                    </div>
+                    </a>
                 @empty
                     <p class="text-gray-500">No hay equipos registrados en este evento.</p>
                 @endforelse
@@ -32,55 +38,14 @@
 
         <!-- Panel de Evaluación -->
         <div class="evaluation-panel">
-            <h3 class="panel-title">Evaluar: <span id="selected-team-name">Seleccione un equipo</span></h3>
-            
-            <form id="evaluation-form" action="{{ route('event.evaluate.store', $evento->id) }}" method="POST">
-                @csrf
-                <input type="hidden" name="equipo_id" id="selected-team-id" required>
-                
-                <div class="criteria-group">
-                    <label class="criteria-label">Innovación (0-10)</label>
-                    <input type="range" name="score_innovation" min="0" max="10" value="5" class="range-slider" oninput="updateScore(this, 'score-1')">
-                    <div class="score-display">Puntaje: <span id="score-1">5</span>/10</div>
-                </div>
-
-                <div class="criteria-group">
-                    <label class="criteria-label">Impacto Social (0-10)</label>
-                    <input type="range" name="score_social_impact" min="0" max="10" value="5" class="range-slider" oninput="updateScore(this, 'score-2')">
-                    <div class="score-display">Puntaje: <span id="score-2">5</span>/10</div>
-                </div>
-
-                <div class="criteria-group">
-                    <label class="criteria-label">Viabilidad Técnica (0-10)</label>
-                    <input type="range" name="score_technical_viability" min="0" max="10" value="5" class="range-slider" oninput="updateScore(this, 'score-3')">
-                    <div class="score-display">Puntaje: <span id="score-3">5</span>/10</div>
-                </div>
-
-                <div class="criteria-group">
-                    <label class="criteria-label">Comentarios</label>
-                    <textarea name="comments" class="comment-box" placeholder="Escribe tus observaciones aquí..."></textarea>
-                </div>
-
-                <button type="submit" class="btn-submit">Enviar Evaluación</button>
-            </form>
+            <div style="text-align: center; padding: 40px; color: #6b7280;">
+                <span class="material-icons" style="font-size: 48px; margin-bottom: 20px; color: #9ca3af;">touch_app</span>
+                <h3 style="font-size: 1.2rem; font-weight: 600; margin-bottom: 10px;">Selecciona un equipo</h3>
+                <p>Haz clic en un equipo de la lista para ver su proyecto y realizar la evaluación.</p>
+            </div>
         </div>
     </div>
 </div>
 
-<script>
-    function selectTeam(card, name, id) {
-        // Remove selected class from all cards
-        document.querySelectorAll('.team-card').forEach(c => c.classList.remove('selected'));
-        // Add selected class to clicked card
-        card.classList.add('selected');
-        // Update panel title
-        document.getElementById('selected-team-name').textContent = name;
-        // Set hidden input value
-        document.getElementById('selected-team-id').value = id;
-    }
 
-    function updateScore(input, displayId) {
-        document.getElementById(displayId).textContent = input.value;
-    }
-</script>
 @endsection
