@@ -162,11 +162,16 @@
                                 data-fecha-inicio="{{ $evento->fecha_inicio->format('Y-m-d') }}"
                                 data-fecha-fin="{{ $evento->fecha_fin->format('Y-m-d') }}"
                                 data-ubicacion="{{ $evento->ubicacion }}"
-                                data-ubicacion="{{ $evento->ubicacion }}"
                                 data-capacidad="{{ $evento->capacidad }}"
                                 data-categoria="{{ $evento->categoria }}"
                                 title="Editar Evento">
                             <span class="material-icons">edit</span>
+                        </button>
+
+                        <button class="btn-admin-action view-teams btn-ver-equipos" 
+                                onclick="toggleTeams('teams-{{ $evento->id }}')"
+                                title="Ver Equipos Registrados">
+                            <span class="material-icons">groups</span>
                         </button>
                         
                         <form action="{{ route('event.delete', $evento->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('¿Estás seguro de eliminar este evento?');">
@@ -176,6 +181,39 @@
                                 <span class="material-icons">delete</span>
                             </button>
                         </form>
+                    </div>
+                    
+                    <!-- Admin Team List Section -->
+                    <div id="teams-{{ $evento->id }}" style="display: none; margin-top: 15px; border-top: 1px solid #e5e7eb; padding-top: 10px;">
+                        <h4 style="font-size: 0.9rem; color: #4b5563; margin-bottom: 10px;">Equipos Registrados ({{ $evento->equipos->count() }}/{{ $evento->capacidad }})</h4>
+                        @if($evento->equipos->count() > 0)
+                            <ul style="list-style: none; padding: 0; margin: 0; max-height: 150px; overflow-y: auto;">
+                                @foreach($evento->equipos as $team)
+                                    <li style="display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px dashed #e5e7eb; font-size: 0.85rem;">
+                                        <div>
+                                            <span style="font-weight: 600; color: #1f2937;">{{ $team->nombre }}</span>
+                                            <span style="color: #6b7280; font-size: 0.75rem;">({{ $team->participantes->count() }} miembros)</span>
+                                        </div>
+                                        <div style="display: flex; gap: 5px;">
+                                            <!-- Edit Team (Redirect to Team Management) -->
+                                            <a href="{{ route('team') }}" style="color: #4f46e5; text-decoration: none;" title="Gestionar en Equipos">
+                                                <span class="material-icons" style="font-size: 16px;">open_in_new</span>
+                                            </a>
+                                            <!-- Delete Team -->
+                                            <form action="{{ route('team.destroy', $team->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('¿Eliminar equipo {{ $team->nombre }}?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" style="background: none; border: none; cursor: pointer; color: #ef4444; padding: 0;" title="Eliminar Equipo">
+                                                    <span class="material-icons" style="font-size: 16px;">delete</span>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @else
+                            <p style="font-size: 0.85rem; color: #9ca3af; font-style: italic;">No hay equipos registrados.</p>
+                        @endif
                     </div>
                 @endrole
             </div>
@@ -346,6 +384,15 @@
     </div>
 
     <script>
+        function toggleTeams(id) {
+            const element = document.getElementById(id);
+            if (element.style.display === 'none') {
+                element.style.display = 'block';
+            } else {
+                element.style.display = 'none';
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             // ... (Existing Modal Logic) ...
             // Modal Registro Logic

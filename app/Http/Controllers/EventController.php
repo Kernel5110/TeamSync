@@ -12,7 +12,7 @@ class EventController extends Controller
      */
     public function index()
     {
-        $eventos = Evento::all();
+        $eventos = Evento::with('equipos.participantes.user')->get();
         $equipo = null;
         
         if (auth()->check() && auth()->user()->participante) {
