@@ -25,6 +25,26 @@ class TeamController extends Controller
         return view('team', compact('equipo', 'eventos', 'allTeams'));
     }
 
+    public function search(Request $request)
+    {
+        $query = $request->input('query');
+        $teams = [];
+        
+        if ($query) {
+            $teams = Equipo::where('nombre', 'LIKE', "%{$query}%")
+                ->with(['evento', 'participantes'])
+                ->get();
+        }
+
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('partials.team_search_results', compact('teams'))->render()
+            ]);
+        }
+
+        return view('team_search', compact('teams', 'query'));
+    }
+
     public function update(Request $request, $id)
     {
         if (!Auth::user()->can('edit teams')) {
@@ -83,6 +103,12 @@ class TeamController extends Controller
         }
 
         $evento = Evento::findOrFail($request->evento_id);
+        
+        // Validate Event Status
+        if ($evento->status !== 'En Curso' && $evento->status !== 'Próximo') {
+             return back()->with('error', 'El evento no está disponible para registros (Estado: ' . $evento->status . ').');
+        }
+
         if ($evento->equipos()->count() >= $evento->capacidad) {
             return back()->with('error', 'El evento ha alcanzado su capacidad máxima de equipos.');
         }
@@ -134,6 +160,41 @@ class TeamController extends Controller
         return back()->with('success', 'Miembro agregado exitosamente.');
     }
 
+    public function removeMember(Request $request, $team_id)
+    {
+        $user = Auth::user();
+        $equipo = Equipo::findOrFail($team_id);
+
+        // Check permissions: Admin or Team Leader
+        $isLeader = $user->participante && $user->participante->equipo_id == $equipo->id && $user->participante->rol == 'Líder';
+        if (!$user->hasRole('admin') && !$isLeader) {
+            abort(403, 'No tienes permiso para eliminar miembros.');
+        }
+
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+        ]);
+
+        $memberUser = User::findOrFail($request->user_id);
+        $memberParticipante = $memberUser->participante;
+
+        if (!$memberParticipante || $memberParticipante->equipo_id !== $equipo->id) {
+            return back()->with('error', 'El usuario no pertenece a este equipo.');
+        }
+
+        // Prevent removing the leader if they are the only one, or handle leader transfer (not implemented yet)
+        // For now, just allow removing anyone, but maybe warn if it's the leader?
+        // If leader leaves, team might be leaderless.
+        // Let's just allow it for now as per request "administrar".
+
+        $memberParticipante->update([
+            'equipo_id' => null,
+            'rol' => null,
+        ]);
+
+        return back()->with('success', 'Miembro eliminado del equipo.');
+    }
+
     public function requestJoin($equipo_id)
     {
         $user = Auth::user();
@@ -141,6 +202,10 @@ class TeamController extends Controller
 
         if (!$participante) {
             return back()->with('error', 'Debes completar tu registro de participante primero.');
+        }
+
+        if ($user->hasRole('admin')) {
+            return back()->with('error', 'Los administradores no pueden unirse a equipos.');
         }
 
         if ($participante->equipo_id) {

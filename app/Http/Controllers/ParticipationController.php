@@ -49,7 +49,14 @@ class ParticipationController extends Controller
             }
         }
 
-        return view('participation', compact('evento', 'equipo', 'rank'));
+            if ($foundRank !== false) {
+                $rank = $foundRank + 1;
+            }
+        }
+
+        $isEvaluated = $equipo->evaluations()->exists();
+
+        return view('participation', compact('evento', 'equipo', 'rank', 'isEvaluated'));
     }
 
     public function upload(Request $request, $evento_id)
@@ -65,29 +72,18 @@ class ParticipationController extends Controller
         $evento = Evento::findOrFail($evento_id);
         
         // Find the team of the current user for this event.
-        // This is a bit complex without knowing the exact relationship structure fully.
-        // Let's assume for now we can find the team.
-        // If the user is logged in, we can check their participants records.
-        
         $user = Auth::user();
-        // Assuming a user has one participant record per event or globally?
-        // Let's look at the schema again if needed.
-        // 'participantes' table has 'equipo_id'. 'equipos' has 'evento_id'.
-        
-        // We need to find a participant record for this user that belongs to a team in this event.
         $equipo = Equipo::where('evento_id', $evento_id)
             ->whereHas('participantes', function($query) use ($user) {
                 $query->where('usuario_id', $user->id); 
             })->first();
 
         if (!$equipo) {
-             // Fallback: try to find if the user is the CREATOR of the team or similar?
-             // Or maybe just any team the user is in.
-             // Let's check 'participantes' table schema again to be sure about 'user_id'.
-             // Wait, I didn't check 'participantes' schema fully.
-             // Let's assume standard relation. If not, I'll debug.
-             
              return back()->with('error', 'No eres parte de un equipo en este evento.');
+        }
+
+        if ($equipo->evaluations()->exists()) {
+            return back()->with('error', 'No puedes editar el proyecto porque ya ha sido evaluado.');
         }
 
         $equipo->update([
@@ -99,7 +95,5 @@ class ParticipationController extends Controller
         ]);
 
         return back()->with('success', 'Información del proyecto actualizada exitosamente.');
-
-        return back()->with('error', 'Error al subir el archivo.');
     }
 }

@@ -50,37 +50,46 @@
                     </div>
                 @endif
 
+                @if($isEvaluated)
+                    <div style="background-color: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                        <span class="material-icons" style="vertical-align: middle; margin-right: 5px;">lock</span>
+                        Tu proyecto ya ha sido evaluado por los jueces. No se pueden realizar más cambios.
+                    </div>
+                @endif
+
                 <form action="{{ route('participation.upload', $evento->id) }}" method="POST" class="form-upload">
                     @csrf
                     
                     <div class="form-group">
                         <label for="project_name">Nombre del Proyecto</label>
-                        <input type="text" name="project_name" id="project_name" class="input-text" required placeholder="Ej. Sistema de Gestión Inteligente">
+                        <input type="text" name="project_name" id="project_name" class="input-text" required placeholder="Ej. Sistema de Gestión Inteligente" value="{{ $equipo->project_name ?? '' }}" {{ $isEvaluated ? 'disabled' : '' }}>
                     </div>
 
                     <div class="form-group">
                         <label for="technologies">Tecnologías a usar</label>
-                        <input type="text" name="technologies" id="technologies" class="input-text" required placeholder="Ej. Laravel, Vue.js, MySQL">
+                        <input type="text" name="technologies" id="technologies" class="input-text" required placeholder="Ej. Laravel, Vue.js, MySQL" value="{{ $equipo->technologies ?? '' }}" {{ $isEvaluated ? 'disabled' : '' }}>
                     </div>
 
                     <div class="form-group">
                         <label for="github_repo">Repositorio de GitHub</label>
-                        <input type="url" name="github_repo" id="github_repo" class="input-text" required placeholder="https://github.com/usuario/repo">
+                        <input type="url" name="github_repo" id="github_repo" class="input-text" required placeholder="https://github.com/usuario/repo" value="{{ $equipo->github_repo ?? '' }}" {{ $isEvaluated ? 'disabled' : '' }}>
                     </div>
 
                     <div class="form-group">
                         <label for="github_pages">GitHub Pages (Opcional)</label>
-                        <input type="url" name="github_pages" id="github_pages" class="input-text" placeholder="https://usuario.github.io/repo">
+                        <input type="url" name="github_pages" id="github_pages" class="input-text" placeholder="https://usuario.github.io/repo" value="{{ $equipo->github_pages ?? '' }}" {{ $isEvaluated ? 'disabled' : '' }}>
                     </div>
 
                     <div class="form-group">
                         <label for="project_description">Descripción y Avances</label>
-                        <textarea name="project_description" id="project_description" class="input-textarea" rows="5" required placeholder="Describe tu proyecto y los avances realizados..."></textarea>
+                        <textarea name="project_description" id="project_description" class="input-textarea" rows="5" required placeholder="Describe tu proyecto y los avances realizados..." {{ $isEvaluated ? 'disabled' : '' }}>{{ $equipo->project_description ?? '' }}</textarea>
                     </div>
                     
-                    <button type="submit" class="btn-subir">
-                        Guardar Información
-                    </button>
+                    @if(!$isEvaluated)
+                        <button type="submit" class="btn-subir">
+                            Guardar Información
+                        </button>
+                    @endif
                 </form>
 
                 <div class="timeline-section" style="margin-top: 40px;">

@@ -24,10 +24,11 @@
                 <h1>Equipo</h1>
                 <p>Gestiona tu equipo de desarrollo y colaboradores</p>
             </div>
-            <div class="acciones-equipo">
-                <a href="#" class="btn-buscar">
-                    <span class="material-icons">search</span> Buscar
-                </a>
+            <div class="acciones-equipo" style="display: flex; gap: 10px; align-items: center;">
+                <div class="search-container" style="position: relative;">
+                    <span class="material-icons" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #6b7280;">search</span>
+                    <input type="text" id="search-team-input" placeholder="Buscar equipo..." style="padding: 8px 10px 8px 35px; border: 1px solid #d1d5db; border-radius: 20px; font-size: 0.9rem; width: 200px; transition: width 0.3s;">
+                </div>
                 @if(!$equipo)
                     <a href="#modal-crear-equipo" class="btn-nuevo">
                         <span class="material-icons">add</span> Nuevo
@@ -95,25 +96,27 @@
                 </div>
             </div>
         @else
-            <div class="tarjeta-miembros" style="text-align: center; padding: 3rem;">
-                <span class="material-icons" style="font-size: 4rem; color: #d1d5db;">groups</span>
-                <h2 style="margin-top: 1rem; color: #374151;">No tienes un equipo aún</h2>
-                <p style="color: #6b7280; margin-bottom: 2rem;">Crea un equipo para participar en eventos o espera a ser invitado.</p>
-                <a href="#modal-crear-equipo" class="btn-nuevo" style="display: inline-flex;">
-                    Crear Equipo
-                </a>
-            </div>
+            @unlessrole('admin')
+                <div class="tarjeta-miembros" style="text-align: center; padding: 3rem;">
+                    <span class="material-icons" style="font-size: 4rem; color: #d1d5db;">groups</span>
+                    <h2 style="margin-top: 1rem; color: #374151;">No tienes un equipo aún</h2>
+                    <p style="color: #6b7280; margin-bottom: 2rem;">Crea un equipo para participar en eventos o espera a ser invitado.</p>
+                    <a href="#modal-crear-equipo" class="btn-nuevo" style="display: inline-flex;">
+                        Crear Equipo
+                    </a>
+                </div>
+            @endunlessrole
         @endif
     </div>
 
     @role('admin')
         <div class="contenedor-equipo" style="margin-top: 40px;">
-            <div class="header-equipo">
-                <div>
-                    <h2>Administración de Equipos</h2>
-                    <p>Vista global de todos los equipos registrados</p>
-                </div>
-            </div>
+            <div class="team-header">
+            <h1>Gestión de Equipo</h1>
+            <p>Administra tu equipo y miembros</p>
+        </div>
+            <p>Vista global de todos los equipos registrados</p>
+            
 
             @if(isset($allTeams) && $allTeams->count() > 0)
                 <div class="tarjeta-miembros">
@@ -133,12 +136,19 @@
                                     <td>{{ $t->id }}</td>
                                     <td>{{ $t->nombre }}</td>
                                     <td>{{ $t->evento->nombre ?? 'N/A' }}</td>
-                                    <td>{{ $t->participantes->count() }}</td>
+                                    <td>
+                                        <ul style="margin: 0; padding-left: 20px; font-size: 0.9rem;">
+                                            @foreach($t->participantes as $p)
+                                                <li>{{ $p->user->name }}</li>
+                                            @endforeach
+                                        </ul>
+                                    </td>
                                     <td>
                                         <button class="btn-editar-equipo" 
                                                 data-id="{{ $t->id }}" 
                                                 data-nombre="{{ $t->nombre }}" 
                                                 data-evento-id="{{ $t->evento_id }}"
+                                                data-members="{{ $t->participantes->map(function($p) { return ['id' => $p->user->id, 'name' => $p->user->name, 'rol' => $p->rol]; })->toJson() }}"
                                                 style="background: none; border: none; cursor: pointer; color: #4f46e5; margin-right: 10px;">
                                             <span class="material-icons">edit</span>
                                         </button>
@@ -181,7 +191,19 @@
                         @endforeach
                     </select>
                 </div>
+                <div class="form-group">
+                    <label>Miembros del Equipo</label>
+                    <div id="edit-members-list" style="border: 1px solid #d1d5db; border-radius: 8px; padding: 10px; max-height: 150px; overflow-y: auto;">
+                        <!-- Members populated by JS -->
+                    </div>
+                </div>
                 <button type="submit" class="btn-submit">Actualizar Equipo</button>
+            </form>
+            
+            <!-- Hidden form for removing members -->
+            <form id="form-remove-member" method="POST" style="display: none;">
+                @csrf
+                <input type="hidden" name="user_id" id="remove-user-id">
             </form>
         </div>
     </div>
@@ -201,10 +223,52 @@
                     const id = this.getAttribute('data-id');
                     const nombre = this.getAttribute('data-nombre');
                     const eventoId = this.getAttribute('data-evento-id');
+                    const members = JSON.parse(this.getAttribute('data-members'));
 
                     formEditar.action = "/team/" + id;
                     inputNombre.value = nombre;
                     selectEvento.value = eventoId;
+
+                    // Populate members list
+                    const membersList = document.getElementById('edit-members-list');
+                    membersList.innerHTML = '';
+                    if (members.length > 0) {
+                        members.forEach(member => {
+                            const div = document.createElement('div');
+                            div.style.display = 'flex';
+                            div.style.justifyContent = 'space-between';
+                            div.style.alignItems = 'center';
+                            div.style.marginBottom = '5px';
+                            div.style.padding = '5px';
+                            div.style.borderBottom = '1px solid #f3f4f6';
+
+                            const nameSpan = document.createElement('span');
+                            nameSpan.textContent = member.name + (member.rol === 'Líder' ? ' (Líder)' : '');
+                            
+                            const removeBtn = document.createElement('button');
+                            removeBtn.type = 'button';
+                            removeBtn.innerHTML = '<span class="material-icons" style="font-size: 16px;">close</span>';
+                            removeBtn.style.background = 'none';
+                            removeBtn.style.border = 'none';
+                            removeBtn.style.color = '#ef4444';
+                            removeBtn.style.cursor = 'pointer';
+                            removeBtn.title = 'Eliminar miembro';
+                            removeBtn.onclick = function() {
+                                if(confirm('¿Eliminar a ' + member.name + ' del equipo?')) {
+                                    const removeForm = document.getElementById('form-remove-member');
+                                    document.getElementById('remove-user-id').value = member.id;
+                                    removeForm.action = "/team/" + id + "/remove-member";
+                                    removeForm.submit();
+                                }
+                            };
+
+                            div.appendChild(nameSpan);
+                            div.appendChild(removeBtn);
+                            membersList.appendChild(div);
+                        });
+                    } else {
+                        membersList.innerHTML = '<p style="color: #9ca3af; text-align: center;">Sin miembros</p>';
+                    }
 
                     modalEditar.style.display = 'flex';
                 });
@@ -263,4 +327,83 @@
             </form>
         </div>
     </div>
+    <!-- Modal Buscar Equipo -->
+    <div id="modal-buscar-equipo" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <span class="close-modal" id="close-buscar-equipo">&times;</span>
+            <h2 style="margin-bottom: 1.5rem;">Resultados de Búsqueda</h2>
+            <div id="search-results-container">
+                <!-- Results will be loaded here -->
+                <p style="text-align: center; color: #6b7280;">Escribe en el buscador para encontrar equipos.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Search Logic
+            const searchInput = document.getElementById('search-team-input');
+            const modalBuscar = document.getElementById('modal-buscar-equipo');
+            const closeBuscar = document.getElementById('close-buscar-equipo');
+            const resultsContainer = document.getElementById('search-results-container');
+            let timeout = null;
+
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    const query = this.value;
+                    
+                    clearTimeout(timeout);
+
+                    if (query.length > 0) {
+                        modalBuscar.style.display = 'flex';
+                        resultsContainer.innerHTML = '<p style="text-align: center; padding: 20px;">Buscando...</p>';
+
+                        timeout = setTimeout(() => {
+                            fetch(`{{ route('team.search') }}?query=${encodeURIComponent(query)}`, {
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                resultsContainer.innerHTML = data.html;
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                resultsContainer.innerHTML = '<p style="text-align: center; color: red;">Error al buscar equipos.</p>';
+                            });
+                        }, 500); // Debounce
+                    } else {
+                        modalBuscar.style.display = 'none';
+                    }
+                });
+            }
+
+            if (closeBuscar) {
+                closeBuscar.onclick = function() {
+                    modalBuscar.style.display = 'none';
+                }
+            }
+
+            // Close modal when clicking outside
+            window.onclick = function(event) {
+                if (event.target == modalBuscar) {
+                    modalBuscar.style.display = 'none';
+                }
+                // Existing modals
+                const modalEditar = document.getElementById('modal-editar-equipo');
+                if (event.target == modalEditar) {
+                    modalEditar.style.display = 'none';
+                }
+                const modalCrear = document.getElementById('modal-crear-equipo');
+                if (event.target == modalCrear) {
+                    modalCrear.style.display = 'none';
+                }
+                const modalAgregar = document.getElementById('modal-agregar-miembro');
+                if (event.target == modalAgregar) {
+                    modalAgregar.style.display = 'none';
+                }
+            }
+        });
+    </script>
 @endsection

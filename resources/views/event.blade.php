@@ -56,7 +56,16 @@
                         </div>
                         <h2>{{ $evento->nombre }}</h2>
                     </div>
-                    <span class="badge-proximo">Próximo</span>
+                    @php
+                        $status = $evento->status;
+                        $badgeColor = match($status) {
+                            'En Curso' => '#10b981', // Green
+                            'Próximo' => '#3b82f6', // Blue
+                            'Finalizado' => '#6b7280', // Gray
+                            default => '#3b82f6'
+                        };
+                    @endphp
+                    <span class="badge-proximo" style="background-color: {{ $badgeColor }};">{{ $status }}</span>
                 </div>
                 
                 @if($evento->categoria)
@@ -125,9 +134,15 @@
                                     Ver Proyecto
                                 </a>
                             @else
-                                <button class="btn-registrar" data-id="{{ $evento->id }}" data-nombre="{{ $evento->nombre }}" style="background-color: #4f46e5; color: white; padding: 0.75rem; border-radius: 9999px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: background-color 0.2s; border: none; cursor: pointer;">
-                                    Participar
-                                </button>
+                                @if($evento->status !== 'Finalizado')
+                                    <button class="btn-registrar" data-id="{{ $evento->id }}" data-nombre="{{ $evento->nombre }}" style="background-color: #4f46e5; color: white; padding: 0.75rem; border-radius: 9999px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: background-color 0.2s; border: none; cursor: pointer;">
+                                        Participar
+                                    </button>
+                                @else
+                                    <button disabled style="background-color: #9ca3af; color: white; padding: 0.75rem; border-radius: 9999px; border: none; font-weight: 600; font-size: 1rem; cursor: not-allowed;">
+                                        Finalizado
+                                    </button>
+                                @endif
                             @endif
                         @endunlessrole
                     @endhasrole

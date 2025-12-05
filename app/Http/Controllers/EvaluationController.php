@@ -38,6 +38,11 @@ class EvaluationController extends Controller
             abort(404, 'El equipo no pertenece a este evento.');
         }
 
+        // Check if team has submitted project
+        if (empty($equipo->project_name) || empty($equipo->github_repo)) {
+            return redirect()->route('event.evaluate', $evento_id)->with('error', 'El equipo aún no ha subido la información de su proyecto.');
+        }
+
         $evaluation = \App\Models\Evaluation::where('user_id', auth()->id())
             ->where('equipo_id', $equipo_id)
             ->where('evento_id', $evento_id)

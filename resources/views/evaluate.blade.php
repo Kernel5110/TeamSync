@@ -11,6 +11,18 @@
         <p>Panel de Juez - Calificación de Proyectos</p>
     </div>
 
+    @if(session('error'))
+        <div style="width: 100%; background-color: #fee2e2; color: #991b1b; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; border: 1px solid #fecaca;">
+            {{ session('error') }}
+        </div>
+    @endif
+
+    @if(session('success'))
+        <div style="width: 100%; background-color: #d1fae5; color: #065f46; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; border: 1px solid #a7f3d0;">
+            {{ session('success') }}
+        </div>
+    @endif
+
     <div class="evaluation-grid">
         <!-- Lista de Equipos -->
         <div class="teams-section">
