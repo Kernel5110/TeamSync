@@ -11,7 +11,7 @@
 
     @if($ranking->isEmpty())
         <div style="text-align: center; padding: 50px; background: white; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-            <span class="material-icons" style="font-size: 64px; color: #9ca3af; margin-bottom: 20px;">emoji_events</span>
+            <x-icon name="emoji_events" style="width: 96px; height: 96px; color: #9ca3af; margin-bottom: 20px;" />
             <h3 style="font-size: 1.5rem; color: #374151; margin-bottom: 10px;">Aún no hay resultados</h3>
             <p style="color: #6b7280;">Las evaluaciones aún no han comenzado o no hay equipos registrados.</p>
         </div>
@@ -21,8 +21,8 @@
             <div class="podium-container" style="display: flex; justify-content: center; align-items: flex-end; gap: 20px; margin-bottom: 60px;">
                 <!-- 2nd Place -->
                 <div class="podium-item" style="text-align: center; width: 200px;">
-                    <div style="margin-bottom: 10px;">
-                        <span class="material-icons" style="font-size: 40px; color: #94a3b8;">emoji_events</span>
+                    <div style="margin-bottom: 10px; display: flex; justify-content: center;">
+                        <x-icon name="emoji_events" style="width: 90px; height: 90px; color: #94a3b8;" />
                     </div>
                     <div style="background: white; padding: 20px; border-radius: 12px 12px 0 0; border-top: 4px solid #94a3b8; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); height: 180px; display: flex; flex-direction: column; justify-content: center;">
                         <h3 style="font-weight: 700; color: #1f2937; margin-bottom: 5px;">{{ $ranking[1]['equipo']->nombre }}</h3>
@@ -34,8 +34,8 @@
                 
                 <!-- 1st Place -->
                 <div class="podium-item" style="text-align: center; width: 220px;">
-                    <div style="margin-bottom: 10px;">
-                        <span class="material-icons" style="font-size: 50px; color: #fbbf24;">emoji_events</span>
+                    <div style="margin-bottom: 10px; display: flex; justify-content: center;">
+                        <x-icon name="emoji_events" style="width: 120px; height: 120px; color: #fbbf24;" />
                     </div>
                     <div style="background: white; padding: 20px; border-radius: 12px 12px 0 0; border-top: 4px solid #fbbf24; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); height: 220px; display: flex; flex-direction: column; justify-content: center; position: relative; z-index: 10;">
                         <h3 style="font-weight: 800; color: #1f2937; margin-bottom: 5px; font-size: 1.3rem;">{{ $ranking[0]['equipo']->nombre }}</h3>
@@ -47,8 +47,8 @@
 
                 <!-- 3rd Place -->
                 <div class="podium-item" style="text-align: center; width: 200px;">
-                    <div style="margin-bottom: 10px;">
-                        <span class="material-icons" style="font-size: 40px; color: #b45309;">emoji_events</span>
+                    <div style="margin-bottom: 10px; display: flex; justify-content: center;">
+                        <x-icon name="emoji_events" style="width: 90px; height: 90px; color: #b45309;" />
                     </div>
                     <div style="background: white; padding: 20px; border-radius: 12px 12px 0 0; border-top: 4px solid #b45309; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); height: 150px; display: flex; flex-direction: column; justify-content: center;">
                         <h3 style="font-weight: 700; color: #1f2937; margin-bottom: 5px;">{{ $ranking[2]['equipo']->nombre }}</h3>
@@ -78,11 +78,11 @@
                             <td style="padding: 16px 24px; white-space: nowrap;">
                                 <div style="display: flex; align-items: center;">
                                     @if($index == 0)
-                                        <span class="material-icons" style="color: #fbbf24; margin-right: 8px;">emoji_events</span>
+                                        <x-icon name="emoji_events" style="color: #fbbf24; margin-right: 8px;" />
                                     @elseif($index == 1)
-                                        <span class="material-icons" style="color: #94a3b8; margin-right: 8px;">emoji_events</span>
+                                        <x-icon name="emoji_events" style="color: #94a3b8; margin-right: 8px;" />
                                     @elseif($index == 2)
-                                        <span class="material-icons" style="color: #b45309; margin-right: 8px;">emoji_events</span>
+                                        <x-icon name="emoji_events" style="color: #b45309; margin-right: 8px;" />
                                     @else
                                         <span style="font-weight: 600; color: #6b7280; width: 24px; text-align: center;">{{ $index + 1 }}</span>
                                     @endif

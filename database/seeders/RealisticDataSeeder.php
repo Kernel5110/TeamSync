@@ -112,9 +112,9 @@ class RealisticDataSeeder extends Seeder
                         'equipo_id' => $equipo->id,
                         'user_id' => $judgeUser->id,
                         'evento_id' => $evento->id,
-                        'score_innovation' => rand(70, 100),
-                        'score_social_impact' => rand(70, 100),
-                        'score_technical_viability' => rand(70, 100),
+                        'score_innovation' => rand(5, 10),
+                        'score_social_impact' => rand(5, 10),
+                        'score_technical_viability' => rand(5, 10),
                         'comments' => 'Excelente proyecto, muy buena implementación técnica y gran impacto social.',
                     ]);
                 }

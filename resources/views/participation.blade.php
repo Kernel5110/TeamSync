@@ -24,13 +24,13 @@
 
             @if(isset($rank) && $rank <= 3)
                 <div class="seccion-ganador" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 2px solid #fbbf24; border-radius: 12px; padding: 20px; margin-bottom: 30px; text-align: center;">
-                    <span class="material-icons" style="font-size: 48px; color: #d97706; margin-bottom: 10px;">emoji_events</span>
+                    <x-icon name="emoji_events" style="font-size: 48px; color: #d97706; margin-bottom: 10px;" />
                     <h2 style="color: #92400e; margin-bottom: 10px;">¡Felicidades!</h2>
                     <p style="color: #b45309; font-size: 1.1rem; margin-bottom: 20px;">
                         Tu equipo ha obtenido el <strong>{{ $rank }}º Lugar</strong> en este evento.
                     </p>
                     <a href="{{ route('event.certificate', ['evento_id' => $evento->id, 'equipo_id' => $equipo->id]) }}" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; background-color: #d97706; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; transition: background-color 0.2s;">
-                        <span class="material-icons">download</span> Descargar Certificado
+                        <x-icon name="download" /> Descargar Certificado
                     </a>
                 </div>
             @endif
@@ -52,7 +52,7 @@
 
                 @if($isEvaluated)
                     <div style="background-color: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                        <span class="material-icons" style="vertical-align: middle; margin-right: 5px;">lock</span>
+                        <x-icon name="lock" style="vertical-align: middle; margin-right: 5px;" />
                         Tu proyecto ya ha sido evaluado por los jueces. No se pueden realizar más cambios.
                     </div>
                 @endif

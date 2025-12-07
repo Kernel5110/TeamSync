@@ -51,7 +51,7 @@
         <!-- Panel de Evaluación -->
         <div class="evaluation-panel">
             <div style="text-align: center; padding: 40px; color: #6b7280;">
-                <span class="material-icons" style="font-size: 48px; margin-bottom: 20px; color: #9ca3af;">touch_app</span>
+                <x-icon name="touch_app" style="font-size: 48px; margin-bottom: 20px; color: #9ca3af;" />
                 <h3 style="font-size: 1.2rem; font-weight: 600; margin-bottom: 10px;">Selecciona un equipo</h3>
                 <p>Haz clic en un equipo de la lista para ver su proyecto y realizar la evaluación.</p>
             </div>

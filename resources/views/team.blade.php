@@ -26,16 +26,16 @@
             </div>
             <div class="acciones-equipo" style="display: flex; gap: 10px; align-items: center;">
                 <div class="search-container" style="position: relative;">
-                    <span class="material-icons" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #6b7280;">search</span>
+                    <x-icon name="search" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #6b7280;" />
                     <input type="text" id="search-team-input" placeholder="Buscar equipo..." style="padding: 8px 10px 8px 35px; border: 1px solid #d1d5db; border-radius: 20px; font-size: 0.9rem; width: 200px; transition: width 0.3s;">
                 </div>
                 @if(!$equipo)
                     <a href="#modal-crear-equipo" class="btn-nuevo">
-                        <span class="material-icons">add</span> Nuevo
+                        <x-icon name="add" /> Nuevo
                     </a>
                 @else
                     <a href="#modal-agregar-miembro" class="btn-nuevo">
-                        <span class="material-icons">person_add</span> Agregar Miembro
+                        <x-icon name="person_add" /> Agregar Miembro
                     </a>
                 @endif
             </div>
@@ -66,8 +66,8 @@
                                         if (stripos($participante->rol, 'diseñador') !== false) $rolClass = 'rol-disenador';
                                     @endphp
                                     <span class="badge-rol {{ $rolClass }}">
-                                        @if($rolClass == 'rol-programador') <span class="material-icons" style="font-size: 14px;">code</span> @endif
-                                        @if($rolClass == 'rol-disenador') <span class="material-icons" style="font-size: 14px;">palette</span> @endif
+                                        @if($rolClass == 'rol-programador') <x-icon name="code" style="font-size: 14px;" /> @endif
+                                        @if($rolClass == 'rol-disenador') <x-icon name="palette" style="font-size: 14px;" /> @endif
                                         {{ $participante->rol ?? 'Miembro' }}
                                     </span>
                                 </td>
@@ -98,7 +98,7 @@
         @else
             @unlessrole('admin')
                 <div class="tarjeta-miembros" style="text-align: center; padding: 3rem;">
-                    <span class="material-icons" style="font-size: 4rem; color: #d1d5db;">groups</span>
+                    <x-icon name="groups" style="font-size: 4rem; color: #d1d5db;" />
                     <h2 style="margin-top: 1rem; color: #374151;">No tienes un equipo aún</h2>
                     <p style="color: #6b7280; margin-bottom: 2rem;">Crea un equipo para participar en eventos o espera a ser invitado.</p>
                     <a href="#modal-crear-equipo" class="btn-nuevo" style="display: inline-flex;">
@@ -150,13 +150,13 @@
                                                 data-evento-id="{{ $t->evento_id }}"
                                                 data-members="{{ $t->participantes->map(function($p) { return ['id' => $p->user->id, 'name' => $p->user->name, 'rol' => $p->rol]; })->toJson() }}"
                                                 style="background: none; border: none; cursor: pointer; color: #4f46e5; margin-right: 10px;">
-                                            <span class="material-icons">edit</span>
+                                            <x-icon name="edit" />
                                         </button>
                                         <form action="{{ route('team.destroy', $t->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('¿Estás seguro de eliminar este equipo?');">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" style="background: none; border: none; cursor: pointer; color: #ef4444;">
-                                                <span class="material-icons">delete</span>
+                                                <x-icon name="delete" />
                                             </button>
                                         </form>
                                     </td>
@@ -247,7 +247,7 @@
                             
                             const removeBtn = document.createElement('button');
                             removeBtn.type = 'button';
-                            removeBtn.innerHTML = '<span class="material-icons" style="font-size: 16px;">close</span>';
+                            removeBtn.innerHTML = '<x-icon name="close" style="font-size: 16px;" />';
                             removeBtn.style.background = 'none';
                             removeBtn.style.border = 'none';
                             removeBtn.style.color = '#ef4444';

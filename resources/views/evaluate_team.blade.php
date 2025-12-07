@@ -25,7 +25,7 @@
                     <ul style="list-style: none; padding: 0;">
                         @foreach($equipo->participantes as $participante)
                             <li style="margin-bottom: 5px; color: #374151;">
-                                <span class="material-icons" style="font-size: 16px; vertical-align: middle; color: #9ca3af;">person</span>
+                                <x-icon name="person" style="font-size: 16px; vertical-align: middle; color: #9ca3af;" />
                                 {{ $participante->user->name }}
                             </li>
                         @endforeach
@@ -68,12 +68,12 @@
                     <div style="display: flex; gap: 15px;">
                         @if($equipo->github_repo)
                             <a href="{{ $equipo->github_repo }}" target="_blank" style="display: inline-flex; align-items: center; gap: 5px; color: #2563eb; text-decoration: none; font-weight: 500;">
-                                <span class="material-icons">code</span> Repositorio
+                                <x-icon name="code" /> Repositorio
                             </a>
                         @endif
                         @if($equipo->github_pages)
                             <a href="{{ $equipo->github_pages }}" target="_blank" style="display: inline-flex; align-items: center; gap: 5px; color: #2563eb; text-decoration: none; font-weight: 500;">
-                                <span class="material-icons">launch</span> Demo
+                                <x-icon name="launch" /> Demo
                             </a>
                         @endif
                         @if(!$equipo->github_repo && !$equipo->github_pages)

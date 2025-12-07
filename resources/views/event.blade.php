@@ -38,7 +38,7 @@
         @can('create events')
             <div style="position: absolute; top: 100px; right: 20px; z-index: 100;">
                 <button id="btn-crear-evento" class="btn-confirmar" style="width: auto; padding: 8px 15px; font-size: 0.9rem;">
-                    <span class="material-icons" style="vertical-align: middle; margin-right: 5px; font-size: 1.1rem;">add</span> Crear Evento
+                    <x-icon name="add" style="vertical-align: middle; margin-right: 5px; font-size: 1.1rem;" /> Crear Evento
                 </button>
             </div>
         @endcan
@@ -108,7 +108,7 @@
                     </a>
 
                     <a href="{{ route('event.ranking', $evento->id) }}" class="btn-ranking" style="background-color: #f59e0b; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: background-color 0.2s; display: inline-flex; align-items: center; gap: 5px;">
-                        <span class="material-icons" style="font-size: 18px;">emoji_events</span> Ranking
+                        <x-icon name="emoji_events" style="font-size: 18px;" /> Ranking
                     </a>
 
                     @hasrole('juez')
@@ -152,7 +152,7 @@
                 @role('admin')
                     <div class="admin-actions">
                         <button class="btn-admin-action judge btn-assign-judge" data-id="{{ $evento->id }}" title="Asignar Juez">
-                            <span class="material-icons">gavel</span>
+                            <x-icon name="gavel" />
                         </button>
                         
                         <button class="btn-admin-action edit btn-editar-evento" 
@@ -165,20 +165,20 @@
                                 data-capacidad="{{ $evento->capacidad }}"
                                 data-categoria="{{ $evento->categoria }}"
                                 title="Editar Evento">
-                            <span class="material-icons">edit</span>
+                            <x-icon name="edit" />
                         </button>
 
                         <button class="btn-admin-action view-teams btn-ver-equipos" 
                                 onclick="toggleTeams('teams-{{ $evento->id }}')"
                                 title="Ver Equipos Registrados">
-                            <span class="material-icons">groups</span>
+                            <x-icon name="groups" />
                         </button>
                         
                         <form action="{{ route('event.delete', $evento->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('¿Estás seguro de eliminar este evento?');">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="btn-admin-action delete" title="Eliminar Evento">
-                                <span class="material-icons">delete</span>
+                                <x-icon name="delete" />
                             </button>
                         </form>
                     </div>
@@ -197,14 +197,14 @@
                                         <div style="display: flex; gap: 5px;">
                                             <!-- Edit Team (Redirect to Team Management) -->
                                             <a href="{{ route('team') }}" style="color: #4f46e5; text-decoration: none;" title="Gestionar en Equipos">
-                                                <span class="material-icons" style="font-size: 16px;">open_in_new</span>
+                                                <x-icon name="open_in_new" style="font-size: 16px;" />
                                             </a>
                                             <!-- Delete Team -->
                                             <form action="{{ route('team.destroy', $team->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('¿Eliminar equipo {{ $team->nombre }}?');">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" style="background: none; border: none; cursor: pointer; color: #ef4444; padding: 0;" title="Eliminar Equipo">
-                                                    <span class="material-icons" style="font-size: 16px;">delete</span>
+                                                    <x-icon name="delete" style="font-size: 16px;" />
                                                 </button>
                                             </form>
                                         </div>
@@ -292,7 +292,7 @@
                 <div class="form-group">
                     <label for="evento-nombre">Nombre del Evento</label>
                     <div class="input-with-icon">
-                        <span class="material-icons"></span>
+                        <x-icon name="label" />
                         <input type="text" id="evento-nombre" name="nombre" required>
                     </div>
                 </div>
@@ -303,35 +303,35 @@
                 <div class="form-group">
                     <label for="evento-fecha-inicio">Fecha Inicio</label>
                     <div class="input-with-icon">
-                        <span class="material-icons"></span>
+                        <x-icon name="date_range" />
                         <input type="date" id="evento-fecha-inicio" name="fecha_inicio" required>
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="evento-fecha-fin">Fecha Fin</label>
                     <div class="input-with-icon">
-                        <span class="material-icons"></span>
+                        <x-icon name="date_range" />
                         <input type="date" id="evento-fecha-fin" name="fecha_fin" required>
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="evento-ubicacion">Ubicación</label>
                     <div class="input-with-icon">
-                        <span class="material-icons"></span>
+                        <x-icon name="place" />
                         <input type="text" id="evento-ubicacion" name="ubicacion" required>
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="evento-capacidad">Capacidad</label>
                     <div class="input-with-icon">
-                        <span class="material-icons">group</span>
+                        <x-icon name="group" />
                         <input type="number" id="evento-capacidad" name="capacidad" required>
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="evento-categoria">Categoría</label>
                     <div class="input-with-icon">
-                        <span class="material-icons">category</span>
+                        <x-icon name="category" />
                         <select id="evento-categoria-select" name="categoria_select" style="width: 100%; padding: 12px 12px 12px 40px; border: 1px solid #e5e7eb; background-color: #f9fafb; border-radius: 8px; font-size: 15px; outline: none; color: #1f2937;">
                             <option value="">Seleccionar Categoría</option>
                             <option value="Fintech">Fintech</option>
@@ -346,7 +346,7 @@
                         </select>
                     </div>
                     <div class="input-with-icon" id="container-nueva-categoria" style="display: none; margin-top: 10px;">
-                        <span class="material-icons">add_circle</span>
+                        <x-icon name="add_circle" />
                         <input type="text" id="evento-categoria-input" name="categoria_input" placeholder="Escribe la nueva categoría" disabled>
                     </div>
                     <!-- Hidden input to store the final value sent to backend -->
@@ -369,7 +369,7 @@
                 <div class="form-group">
                     <label for="judge-select">Seleccionar Juez</label>
                     <div class="input-with-icon">
-                        <span class="material-icons">hammer</span>
+                        <x-icon name="hammer" />
                         <select id="judge-select" name="user_id" style="width: 100%; padding: 12px 12px 12px 40px; border: 1px solid #e5e7eb; background-color: #f9fafb; border-radius: 8px; font-size: 15px; outline: none; color: #1f2937;" required>
                             <option value="">Seleccione un juez...</option>
                             @foreach(\App\Models\User::role('juez')->get() as $juez)

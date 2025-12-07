@@ -27,11 +27,11 @@
 
             <div class="profile-actions">
                 @role('admin')
-                    <button id="btn-crear-juez" style="background-color: #8b5cf6; color: white;"><span class="material-icons">gavel</span> Crear Juez</button>
+                    <button id="btn-crear-juez" style="background-color: #8b5cf6; color: white;"><x-icon name="gavel" /> Crear Juez</button>
                 @endrole
-                <button id="btn-editar-perfil"><span class="material-icons">edit</span> Editar</button>
+                <button id="btn-editar-perfil"><x-icon name="edit" /> Editar</button>
                 <div class="settings-icon">
-                    <span class="material-icons">settings</span>
+                    <x-icon name="settings" />
                 </div>
             </div>
         </div>
@@ -59,19 +59,19 @@
 
             <div class="profile-details-grid">
                 <div class="details-card">
-                    <h3><span class="material-icons">person</span> Información Personal</h3>
+                    <h3><x-icon name="person" /> Información Personal</h3>
                     <div class="details-list">
-                        <p><span class="material-icons">email</span> {{ $user->email }}</p>
-                        <p><span class="material-icons">date_range</span> Miembro desde {{ $user->created_at->format('M Y') }}</p>
-                        <p><span class="material-icons">school</span> {{ $user->participante->institucion ?? 'No especificada' }}</p>
+                        <p><x-icon name="email" /> {{ $user->email }}</p>
+                        <p><x-icon name="date_range" /> Miembro desde {{ $user->created_at->format('M Y') }}</p>
+                        <p><x-icon name="school" /> {{ $user->participante->institucion ?? 'No especificada' }}</p>
                         @if($user->participante && $user->participante->equipo)
-                            <p><span class="material-icons">groups</span> Equipo: {{ $user->participante->equipo->nombre }}</p>
+                            <p><x-icon name="groups" /> Equipo: {{ $user->participante->equipo->nombre }}</p>
                         @endif
                     </div>
                 </div>
 
                 <div class="details-card">
-                    <h3><span class="material-icons">bar_chart</span> Habilidades Técnicas</h3>
+                    <h3><x-icon name="bar_chart" /> Habilidades Técnicas</h3>
                     <p>Tu progreso en diferentes tecnologías</p>
                     <!-- Static for now, can be dynamic later -->
                     <div class="progress-bar-container">
@@ -120,21 +120,21 @@
                 <div class="form-group">
                     <label for="name">Nombre Completo</label>
                     <div class="input-with-icon">
-                        <span class="material-icons">person</span>
+                        <x-icon name="person" />
                         <input type="text" id="name" name="name" value="{{ $user->name }}" required>
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="email">Correo Electrónico</label>
                     <div class="input-with-icon">
-                        <span class="material-icons">email</span>
+                        <x-icon name="email" />
                         <input type="email" id="email" name="email" value="{{ $user->email }}" required>
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="institucion">Institución</label>
                     <div class="input-with-icon">
-                        <span class="material-icons">school</span>
+                        <x-icon name="school" />
                         <input type="text" id="institucion" name="institucion" value="{{ $user->participante->institucion ?? '' }}">
                     </div>
                 </div>
@@ -155,21 +155,21 @@
                 <div class="form-group">
                     <label for="juez-name">Nombre Completo</label>
                     <div class="input-with-icon">
-                        <span class="material-icons">person</span>
+                        <x-icon name="person" />
                         <input type="text" id="juez-name" name="name" required>
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="juez-email">Correo Electrónico</label>
                     <div class="input-with-icon">
-                        <span class="material-icons">email</span>
+                        <x-icon name="email" />
                         <input type="email" id="juez-email" name="email" required>
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="juez-password">Contraseña</label>
                     <div class="input-with-icon">
-                        <span class="material-icons">lock</span>
+                        <x-icon name="lock" />
                         <input type="password" id="juez-password" name="password" required>
                     </div>
                 </div>
