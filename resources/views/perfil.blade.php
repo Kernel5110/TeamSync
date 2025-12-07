@@ -38,10 +38,12 @@
 
         <div class="profile-stats-nav">
             <a href="#" class="nav-item active" data-tab="resumen">Resumen</a>
-            @unlessrole('juez')
-                <a href="#" class="nav-item" data-tab="equipos">Equipos</a>
-            @endunlessrole
-            <a href="#" class="nav-item" data-tab="logros">Logros</a>
+           @unlessrole('admin')
+        @unlessrole('juez')
+            <a href="#" class="nav-item" data-tab="equipos">Equipos</a>
+        @endunlessrole
+        <a href="#" class="nav-item" data-tab="logros">Logros</a>
+    @endunlessrole
         </div>
 
         <!-- Tab Content: Resumen -->
@@ -187,7 +189,7 @@
             navItems.forEach(item => {
                 item.addEventListener('click', function(e) {
                     e.preventDefault();
-                    
+
                     // Remove active class from all items and hide all contents
                     navItems.forEach(nav => nav.classList.remove('active'));
                     tabContents.forEach(content => {

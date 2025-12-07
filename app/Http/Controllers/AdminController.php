@@ -45,11 +45,11 @@ class AdminController extends Controller
         $evento = Evento::findOrFail($evento_id);
         $user = User::findOrFail($request->user_id);
 
-        if (!$user->hasRole('juez')) {
-             return back()->with('error', 'El usuario seleccionado no es un juez.');
-        }
+        // 🚨 CAMBIO CLAVE: Se eliminó la validación que requería el rol 'juez'.
+        // Ahora, cualquier usuario (participante) puede ser asignado como juez al evento.
 
         // Check if already assigned
+        // Asume que Evento::jueces() es la relación Many-to-Many
         if (!$evento->jueces()->where('user_id', $user->id)->exists()) {
             $evento->jueces()->attach($user->id);
             return back()->with('success', 'Juez asignado correctamente.');

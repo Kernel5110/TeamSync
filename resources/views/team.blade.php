@@ -21,8 +21,8 @@
 
         <div class="header-equipo">
             <div>
-                <h1>Equipo</h1>
-                <p>Gestiona tu equipo de desarrollo y colaboradores</p>
+                <h1>Equipos</h1>
+                <p>Gestion de equipos de desarrollo y colaboradores</p>
             </div>
             <div class="acciones-equipo" style="display: flex; gap: 10px; align-items: center;">
                 <div class="search-container" style="position: relative;">
@@ -112,11 +112,10 @@
     @role('admin')
         <div class="contenedor-equipo" style="margin-top: 40px;">
             <div class="team-header">
-            <h1>Gestión de Equipo</h1>
-            <p>Administra tu equipo y miembros</p>
+            <h1>Administracion de equipos y miembros</h1>
         </div>
-            <p>Vista global de todos los equipos registrados</p>
-            
+            <p>Equipos registrados en el sistema:</p>
+
 
             @if(isset($allTeams) && $allTeams->count() > 0)
                 <div class="tarjeta-miembros">
@@ -144,9 +143,9 @@
                                         </ul>
                                     </td>
                                     <td>
-                                        <button class="btn-editar-equipo" 
-                                                data-id="{{ $t->id }}" 
-                                                data-nombre="{{ $t->nombre }}" 
+                                        <button class="btn-editar-equipo"
+                                                data-id="{{ $t->id }}"
+                                                data-nombre="{{ $t->nombre }}"
                                                 data-evento-id="{{ $t->evento_id }}"
                                                 data-members="{{ $t->participantes->map(function($p) { return ['id' => $p->user->id, 'name' => $p->user->name, 'rol' => $p->rol]; })->toJson() }}"
                                                 style="background: none; border: none; cursor: pointer; color: #4f46e5; margin-right: 10px;">
@@ -199,7 +198,7 @@
                 </div>
                 <button type="submit" class="btn-submit">Actualizar Equipo</button>
             </form>
-            
+
             <!-- Hidden form for removing members -->
             <form id="form-remove-member" method="POST" style="display: none;">
                 @csrf
@@ -244,7 +243,7 @@
 
                             const nameSpan = document.createElement('span');
                             nameSpan.textContent = member.name + (member.rol === 'Líder' ? ' (Líder)' : '');
-                            
+
                             const removeBtn = document.createElement('button');
                             removeBtn.type = 'button';
                             removeBtn.innerHTML = '<x-icon name="close" style="font-size: 16px;" />';
@@ -351,7 +350,7 @@
             if (searchInput) {
                 searchInput.addEventListener('input', function() {
                     const query = this.value;
-                    
+
                     clearTimeout(timeout);
 
                     if (query.length > 0) {

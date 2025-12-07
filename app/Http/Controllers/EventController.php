@@ -10,17 +10,20 @@ class EventController extends Controller
     /**
      * Mostrar la página de eventos
      */
-    public function index()
-    {
-        $eventos = Evento::with('equipos.participantes.user')->get();
-        $equipo = null;
-        
-        if (auth()->check() && auth()->user()->participante) {
-            $equipo = auth()->user()->participante->equipo;
-        }
+   // En EventController.php
+public function index()
+{
+    // AÑADIDO: 'jueces' para cargar la lista de jueces asignados a cada evento.
+    $eventos = Evento::with(['equipos.participantes.user', 'jueces'])->get();
+    $equipo = null;
 
-        return view('event', compact('eventos', 'equipo'));
+    if (auth()->check() && auth()->user()->participante) {
+        $equipo = auth()->user()->participante->equipo;
     }
+
+    return view('event', compact('eventos', 'equipo'));
+}
+// ... resto del controller
 
     public function store(Request $request)
     {
