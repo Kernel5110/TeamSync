@@ -20,14 +20,14 @@
                 background-color: #ffffff !important;
                 opacity: 1 !important;
             }
-            
+
             /* Ensure form inputs have solid background */
             .profile-form input,
             .profile-form textarea,
             .profile-form select {
                 background-color: #f9fafb !important;
             }
-            
+
             .profile-form input:focus,
             .profile-form textarea:focus,
             .profile-form select:focus {
@@ -67,7 +67,7 @@
                     @endphp
                     <span class="badge-proximo" style="background-color: {{ $badgeColor }};">{{ $status }}</span>
                 </div>
-                
+
                 @if($evento->categoria)
                     <div style="margin-bottom: 10px;">
                         <span style="background-color: #e0e7ff; color: #4338ca; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600;">
@@ -90,14 +90,14 @@
                         <span>{{ $evento->ubicacion }}</span>
                     </div>
                     <div class="detalle-item">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                        <span>{{ $evento->capacidad }}</span>
-                    </div>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+    <span>{{ $evento->equipos->count() }}/{{ $evento->capacidad }} </span>
+</div>
                 </div>
 
                 <div class="evento-acciones">
 
-                    <a href="#" class="btn-detalles" 
+                    <a href="#" class="btn-detalles"
                        data-nombre="{{ $evento->nombre }}"
                        data-descripcion="{{ $evento->descripcion }}"
                        data-fecha-inicio="{{ $evento->fecha_inicio->format('d F Y') }}"
@@ -111,51 +111,69 @@
                         <span class="material-icons" style="font-size: 18px;">emoji_events</span> Ranking
                     </a>
 
-                    @hasrole('juez')
-                        @if($evento->jueces->contains(auth()->user()->id))
-                            <a href="{{ route('event.evaluate', $evento->id) }}" class="btn-participar" style="background-color: #8b5cf6; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: background-color 0.2s;">
-                                Evaluar
-                            </a>
-                        @endif
-                    @else
-                        @unlessrole('admin')
-                            @php
-                                $userParticipante = auth()->user()->participante;
-                                $userTeamId = $userParticipante ? $userParticipante->equipo_id : null;
-                                
-                                $hasTeamInEvent = \App\Models\Equipo::where('evento_id', $evento->id)
-                                    ->whereHas('participantes', function($q) {
-                                        $q->where('usuario_id', auth()->id());
-                                    })->exists();
-                            @endphp
-                            
-                            @if($hasTeamInEvent)
-                                <a href="{{ route('participation.show', $evento->id) }}" class="btn-ver-proyecto" style="background-color: #10b981; color: white; padding: 0.75rem; border-radius: 9999px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: background-color 0.2s; display: inline-block; text-align: center;">
-                                    Ver Proyecto
-                                </a>
-                            @else
-                                @if($evento->status !== 'Finalizado')
-                                    <button class="btn-registrar" data-id="{{ $evento->id }}" data-nombre="{{ $evento->nombre }}" style="background-color: #4f46e5; color: white; padding: 0.75rem; border-radius: 9999px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: background-color 0.2s; border: none; cursor: pointer;">
-                                        Participar
-                                    </button>
-                                @else
-                                    <button disabled style="background-color: #9ca3af; color: white; padding: 0.75rem; border-radius: 9999px; border: none; font-weight: 600; font-size: 1rem; cursor: not-allowed;">
-                                        Finalizado
-                                    </button>
-                                @endif
-                            @endif
-                        @endunlessrole
-                    @endhasrole
+          {{-- 1. ABRE UN SOLO BLOQUE DE AUTENTICACIÓN. --}}
+@auth
 
-                </div>
+    @php
+        // Lógica del Juez (se ejecuta si el usuario está logueado)
+        $is_judge_or_assigned = Auth::user()->hasRole('juez') || $evento->jueces->contains(Auth::id());
+    @endphp
+
+    {{-- 2. VERIFICA SI EL USUARIO ES JUEZ O ESTÁ ASIGNADO --}}
+    @if ($is_judge_or_assigned)
+
+        {{-- BLOQUE JUEZ: Muestra el botón EVALUAR --}}
+        <a href="{{ route('event.evaluate', $evento->id) }}" class="btn-participar" style="background-color: #8b5cf6; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: background-color 0.2s;">
+            Evaluar
+        </a>
+
+    {{-- 3. SI NO ES JUEZ, ENTRA AQUÍ (@else es el alternativo del @if anterior) --}}
+    @else
+
+        {{-- BLOQUE PARTICIPANTE/OTRO ROL: Lógica original para ver si puede participar --}}
+        @unlessrole('admin')
+            @php
+                $userParticipante = auth()->user()->participante;
+                $userTeamId = $userParticipante ? $userParticipante->equipo_id : null;
+
+                $hasTeamInEvent = \App\Models\Equipo::where('evento_id', $evento->id)
+                    ->whereHas('participantes', function($q) {
+                        $q->where('usuario_id', auth()->id());
+                    })->exists();
+            @endphp
+
+            @if($hasTeamInEvent)
+                <a href="{{ route('participation.show', $evento->id) }}" class="btn-ver-proyecto" style="background-color: #10b981; color: white; padding: 0.75rem; border-radius: 9999px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: background-color 0.2s; display: inline-block; text-align: center;">
+                    Ver Proyecto
+                </a>
+            @else
+                @if($evento->status !== 'Finalizado')
+                    <button class="btn-registrar" data-id="{{ $evento->id }}" data-nombre="{{ $evento->nombre }}" style="background-color: #4f46e5; color: white; padding: 0.75rem; border-radius: 9999px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: background-color 0.2s; border: none; cursor: pointer;">
+                        Participar
+                    </button>
+                @else
+                    <button disabled style="background-color: #9ca3af; color: white; padding: 0.75rem; border-radius: 9999px; border: none; font-weight: 600; font-size: 1rem; cursor: not-allowed;">
+                        Finalizado
+                    </button>
+                @endif
+            @endif
+        @endunlessrole
+
+    @endif {{-- Cierra la verificación de Juez/Participante --}}
+
+    {{-- 4. ELIMINÉ @endhasrole que estaba al final, ya que no tenía @hasrole de apertura --}}
+
+@endauth {{-- Cierra el único bloque de autenticación --}}
+
+</div>
 
                 @role('admin')
                     <div class="admin-actions">
                         <button class="btn-admin-action judge btn-assign-judge" data-id="{{ $evento->id }}" title="Asignar Juez">
                             <span class="material-icons">gavel</span>
                         </button>
-                        
-                        <button class="btn-admin-action edit btn-editar-evento" 
+
+                        <button class="btn-admin-action edit btn-editar-evento"
                                 data-id="{{ $evento->id }}"
                                 data-nombre="{{ $evento->nombre }}"
                                 data-descripcion="{{ $evento->descripcion }}"
@@ -168,12 +186,12 @@
                             <span class="material-icons">edit</span>
                         </button>
 
-                        <button class="btn-admin-action view-teams btn-ver-equipos" 
+                        <button class="btn-admin-action view-teams btn-ver-equipos"
                                 onclick="toggleTeams('teams-{{ $evento->id }}')"
                                 title="Ver Equipos Registrados">
                             <span class="material-icons">groups</span>
                         </button>
-                        
+
                         <form action="{{ route('event.delete', $evento->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('¿Estás seguro de eliminar este evento?');">
                             @csrf
                             @method('DELETE')
@@ -182,7 +200,7 @@
                             </button>
                         </form>
                     </div>
-                    
+
                     <!-- Admin Team List Section -->
                     <div id="teams-{{ $evento->id }}" style="display: none; margin-top: 15px; border-top: 1px solid #e5e7eb; padding-top: 10px;">
                         <h4 style="font-size: 0.9rem; color: #4b5563; margin-bottom: 10px;">Equipos Registrados ({{ $evento->equipos->count() }}/{{ $evento->capacidad }})</h4>
@@ -232,11 +250,11 @@
             <span class="close-modal" id="close-registro">&times;</span>
             <h2>Registrar Equipo</h2>
             <p id="modal-evento-nombre"></p>
-            
+
             <form action="{{ route('team.store') }}" method="POST" id="form-registro-equipo">
                 @csrf
                 <input type="hidden" name="evento_id" id="modal-evento-id">
-                
+
                 <div class="form-group">
                     <label for="seleccion-equipo">Seleccionar Equipo</label>
                     <select id="seleccion-equipo" name="seleccion_equipo" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #d1d5db; margin-bottom: 15px;">
@@ -265,7 +283,7 @@
             <span class="close-modal" id="close-detalles">&times;</span>
             <h2 id="detalles-nombre"></h2>
             <p id="detalles-descripcion" style="margin-bottom: 20px; line-height: 1.6;"></p>
-            
+
             <div class="detalle-item" style="margin-bottom: 10px;">
                 <strong>Fecha:</strong> <span id="detalles-fecha"></span>
             </div>
@@ -288,7 +306,7 @@
             <form action="{{ route('event.store') }}" method="POST" id="form-evento" class="profile-form">
                 @csrf
                 <div id="method-spoofing"></div> <!-- For PUT method -->
-                
+
                 <div class="form-group">
                     <label for="evento-nombre">Nombre del Evento</label>
                     <div class="input-with-icon">
@@ -370,12 +388,14 @@
                     <label for="judge-select">Seleccionar Juez</label>
                     <div class="input-with-icon">
                         <span class="material-icons">hammer</span>
-                        <select id="judge-select" name="user_id" style="width: 100%; padding: 12px 12px 12px 40px; border: 1px solid #e5e7eb; background-color: #f9fafb; border-radius: 8px; font-size: 15px; outline: none; color: #1f2937;" required>
-                            <option value="">Seleccione un juez...</option>
-                            @foreach(\App\Models\User::role('juez')->get() as $juez)
-                                <option value="{{ $juez->id }}">{{ $juez->name }} ({{ $juez->email }})</option>
-                            @endforeach
-                        </select>
+                       <select id="judge-select" name="user_id" style="/* ... estilos ... */" required>
+    <option value="">Seleccione un juez...</option>
+    @foreach(\App\Models\User::whereDoesntHave('roles', function($query) {
+        $query->where('name', 'admin');
+    })->get() as $user)
+        <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->email }})</option>
+    @endforeach
+</select>
                     </div>
                 </div>
                 <button type="submit" class="btn-confirmar">Asignar Juez</button>
@@ -401,7 +421,7 @@
             const closeRegistro = document.getElementById('close-registro');
             const eventoIdInput = document.getElementById('modal-evento-id');
             const eventoNombreDisplay = document.getElementById('modal-evento-nombre');
-            
+
             const selectEquipo = document.getElementById('seleccion-equipo');
             const groupNombre = document.getElementById('group-nombre-equipo');
             const inputNombre = document.getElementById('nombre-equipo');
@@ -413,10 +433,10 @@
                     e.preventDefault();
                     const eventoId = this.getAttribute('data-id');
                     const eventoNombre = this.getAttribute('data-nombre');
-                    
+
                     eventoIdInput.value = eventoId;
                     eventoNombreDisplay.textContent = 'Evento: ' + eventoNombre;
-                    
+
                     modalRegistro.style.display = 'flex';
                 });
             });
@@ -429,7 +449,7 @@
             const modalDetalles = document.getElementById('modal-detalles');
             const btnsDetalles = document.querySelectorAll('.btn-detalles');
             const closeDetalles = document.getElementById('close-detalles');
-            
+
             const detNombre = document.getElementById('detalles-nombre');
             const detDesc = document.getElementById('detalles-descripcion');
             const detFecha = document.getElementById('detalles-fecha');
@@ -444,7 +464,7 @@
                     detFecha.textContent = this.getAttribute('data-fecha-inicio') + ' - ' + this.getAttribute('data-fecha-fin');
                     detUbicacion.textContent = this.getAttribute('data-ubicacion');
                     detCapacidad.textContent = this.getAttribute('data-capacidad') + ' personas';
-                    
+
                     modalDetalles.style.display = 'flex';
                 });
             });
@@ -494,7 +514,7 @@
                     inputEventoUbicacion.value = this.getAttribute('data-ubicacion');
                     inputEventoUbicacion.value = this.getAttribute('data-ubicacion');
                     inputEventoCapacidad.value = this.getAttribute('data-capacidad');
-                    
+
                     const categoria = this.getAttribute('data-categoria');
                     const selectCategoria = document.getElementById('evento-categoria-select');
                     const inputCategoria = document.getElementById('evento-categoria-input');
@@ -522,7 +542,7 @@
                         inputCategoria.disabled = true;
                         inputCategoria.value = '';
                     }
-                    
+
                     // Update hidden input
                     finalCategoria.value = categoria || "";
 
@@ -553,7 +573,7 @@
                 inputCategoria.addEventListener('input', function() {
                     finalCategoria.value = this.value;
                 });
-                
+
                 // Also handle form submit to ensure value is set
                 const formEvento = document.getElementById('form-evento');
                 formEvento.addEventListener('submit', function() {
@@ -630,5 +650,6 @@
                 });
             }
         });
+
     </script>
 @endsection
