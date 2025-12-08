@@ -36,7 +36,7 @@
 
             <div class="auth-links">
                 <a href="#" class="forgot-password">Olvide mi contraseña</a>
-                <a href="{{ route('registrar') }}" class="register-link">Registrarme</a>
+                <a href="{{ route('register') }}" class="register-link">Registrarme</a>
             </div>
 
             <button type="submit" class="btn-submit">
