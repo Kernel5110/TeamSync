@@ -17,7 +17,9 @@ class Equipo extends Model
         'github_pages',
         'project_name',
         'technologies',
-        'project_description'
+        'project_description',
+        'logo_path',
+        'evidence_path',
     ];
 
     public function evento()
@@ -33,5 +35,25 @@ class Equipo extends Model
     public function evaluations()
     {
         return $this->hasMany(Evaluation::class);
+    }
+
+    public function getProgressAttribute()
+    {
+        $fields = [
+            'project_name',
+            'technologies',
+            'github_repo',
+            'project_description',
+            'evidence_path',
+        ];
+
+        $completed = 0;
+        foreach ($fields as $field) {
+            if (!empty($this->$field)) {
+                $completed++;
+            }
+        }
+
+        return count($fields) > 0 ? round(($completed / count($fields)) * 100) : 0;
     }
 }

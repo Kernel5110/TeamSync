@@ -10,22 +10,46 @@ use Illuminate\Support\Facades\Auth;
 
 class TeamController extends Controller
 {
-    public function index()
+    public function index(): \Illuminate\View\View
     {
         $user = Auth::user();
-        $participante = $user->participante;
+        $participante = $user->participant;
         $equipo = $participante ? $participante->equipo : null;
         $eventos = Evento::all(); // For creating a team
         
         $allTeams = null;
         if ($user->hasRole('admin')) {
-            $allTeams = Equipo::with(['participantes.user', 'evento'])->get();
+            $allTeams = Equipo::with(['participantes.user', 'evento'])->paginate(10, ['*'], 'all_teams_page');
         }
 
-        return view('team', compact('equipo', 'eventos', 'allTeams'));
+        // Fetch other teams (teams the user is NOT part of)
+        $otherTeamsQuery = Equipo::with(['evento', 'participantes.user']);
+        if ($equipo) {
+            $otherTeamsQuery->where('id', '!=', $equipo->id);
+        }
+        $otherTeams = $otherTeamsQuery->paginate(10, ['*'], 'other_teams_page');
+
+        // Fetch pending requests if user is a leader
+        $pendingRequests = [];
+        if ($equipo && $participante->rol === 'Líder') {
+            $pendingRequests = \App\Models\Solicitud::where('equipo_id', $equipo->id)
+                ->where('status', 'pending')
+                ->with('user.participant')
+                ->get();
+        }
+
+        // Check if user has any pending request sent
+        $myPendingRequest = null;
+        if (!$equipo) {
+             $myPendingRequest = \App\Models\Solicitud::where('user_id', $user->id)
+                ->where('status', 'pending')
+                ->first();
+        }
+
+        return view('team', compact('equipo', 'eventos', 'allTeams', 'otherTeams', 'pendingRequests', 'myPendingRequest'));
     }
 
-    public function search(Request $request)
+    public function search(Request $request): \Illuminate\Http\JsonResponse|\Illuminate\View\View
     {
         $query = $request->input('query');
         $teams = [];
@@ -45,7 +69,7 @@ class TeamController extends Controller
         return view('team_search', compact('teams', 'query'));
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, int $id): \Illuminate\Http\RedirectResponse
     {
         if (!Auth::user()->can('edit teams')) {
             abort(403);
@@ -56,17 +80,25 @@ class TeamController extends Controller
         $request->validate([
             'nombre' => 'required|string|max:255',
             'evento_id' => 'required|exists:eventos,id',
+            'logo' => 'nullable|image|max:2048',
         ]);
 
-        $equipo->update([
+        $data = [
             'nombre' => $request->nombre,
             'evento_id' => $request->evento_id,
-        ]);
+        ];
 
-        return redirect()->route('team')->with('success', 'Equipo actualizado correctamente.');
+        if ($request->hasFile('logo')) {
+            $path = $request->file('logo')->store('team-logos', 'public');
+            $data['logo_path'] = $path;
+        }
+
+        $equipo->update($data);
+
+        return redirect()->route('teams.index')->with('success', 'Equipo actualizado correctamente.');
     }
 
-    public function destroy($id)
+    public function destroy(int $id): \Illuminate\Http\RedirectResponse
     {
         if (!Auth::user()->can('delete teams')) {
             abort(403);
@@ -81,18 +113,19 @@ class TeamController extends Controller
 
         $equipo->delete();
 
-        return redirect()->route('team')->with('success', 'Equipo eliminado correctamente.');
+        return redirect()->route('teams.index')->with('success', 'Equipo eliminado correctamente.');
     }
 
-    public function store(Request $request)
+    public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
         $request->validate([
             'nombre' => 'required|string|max:255',
             'evento_id' => 'required|exists:eventos,id',
+            'logo' => 'nullable|image|max:2048',
         ]);
 
         $user = Auth::user();
-        $participante = $user->participante;
+        $participante = $user->participant;
 
         if (!$participante) {
             return back()->with('error', 'Debes completar tu registro de participante primero.');
@@ -113,10 +146,17 @@ class TeamController extends Controller
             return back()->with('error', 'El evento ha alcanzado su capacidad máxima de equipos.');
         }
 
-        $equipo = Equipo::create([
+        $data = [
             'nombre' => $request->nombre,
             'evento_id' => $request->evento_id,
-        ]);
+        ];
+
+        if ($request->hasFile('logo')) {
+            $path = $request->file('logo')->store('team-logos', 'public');
+            $data['logo_path'] = $path;
+        }
+
+        $equipo = Equipo::create($data);
 
         // Assign creator to team with a default role
         $participante->update([
@@ -124,17 +164,17 @@ class TeamController extends Controller
             'rol' => 'Líder', // Default role
         ]);
 
-        return redirect()->route('team')->with('success', 'Equipo creado exitosamente.');
+        return redirect()->route('teams.index')->with('success', 'Equipo creado exitosamente.');
     }
 
-    public function addMember(Request $request)
+    public function addMember(Request $request): \Illuminate\Http\RedirectResponse
     {
         $request->validate([
             'email' => 'required|email|exists:users,email',
         ]);
 
         $user = Auth::user();
-        $participante = $user->participante;
+        $participante = $user->participant;
         $equipo = $participante->equipo;
 
         if (!$equipo) {
@@ -142,7 +182,7 @@ class TeamController extends Controller
         }
 
         $newMemberUser = User::where('email', $request->email)->first();
-        $newMemberParticipante = $newMemberUser->participante;
+        $newMemberParticipante = $newMemberUser->participant;
 
         if (!$newMemberParticipante) {
             return back()->with('error', 'El usuario no ha completado su registro como participante.');
@@ -160,13 +200,13 @@ class TeamController extends Controller
         return back()->with('success', 'Miembro agregado exitosamente.');
     }
 
-    public function removeMember(Request $request, $team_id)
+    public function removeMember(Request $request, int $team_id): \Illuminate\Http\RedirectResponse
     {
         $user = Auth::user();
         $equipo = Equipo::findOrFail($team_id);
 
         // Check permissions: Admin or Team Leader
-        $isLeader = $user->participante && $user->participante->equipo_id == $equipo->id && $user->participante->rol == 'Líder';
+        $isLeader = $user->participant && $user->participant->equipo_id == $equipo->id && $user->participant->rol == 'Líder';
         if (!$user->hasRole('admin') && !$isLeader) {
             abort(403, 'No tienes permiso para eliminar miembros.');
         }
@@ -176,7 +216,7 @@ class TeamController extends Controller
         ]);
 
         $memberUser = User::findOrFail($request->user_id);
-        $memberParticipante = $memberUser->participante;
+        $memberParticipante = $memberUser->participant;
 
         if (!$memberParticipante || $memberParticipante->equipo_id !== $equipo->id) {
             return back()->with('error', 'El usuario no pertenece a este equipo.');
@@ -195,10 +235,10 @@ class TeamController extends Controller
         return back()->with('success', 'Miembro eliminado del equipo.');
     }
 
-    public function requestJoin($equipo_id)
+    public function requestJoin(int $equipo_id): \Illuminate\Http\RedirectResponse
     {
         $user = Auth::user();
-        $participante = $user->participante;
+        $participante = $user->participant;
 
         if (!$participante) {
             return back()->with('error', 'Debes completar tu registro de participante primero.');
@@ -230,21 +270,21 @@ class TeamController extends Controller
         return back()->with('success', 'Solicitud enviada exitosamente.');
     }
 
-    public function acceptJoin($solicitud_id)
+    public function acceptJoin(int $solicitud_id): \Illuminate\Http\RedirectResponse
     {
         $solicitud = \App\Models\Solicitud::findOrFail($solicitud_id);
         $equipo = $solicitud->equipo;
         
         // Check if current user is leader of the team
         $user = Auth::user();
-        if (!$user->participante || $user->participante->equipo_id !== $equipo->id || $user->participante->rol !== 'Líder') {
+        if (!$user->participant || $user->participant->equipo_id !== $equipo->id || $user->participant->rol !== 'Líder') {
              abort(403, 'No tienes permiso para aceptar solicitudes.');
         }
 
         $solicitud->update(['status' => 'accepted']);
 
         // Add user to team
-        $solicitante = $solicitud->user->participante;
+        $solicitante = $solicitud->user->participant;
         if ($solicitante && !$solicitante->equipo_id) {
              $solicitante->update([
                 'equipo_id' => $equipo->id,
@@ -255,14 +295,14 @@ class TeamController extends Controller
         return back()->with('success', 'Solicitud aceptada.');
     }
 
-    public function rejectJoin($solicitud_id)
+    public function rejectJoin(int $solicitud_id): \Illuminate\Http\RedirectResponse
     {
         $solicitud = \App\Models\Solicitud::findOrFail($solicitud_id);
         $equipo = $solicitud->equipo;
 
         // Check if current user is leader of the team
         $user = Auth::user();
-        if (!$user->participante || $user->participante->equipo_id !== $equipo->id || $user->participante->rol !== 'Líder') {
+        if (!$user->participant || $user->participant->equipo_id !== $equipo->id || $user->participant->rol !== 'Líder') {
              abort(403, 'No tienes permiso para rechazar solicitudes.');
         }
 

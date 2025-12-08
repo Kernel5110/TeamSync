@@ -83,7 +83,7 @@
                 <div class="evento-detalles">
                     <div class="detalle-item">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                        <span>{{ $evento->fecha_inicio->format('d') }}-{{ $evento->fecha_fin->format('d F Y') }}</span>
+                        <span>{{ $evento->fecha_inicio->format('d/m/Y') }} {{ \Carbon\Carbon::parse($evento->start_time)->format('H:i') }} - {{ $evento->fecha_fin->format('d/m/Y') }}</span>
                     </div>
                     <div class="detalle-item">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
@@ -101,13 +101,14 @@
                        data-nombre="{{ $evento->nombre }}"
                        data-descripcion="{{ $evento->descripcion }}"
                        data-fecha-inicio="{{ $evento->fecha_inicio->format('d F Y') }}"
+                       data-start-time="{{ \Carbon\Carbon::parse($evento->start_time)->format('H:i') }}"
                        data-fecha-fin="{{ $evento->fecha_fin->format('d F Y') }}"
                        data-ubicacion="{{ $evento->ubicacion }}"
                        data-capacidad="{{ $evento->capacidad }}">
                         Ver Detalles
                     </a>
 
-                    <a href="{{ route('event.ranking', $evento->id) }}" class="btn-ranking" style="background-color: #f59e0b; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: background-color 0.2s; display: inline-flex; align-items: center; gap: 5px;">
+                    <a href="{{ route('events.ranking', $evento->id) }}" class="btn-ranking" style="background-color: #f59e0b; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: background-color 0.2s; display: inline-flex; align-items: center; gap: 5px;">
                         <x-icon name="emoji_events" style="font-size: 18px;" /> Ranking
                     </a>
 
@@ -123,7 +124,7 @@
     @if ($is_judge_or_assigned)
 
         {{-- BLOQUE JUEZ: Muestra el botón EVALUAR --}}
-        <a href="{{ route('event.evaluate', $evento->id) }}" class="btn-participar" style="background-color: #8b5cf6; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: background-color 0.2s;">
+        <a href="{{ route('events.evaluate.show', $evento->id) }}" class="btn-participar" style="background-color: #8b5cf6; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: background-color 0.2s;">
             Evaluar
         </a>
 
@@ -140,17 +141,33 @@
                     ->whereHas('participantes', function($q) {
                         $q->where('usuario_id', auth()->id());
                     })->exists();
+
+                // Time Validation
+                $startDateTime = $evento->fecha_inicio->copy()->setTimeFromTimeString($evento->start_time);
+                $now = now('America/Mexico_City');
+                $hasStarted = $now->greaterThanOrEqualTo($startDateTime);
             @endphp
 
             @if($hasTeamInEvent)
-                <a href="{{ route('participation.show', $evento->id) }}" class="btn-ver-proyecto" style="background-color: #10b981; color: white; padding: 0.75rem; border-radius: 9999px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: background-color 0.2s; display: inline-block; text-align: center;">
-                    Ver Proyecto
-                </a>
+                @if($hasStarted)
+                    <a href="{{ route('events.participate.show', $evento->id) }}" class="btn-ver-proyecto" style="background-color: #10b981; color: white; padding: 0.75rem; border-radius: 9999px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: background-color 0.2s; display: inline-block; text-align: center;">
+                        Ver Proyecto
+                    </a>
+                @else
+                    <button disabled style="background-color: #9ca3af; color: white; padding: 0.75rem; border-radius: 9999px; border: none; font-weight: 600; font-size: 1rem; cursor: not-allowed;">
+                        Inicia: {{ $startDateTime->format('H:i') }}
+                    </button>
+                @endif
             @else
                 @if($evento->status !== 'Finalizado')
                     <button class="btn-registrar" data-id="{{ $evento->id }}" data-nombre="{{ $evento->nombre }}" style="background-color: #4f46e5; color: white; padding: 0.75rem; border-radius: 9999px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: background-color 0.2s; border: none; cursor: pointer;">
                         Participar
                     </button>
+                    @if(!$hasStarted)
+                        <div style="text-align: center; font-size: 0.8rem; color: #6b7280; margin-top: 5px;">
+                            Inicia: {{ $startDateTime->format('d/m H:i') }}
+                        </div>
+                    @endif
                 @else
                     <button disabled style="background-color: #9ca3af; color: white; padding: 0.75rem; border-radius: 9999px; border: none; font-weight: 600; font-size: 1rem; cursor: not-allowed;">
                         Finalizado
@@ -178,6 +195,7 @@
                                 data-nombre="{{ $evento->nombre }}"
                                 data-descripcion="{{ $evento->descripcion }}"
                                 data-fecha-inicio="{{ $evento->fecha_inicio->format('Y-m-d') }}"
+                                data-start-time="{{ \Carbon\Carbon::parse($evento->start_time)->format('H:i') }}"
                                 data-fecha-fin="{{ $evento->fecha_fin->format('Y-m-d') }}"
                                 data-ubicacion="{{ $evento->ubicacion }}"
                                 data-capacidad="{{ $evento->capacidad }}"
@@ -192,13 +210,28 @@
                             <x-icon name="groups" />
                         </button>
 
-                        <form action="{{ route('event.delete', $evento->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('¿Estás seguro de eliminar este evento?');">
+                        <form action="{{ route('events.destroy', $evento->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('¿Estás seguro de eliminar este evento?');">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="btn-admin-action delete" title="Eliminar Evento">
                                 <x-icon name="delete" />
                             </button>
                         </form>
+
+                        <div style="display: inline-block; margin-left: 10px; border-left: 1px solid #e5e7eb; padding-left: 10px;">
+                            <a href="{{ route('events.reports.pdf', $evento->id) }}" class="btn-admin-action" title="Descargar Reporte PDF" style="color: #dc2626;">
+                                <x-icon name="picture_as_pdf" />
+                            </a>
+                            <a href="{{ route('events.reports.csv', $evento->id) }}" class="btn-admin-action" title="Descargar CSV (Excel)" style="color: #16a34a;">
+                                <x-icon name="table_view" />
+                            </a>
+                            <form action="{{ route('events.reports.email', $evento->id) }}" method="POST" style="display: inline;">
+                                @csrf
+                                <button type="submit" class="btn-admin-action" title="Enviar Reporte por Correo" style="color: #2563eb;">
+                                    <x-icon name="send" />
+                                </button>
+                            </form>
+                        </div>
                     </div>
 
                     <!-- Admin Team List Section -->
@@ -214,11 +247,13 @@
                                         </div>
                                         <div style="display: flex; gap: 5px;">
                                             <!-- Edit Team (Redirect to Team Management) -->
-                                            <a href="{{ route('team') }}" style="color: #4f46e5; text-decoration: none;" title="Gestionar en Equipos">
+                                            @if(auth()->check() && auth()->user()->participant && auth()->user()->participant->equipo_id == $team->id && auth()->user()->participant->rol == 'Líder')
+                                            <a href="{{ route('teams.index') }}" style="color: #4f46e5; text-decoration: none;" title="Gestionar en Equipos">
                                                 <x-icon name="open_in_new" style="font-size: 16px;" />
                                             </a>
+                                            @endif
                                             <!-- Delete Team -->
-                                            <form action="{{ route('team.destroy', $team->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('¿Eliminar equipo {{ $team->nombre }}?');">
+                                            <form action="{{ route('teams.destroy', $team->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('¿Eliminar equipo {{ $team->nombre }}?');">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" style="background: none; border: none; cursor: pointer; color: #ef4444; padding: 0;" title="Eliminar Equipo">
@@ -238,6 +273,10 @@
         @endforeach
     </div>
 
+    <div style="margin-top: 20px; display: flex; justify-content: center;">
+        {{ $eventos->links('pagination::simple-tailwind') }}
+    </div>
+
     <div class="contacto-seccion">
         <h2>¿No encuentras tu evento?</h2>
         <p>Contáctanos para agregar tu evento de innovación y tecnología</p>
@@ -251,7 +290,7 @@
             <h2>Registrar Equipo</h2>
             <p id="modal-evento-nombre"></p>
 
-            <form action="{{ route('team.store') }}" method="POST" id="form-registro-equipo">
+            <form action="{{ route('teams.store') }}" method="POST" id="form-registro-equipo">
                 @csrf
                 <input type="hidden" name="evento_id" id="modal-evento-id">
 
@@ -303,7 +342,7 @@
                 <h2 id="modal-evento-titulo">Crear Evento</h2>
                 <span class="close-modal" id="close-evento">&times;</span>
             </div>
-            <form action="{{ route('event.store') }}" method="POST" id="form-evento" class="profile-form">
+            <form action="{{ route('events.store') }}" method="POST" id="form-evento" class="profile-form">
                 @csrf
                 <div id="method-spoofing"></div> <!-- For PUT method -->
 
@@ -323,6 +362,13 @@
                     <div class="input-with-icon">
                         <x-icon name="date_range" />
                         <input type="date" id="evento-fecha-inicio" name="fecha_inicio" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="evento-start-time">Hora de Inicio (Oaxaca)</label>
+                    <div class="input-with-icon">
+                        <x-icon name="schedule" />
+                        <input type="time" id="evento-start-time" name="start_time" required>
                     </div>
                 </div>
                 <div class="form-group">
@@ -491,7 +537,7 @@
             if(btnCrearEvento) {
                 btnCrearEvento.addEventListener('click', function() {
                     modalEventoTitulo.textContent = 'Crear Evento';
-                    formEvento.action = "{{ route('event.store') }}";
+                    formEvento.action = "{{ route('events.store') }}";
                     methodSpoofing.innerHTML = ''; // Clear PUT method
                     formEvento.reset();
                     modalEvento.style.display = 'flex';
@@ -502,12 +548,13 @@
                 btn.addEventListener('click', function() {
                     modalEventoTitulo.textContent = 'Editar Evento';
                     const id = this.getAttribute('data-id');
-                    formEvento.action = "/event/" + id;
+                    formEvento.action = "/events/" + id;
                     methodSpoofing.innerHTML = '@method("PUT")';
 
                     inputEventoNombre.value = this.getAttribute('data-nombre');
                     inputEventoDesc.value = this.getAttribute('data-descripcion');
                     inputEventoInicio.value = this.getAttribute('data-fecha-inicio');
+                    document.getElementById('evento-start-time').value = this.getAttribute('data-start-time');
                     inputEventoFin.value = this.getAttribute('data-fecha-fin');
                     inputEventoUbicacion.value = this.getAttribute('data-ubicacion');
                     inputEventoUbicacion.value = this.getAttribute('data-ubicacion');
@@ -598,7 +645,7 @@
             btnsAssignJudge.forEach(btn => {
                 btn.addEventListener('click', function() {
                     const eventId = this.getAttribute('data-id');
-                    formAssignJudge.action = "/evento/" + eventId + "/assign-judge";
+                    formAssignJudge.action = "/events/" + eventId + "/judges";
                     modalAssignJudge.style.display = 'flex';
                 });
             });
@@ -632,7 +679,7 @@
                         groupNombre.style.display = 'block';
                         inputNombre.required = true;
                         btnSubmit.textContent = 'Crear Equipo';
-                        form.action = "{{ route('team.store') }}";
+                        form.action = "{{ route('teams.store') }}";
                     } else {
                         groupNombre.style.display = 'none';
                         inputNombre.required = false;
@@ -643,7 +690,7 @@
                 form.addEventListener('submit', function(e) {
                     if (selectEquipo.value === 'existing') {
                         e.preventDefault();
-                        window.location.href = "{{ route('team') }}";
+                        window.location.href = "{{ route('teams.index') }}";
                     }
                 });
             }

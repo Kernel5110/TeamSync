@@ -14,13 +14,7 @@ class PageController extends Controller
         return view('index');
     }
 
-    /**
-     * Mostrar la página de login
-     */
-    public function login()
-    {
-        return view('login');
-    }
+
 
     /**
      * Mostrar la página de start

@@ -10,8 +10,8 @@
             dinámicos y competitivos.
         </p>
         <div class="hero-buttons">
-            <a href="{{ route('registrar') }}" class="btn-primary">Únete Ahora →</a>
-            <a href="{{ route('event') }}" class="btn-secondary">Ver Eventos</a>
+            <a href="{{ route('register') }}" class="btn-primary">Únete Ahora →</a>
+            <a href="{{ route('events.index') }}" class="btn-secondary">Ver Eventos</a>
 
         </div>
     </section>
@@ -66,8 +66,8 @@
         <h2>¡TeamSync impulsa la creatividad, la colaboración y el éxito en cada competencia!</h2>
         <p>Únete a la plataforma que está transformando la manera de formar equipos en eventos de innovación</p>
         <div class="cta-buttons">
-            <a href="{{ route('registrar') }}" class="btn-primary">Crear Cuenta Gratis</a>
-            <a href="{{ route('event') }}" class="btn-secondary">Explorar Eventos</a>
+            <a href="{{ route('register') }}" class="btn-primary">Crear Cuenta Gratis</a>
+            <a href="{{ route('events.index') }}" class="btn-secondary">Explorar Eventos</a>
         </div>
     </section>
 @endsection

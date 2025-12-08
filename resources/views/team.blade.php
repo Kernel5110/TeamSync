@@ -43,7 +43,16 @@
 
         @if($equipo)
             <div class="tarjeta-miembros">
-                <div class="titulo-seccion">Miembros del Equipo: {{ $equipo->nombre }}</div>
+                <div class="titulo-seccion" style="display: flex; align-items: center; gap: 15px;">
+                    @if($equipo->logo_path)
+                        <img src="{{ asset('storage/' . $equipo->logo_path) }}" alt="Logo {{ $equipo->nombre }}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #e5e7eb;">
+                    @else
+                        <div style="width: 50px; height: 50px; border-radius: 50%; background-color: #e0e7ff; color: #4f46e5; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem;">
+                            {{ strtoupper(substr($equipo->nombre, 0, 2)) }}
+                        </div>
+                    @endif
+                    Miembros del Equipo: {{ $equipo->nombre }}
+                </div>
                 <table class="tabla-miembros">
                     <thead>
                         <tr>
@@ -91,23 +100,122 @@
                     <div class="stat-label">Proyectos</div>
                 </div>
                 <div class="stat-card orange">
-                    <div class="stat-number">85%</div>
+                    <div class="stat-number">{{ $equipo->progress }}%</div>
                     <div class="stat-label">Progreso</div>
                 </div>
             </div>
         @else
             @unlessrole('admin')
-                <div class="tarjeta-miembros" style="text-align: center; padding: 3rem;">
-                    <x-icon name="groups" style="font-size: 4rem; color: #d1d5db;" />
-                    <h2 style="margin-top: 1rem; color: #374151;">No tienes un equipo aún</h2>
-                    <p style="color: #6b7280; margin-bottom: 2rem;">Crea un equipo para participar en eventos o espera a ser invitado.</p>
-                    <a href="#modal-crear-equipo" class="btn-nuevo" style="display: inline-flex;">
-                        Crear Equipo
-                    </a>
-                </div>
+                @if($myPendingRequest)
+                     <div class="tarjeta-miembros" style="text-align: center; padding: 3rem;">
+                        <x-icon name="pending" style="font-size: 4rem; color: #f59e0b;" />
+                        <h2 style="margin-top: 1rem; color: #374151;">Solicitud Enviada</h2>
+                        <p style="color: #6b7280; margin-bottom: 2rem;">Has solicitado unirte al equipo <strong>{{ $myPendingRequest->equipo->nombre }}</strong>. Espera a que el líder acepte tu solicitud.</p>
+                    </div>
+                @else
+                    <div class="tarjeta-miembros" style="text-align: center; padding: 3rem;">
+                        <x-icon name="groups" style="font-size: 4rem; color: #d1d5db;" />
+                        <h2 style="margin-top: 1rem; color: #374151;">No tienes un equipo aún</h2>
+                        <p style="color: #6b7280; margin-bottom: 2rem;">Crea un equipo para participar en eventos o solicita unirte a uno existente.</p>
+                        <a href="#modal-crear-equipo" class="btn-nuevo" style="display: inline-flex;">
+                            Crear Equipo
+                        </a>
+                    </div>
+                @endif
             @endunlessrole
         @endif
-    </div>
+
+        {{-- Messages Section for Leaders --}}
+        @if(isset($pendingRequests) && count($pendingRequests) > 0)
+            <div class="tarjeta-miembros" style="margin-top: 2rem; border-left: 4px solid #f59e0b;">
+                <div class="titulo-seccion" style="display: flex; align-items: center; gap: 10px;">
+                    <x-icon name="mail" style="color: #f59e0b;" />
+                    Mensajes / Solicitudes Pendientes
+                </div>
+                <table class="tabla-miembros">
+                    <thead>
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Institución</th>
+                            <th>Carrera</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($pendingRequests as $request)
+                            <tr>
+                                <td>{{ $request->user->name }}</td>
+                                <td>{{ $request->user->participante->institucion ?? 'N/A' }}</td>
+                                <td>{{ $request->user->participante->carrera->nombre ?? 'N/A' }}</td>
+                                <td>
+                                    <div style="display: flex; gap: 10px;">
+                                        <form action="{{ route('requests.accept', $request->id) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="btn-nuevo" style="background: #10b981; padding: 5px 10px; font-size: 0.8rem;">
+                                                Aceptar
+                                            </button>
+                                        </form>
+                                        <form action="{{ route('requests.reject', $request->id) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="btn-nuevo" style="background: #ef4444; padding: 5px 10px; font-size: 0.8rem;">
+                                                Rechazar
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
+
+        {{-- Other Teams Section --}}
+        @if(isset($otherTeams) && $otherTeams->count() > 0)
+            <div class="contenedor-equipo" style="margin-top: 40px;">
+                <div class="titulo-seccion">Otros Equipos Disponibles</div>
+                <div class="grid-equipos" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+                    @foreach($otherTeams as $team)
+                        <div class="card-equipo" style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid #e5e7eb;">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+                                <div>
+                                    <h3 style="margin: 0; font-size: 1.2rem; color: #111827;">{{ $team->nombre }}</h3>
+                                    <span style="font-size: 0.9rem; color: #6b7280;">{{ $team->evento->nombre ?? 'Sin Evento' }}</span>
+                                </div>
+                                <span class="badge-rol" style="background: #e0e7ff; color: #4338ca;">
+                                    {{ $team->participantes->count() }} Miembros
+                                </span>
+                            </div>
+                            
+                            <div style="margin-bottom: 15px;">
+                                <p style="margin: 0; font-size: 0.9rem; color: #4b5563;">Líder: 
+                                    @php
+                                        $lider = $team->participantes->where('rol', 'Líder')->first();
+                                    @endphp
+                                    {{ $lider ? $lider->user->name : 'N/A' }}
+                                </p>
+                            </div>
+
+                            @if(!$equipo && !$myPendingRequest && !Auth::user()->hasRole('admin'))
+                                <form action="{{ route('teams.join', $team->id) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="btn-nuevo" style="width: 100%; justify-content: center; background: #4f46e5;">
+                                        Solicitar Unirse
+                                    </button>
+                                </form>
+                            @elseif($myPendingRequest && $myPendingRequest->equipo_id == $team->id)
+                                <button disabled class="btn-nuevo" style="width: 100%; justify-content: center; background: #9ca3af; cursor: not-allowed;">
+                                    Solicitud Enviada
+                                </button>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+                <div style="margin-top: 20px; display: flex; justify-content: center;">
+                    {{ $otherTeams->appends(['all_teams_page' => $allTeams ? $allTeams->currentPage() : 1])->links('pagination::simple-tailwind') }}
+                </div>
+            </div>
+        @endif
 
     @role('admin')
         <div class="contenedor-equipo" style="margin-top: 40px;">
@@ -151,7 +259,7 @@
                                                 style="background: none; border: none; cursor: pointer; color: #4f46e5; margin-right: 10px;">
                                             <x-icon name="edit" />
                                         </button>
-                                        <form action="{{ route('team.destroy', $t->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('¿Estás seguro de eliminar este equipo?');">
+                                        <form action="{{ route('teams.destroy', $t->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('¿Estás seguro de eliminar este equipo?');">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" style="background: none; border: none; cursor: pointer; color: #ef4444;">
@@ -163,6 +271,9 @@
                             @endforeach
                         </tbody>
                     </table>
+                    <div style="margin-top: 20px; display: flex; justify-content: center;">
+                        {{ $allTeams->appends(['other_teams_page' => $otherTeams ? $otherTeams->currentPage() : 1])->links('pagination::simple-tailwind') }}
+                    </div>
                 </div>
             @else
                 <p>No hay equipos registrados en el sistema.</p>
@@ -175,12 +286,16 @@
         <div class="modal-content">
             <span class="close-modal" id="close-editar-equipo">&times;</span>
             <h2 style="margin-bottom: 1.5rem;">Editar Equipo</h2>
-            <form action="" method="POST" id="form-editar-equipo">
+            <form action="" method="POST" id="form-editar-equipo" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
                 <div class="form-group">
                     <label for="edit-nombre">Nombre del Equipo</label>
                     <input type="text" id="edit-nombre" name="nombre" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-logo">Logo del Equipo (Opcional)</label>
+                    <input type="file" id="edit-logo" name="logo" accept="image/*">
                 </div>
                 <div class="form-group">
                     <label for="edit-evento_id">Evento</label>
@@ -224,7 +339,7 @@
                     const eventoId = this.getAttribute('data-evento-id');
                     const members = JSON.parse(this.getAttribute('data-members'));
 
-                    formEditar.action = "/team/" + id;
+                    formEditar.action = "/teams/" + id;
                     inputNombre.value = nombre;
                     selectEvento.value = eventoId;
 
@@ -256,7 +371,7 @@
                                 if(confirm('¿Eliminar a ' + member.name + ' del equipo?')) {
                                     const removeForm = document.getElementById('form-remove-member');
                                     document.getElementById('remove-user-id').value = member.id;
-                                    removeForm.action = "/team/" + id + "/remove-member";
+                                    removeForm.action = "/teams/" + id + "/members/remove";
                                     removeForm.submit();
                                 }
                             };
@@ -292,11 +407,15 @@
         <div class="modal-content">
             <a href="#" class="close-modal">&times;</a>
             <h2 style="margin-bottom: 1.5rem;">Crear Nuevo Equipo</h2>
-            <form action="{{ route('team.store') }}" method="POST">
+            <form action="{{ route('teams.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="form-group">
                     <label for="nombre">Nombre del Equipo</label>
                     <input type="text" id="nombre" name="nombre" required placeholder="Ej. Alpha Team">
+                </div>
+                <div class="form-group">
+                    <label for="logo">Logo del Equipo (Opcional)</label>
+                    <input type="file" id="logo" name="logo" accept="image/*">
                 </div>
                 <div class="form-group">
                     <label for="evento_id">Evento</label>
@@ -316,7 +435,7 @@
         <div class="modal-content">
             <a href="#" class="close-modal">&times;</a>
             <h2 style="margin-bottom: 1.5rem;">Agregar Miembro</h2>
-            <form action="{{ route('team.addMember') }}" method="POST">
+            <form action="{{ route('teams.members.add') }}" method="POST">
                 @csrf
                 <div class="form-group">
                     <label for="email">Correo Electrónico del Usuario</label>
@@ -358,7 +477,7 @@
                         resultsContainer.innerHTML = '<p style="text-align: center; padding: 20px;">Buscando...</p>';
 
                         timeout = setTimeout(() => {
-                            fetch(`{{ route('team.search') }}?query=${encodeURIComponent(query)}`, {
+                            fetch(`{{ route('teams.search') }}?query=${encodeURIComponent(query)}`, {
                                 headers: {
                                     'X-Requested-With': 'XMLHttpRequest'
                                 }

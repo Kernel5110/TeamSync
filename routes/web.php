@@ -26,61 +26,81 @@ use App\Http\Controllers\AdminController;
 // Public Routes
 Route::get('/', [IndexController::class, 'index'])->name('index');
 Route::redirect('/home', '/')->name('home');
-Route::get('/start', [PageController::class, 'start'])->name('start');
-Route::get('/event', [EventController::class, 'index'])->name('event');
-Route::get('/team', [TeamController::class, 'index'])->name('team');
+
+// Legacy Redirects (to fix 404s from old links)
+Route::redirect('/event', '/events');
+Route::redirect('/team', '/teams');
+Route::redirect('/perfil', '/profile');
+Route::redirect('/registrar', '/register');
 
 // Authentication Routes
 Route::middleware('guest')->group(function () {
-    Route::get('/login', [PageController::class, 'login'])->name('login');
+    Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login'])->name('login.post');
-    Route::get('/registrar', [RegisterController::class, 'showRegistrationForm'])->name('registrar');
-    Route::post('/registrar', [RegisterController::class, 'register'])->name('register.post');
+    Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+    Route::post('/register', [RegisterController::class, 'register'])->name('register.post');
 });
 
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
 
 // Authenticated User Routes
 Route::middleware('auth')->group(function () {
+    // Dashboard / Start
+    Route::get('/start', [PageController::class, 'start'])->name('start');
+    
+    // Resources
+    Route::get('/events', [EventController::class, 'index'])->name('events.index');
+    Route::get('/teams', [TeamController::class, 'index'])->name('teams.index');
+    
     // Profile
-    Route::get('/perfil', [ProfileController::class, 'show'])->name('perfil');
-    Route::post('/perfil/update', [ProfileController::class, 'update'])->name('perfil.update');
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+    Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
 
     // Event Management
-    Route::post('/event/store', [EventController::class, 'store'])->name('event.store');
-    Route::put('/event/{id}', [EventController::class, 'update'])->name('event.update');
-    Route::delete('/event/{id}', [EventController::class, 'destroy'])->name('event.delete');
+    Route::post('/events', [EventController::class, 'store'])->name('events.store');
+    Route::put('/events/{id}', [EventController::class, 'update'])->name('events.update');
+    Route::delete('/events/{id}', [EventController::class, 'destroy'])->name('events.destroy');
 
     // Team Management
-    Route::post('/team', [TeamController::class, 'store'])->name('team.store');
-    Route::put('/team/{id}', [TeamController::class, 'update'])->name('team.update');
-    Route::delete('/team/{id}', [TeamController::class, 'destroy'])->name('team.destroy');
-    Route::post('/team/member', [TeamController::class, 'addMember'])->name('team.addMember');
-    Route::post('/team/{id}/remove-member', [TeamController::class, 'removeMember'])->name('team.removeMember');
-    Route::get('/team/search', [TeamController::class, 'search'])->name('team.search');
-    Route::post('/team/{id}/join', [TeamController::class, 'requestJoin'])->name('team.requestJoin');
-    Route::post('/solicitud/{id}/accept', [TeamController::class, 'acceptJoin'])->name('team.acceptJoin');
-    Route::post('/solicitud/{id}/reject', [TeamController::class, 'rejectJoin'])->name('team.rejectJoin');
+    Route::post('/teams', [TeamController::class, 'store'])->name('teams.store');
+    Route::put('/teams/{id}', [TeamController::class, 'update'])->name('teams.update');
+    Route::delete('/teams/{id}', [TeamController::class, 'destroy'])->name('teams.destroy');
+    
+    // Team Members
+    Route::post('/teams/members', [TeamController::class, 'addMember'])->name('teams.members.add');
+    Route::post('/teams/{id}/members/remove', [TeamController::class, 'removeMember'])->name('teams.members.remove');
+    Route::get('/teams/search', [TeamController::class, 'search'])->name('teams.search');
+    Route::post('/teams/{id}/join', [TeamController::class, 'requestJoin'])->name('teams.join');
+    
+    // Requests (Solicitudes)
+    Route::post('/requests/{id}/accept', [TeamController::class, 'acceptJoin'])->name('requests.accept');
+    Route::post('/requests/{id}/reject', [TeamController::class, 'rejectJoin'])->name('requests.reject');
 
     // Participation
-    Route::get('/evento/{id}/participar', [ParticipationController::class, 'show'])->name('participation.show');
-    Route::post('/evento/{id}/participar', [ParticipationController::class, 'upload'])->name('participation.upload');
+    Route::get('/events/{id}/participate', [ParticipationController::class, 'show'])->name('events.participate.show');
+    Route::post('/events/{id}/participate', [ParticipationController::class, 'upload'])->name('events.participate.upload');
     
     // Evaluation & Certificates
-    Route::get('/evento/{id}/ranking', [EvaluationController::class, 'ranking'])->name('event.ranking');
-    Route::get('/evento/{evento_id}/certificado/{equipo_id}', [EvaluationController::class, 'certificate'])->name('event.certificate');
+    Route::get('/events/{id}/ranking', [EvaluationController::class, 'ranking'])->name('events.ranking');
+    Route::get('/events/{eventId}/certificates/{teamId}', [EvaluationController::class, 'certificate'])->name('events.certificate');
+    Route::post('/events/{eventId}/certificates/{teamId}/email', [EvaluationController::class, 'emailCertificate'])->name('events.certificate.email');
 });
 
-// Role-based Routes (Juez)
+// Role-based Routes (Judge)
 Route::middleware(['auth', 'role:juez'])->group(function () {
-    Route::get('/evento/{id}/evaluar', [EvaluationController::class, 'show'])->name('event.evaluate');
-    Route::get('/evento/{evento_id}/evaluar/{equipo_id}', [EvaluationController::class, 'evaluateTeam'])->name('event.evaluate.team');
-    Route::post('/evento/{id}/evaluar', [EvaluationController::class, 'store'])->name('event.evaluate.store');
+    Route::get('/events/{id}/evaluate', [EvaluationController::class, 'show'])->name('events.evaluate.show');
+    Route::get('/events/{eventId}/evaluate/{teamId}', [EvaluationController::class, 'evaluateTeam'])->name('events.evaluate.team');
+    Route::post('/events/{id}/evaluate', [EvaluationController::class, 'store'])->name('events.evaluate.store');
 });
 
 // Role-based Routes (Admin)
 Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::post('/admin/create-judge', [AdminController::class, 'createJudge'])->name('admin.createJudge');
-    Route::post('/evento/{id}/assign-judge', [AdminController::class, 'assignJudge'])->name('event.assignJudge');
+    Route::post('/admin/judges', [AdminController::class, 'createJudge'])->name('admin.judges.create');
+    Route::post('/events/{id}/judges', [AdminController::class, 'assignJudge'])->name('events.judges.assign');
     Route::get('/admin/teams', [PageController::class, 'adminTeams'])->name('admin.teams');
+    
+    // Reports
+    Route::get('/events/{id}/reports/pdf', [EventController::class, 'generatePdfReport'])->name('events.reports.pdf');
+    Route::get('/events/{id}/reports/csv', [EventController::class, 'generateCsvReport'])->name('events.reports.csv');
+    Route::post('/events/{id}/reports/email', [EventController::class, 'emailReport'])->name('events.reports.email');
 });

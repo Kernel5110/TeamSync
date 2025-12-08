@@ -29,7 +29,7 @@ class AdminController extends Controller
 
         $user->assignRole('juez');
 
-        return redirect()->route('perfil')->with('success', 'Juez creado correctamente.');
+        return redirect()->route('profile.show')->with('success', 'Juez creado correctamente.');
     }
 
     public function assignJudge(Request $request, $evento_id)

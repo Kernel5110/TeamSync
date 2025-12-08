@@ -40,7 +40,7 @@
                                 </ul>
                             </td>
                             <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
-                                <form action="{{ route('team.delete', $team->id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de eliminar este equipo?');">
+                                <form action="{{ route('teams.destroy', $team->id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de eliminar este equipo?');">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" style="background-color: #ef4444; color: white; padding: 6px 12px; border: none; border-radius: 6px; font-size: 0.8rem; cursor: pointer;">Eliminar</button>

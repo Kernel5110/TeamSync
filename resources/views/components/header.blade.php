@@ -7,13 +7,13 @@
         <nav>
             <ul id="main-nav-ul">
                 <li><a href="{{ route('index') }}">Inicio</a></li>
-                <li><a href="{{ route('event') }}">Eventos</a></li>
+                <li><a href="{{ route('events.index') }}">Eventos</a></li>
                 @unlessrole('juez')
-                    <li><a href="{{ route('team') }}">Equipo</a></li>
+                    <li><a href="{{ route('teams.index') }}">Equipo</a></li>
                 @endunlessrole
                 @auth
                     <li class="user-profile-item">
-                        <a href="{{ route('perfil') }}" class="user-profile-link">
+                        <a href="{{ route('profile.show') }}" class="user-profile-link">
                             <span class="user-name">{{ Auth::user()->name }}</span>
                             <div class="user-avatar">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">

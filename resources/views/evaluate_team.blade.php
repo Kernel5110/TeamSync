@@ -91,7 +91,7 @@
                     Formulario de Evaluación
                 </h2>
 
-                <form action="{{ route('event.evaluate.store', $evento->id) }}" method="POST">
+                <form action="{{ route('events.evaluate.store', $evento->id) }}" method="POST">
                     @csrf
                     <input type="hidden" name="equipo_id" value="{{ $equipo->id }}">
 
@@ -119,7 +119,7 @@
                     </div>
 
                     <div style="display: flex; gap: 15px;">
-                        <a href="{{ route('event.evaluate', $evento->id) }}" style="flex: 1; padding: 12px; text-align: center; border: 1px solid #d1d5db; border-radius: 8px; color: #374151; text-decoration: none; font-weight: 600;">Cancelar</a>
+                        <a href="{{ route('events.evaluate.show', $evento->id) }}" style="flex: 1; padding: 12px; text-align: center; border: 1px solid #d1d5db; border-radius: 8px; color: #374151; text-decoration: none; font-weight: 600;">Cancelar</a>
                         <button type="submit" style="flex: 2; padding: 12px; background: linear-gradient(to right, #6a11cb 0%, #2575fc 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
                             {{ isset($evaluation) ? 'Actualizar Evaluación' : 'Enviar Evaluación' }}
                         </button>

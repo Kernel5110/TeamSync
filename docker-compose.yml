@@ -1,0 +1,43 @@
+services:
+  app:
+    build: .
+    container_name: laravel_app
+    expose:
+      - "9000"
+    volumes:
+      - ./:/var/www
+    networks:
+      - laravel
+
+  webserver:
+    image: nginx:alpine
+    container_name: laravel_webserver
+    ports:
+      - "8080:80"
+    volumes:
+      - ./:/var/www
+      - ./nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - app
+    networks:
+      - laravel
+
+  db:
+    image: mysql:8.0
+    container_name: laravel_db
+    environment:
+      MYSQL_DATABASE: proyecto
+      MYSQL_ROOT_PASSWORD: "12345"
+    ports:
+      - "3307:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+    networks:
+      - laravel
+
+networks:
+  laravel:
+    driver: bridge
+
+volumes:
+  dbdata:

@@ -29,7 +29,7 @@
             <h2 style="margin-bottom: 1.5rem; font-size: 1.5rem; font-weight: 600;">Equipos Participantes</h2>
             <div class="teams-list">
                 @forelse($evento->equipos as $equipo)
-                    <a href="{{ route('event.evaluate.team', ['evento_id' => $evento->id, 'equipo_id' => $equipo->id]) }}" style="text-decoration: none; color: inherit;">
+                    <a href="{{ route('events.evaluate.team', ['eventId' => $evento->id, 'teamId' => $equipo->id]) }}" style="text-decoration: none; color: inherit;">
                         <div class="team-card" style="cursor: pointer; transition: transform 0.2s; border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; margin-bottom: 10px; background: white;">
                             <div class="team-name" style="font-weight: 600; font-size: 1.1rem; color: #1f2937; margin-bottom: 5px;">{{ $equipo->nombre }}</div>
                             <div class="team-members" style="font-size: 0.9rem; color: #6b7280; margin-bottom: 10px;">

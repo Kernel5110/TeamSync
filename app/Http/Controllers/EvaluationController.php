@@ -5,8 +5,85 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Evento;
 
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\CertificateMail;
+
 class EvaluationController extends Controller
 {
+    // ... existing methods ...
+
+    public function certificate($evento_id, $equipo_id)
+    {
+        $evento = Evento::with('equipos.evaluations')->findOrFail($evento_id);
+        $equipo = \App\Models\Equipo::findOrFail($equipo_id);
+
+        if ($equipo->evento_id !== $evento->id) {
+            abort(404);
+        }
+
+        // Calculate ranking to verify position
+        $ranking = $evento->equipos->map(function ($e) {
+            $evaluations = $e->evaluations;
+            if ($evaluations->isEmpty()) return ['id' => $e->id, 'score' => 0];
+            $score = $evaluations->sum(function ($eval) {
+                return $eval->score_innovation + $eval->score_social_impact + $eval->score_technical_viability;
+            }) / $evaluations->count();
+            return ['id' => $e->id, 'score' => $score];
+        })->sortByDesc('score')->values();
+
+        // Find rank
+        $rank = $ranking->search(function ($item) use ($equipo_id) {
+            return $item['id'] == $equipo_id;
+        });
+
+        $rankText = 'Participante';
+        if ($rank !== false && $rank < 3) {
+             $rankText = ($rank + 1);
+        }
+
+        return view('certificate', compact('evento', 'equipo', 'rankText'));
+    }
+
+    public function emailCertificate(Request $request, $evento_id, $equipo_id)
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $evento = Evento::with('equipos.evaluations')->findOrFail($evento_id);
+        $equipo = \App\Models\Equipo::findOrFail($equipo_id);
+
+        if ($equipo->evento_id !== $evento->id) {
+            abort(404);
+        }
+
+        // Calculate ranking
+        $ranking = $evento->equipos->map(function ($e) {
+            $evaluations = $e->evaluations;
+            if ($evaluations->isEmpty()) return ['id' => $e->id, 'score' => 0];
+            $score = $evaluations->sum(function ($eval) {
+                return $eval->score_innovation + $eval->score_social_impact + $eval->score_technical_viability;
+            }) / $evaluations->count();
+            return ['id' => $e->id, 'score' => $score];
+        })->sortByDesc('score')->values();
+
+        $rank = $ranking->search(function ($item) use ($equipo_id) {
+            return $item['id'] == $equipo_id;
+        });
+
+        $rankText = 'Participante';
+        if ($rank !== false && $rank < 3) {
+             $rankText = ($rank + 1);
+        }
+
+        $pdf = Pdf::loadView('certificate', compact('evento', 'equipo', 'rankText'));
+
+        Mail::to($request->email)->send(new CertificateMail($pdf->output(), $equipo->nombre, $evento->nombre));
+
+        return back()->with('success', 'Constancia enviada correctamente a ' . $request->email);
+    }
+
     public function show($id)
     {
         $evento = Evento::with('equipos.participantes')->findOrFail($id);
@@ -40,7 +117,7 @@ class EvaluationController extends Controller
 
         // Check if team has submitted project
         if (empty($equipo->project_name) || empty($equipo->github_repo)) {
-            return redirect()->route('event.evaluate', $evento_id)->with('error', 'El equipo aún no ha subido la información de su proyecto.');
+            return redirect()->route('events.evaluate.show', $evento_id)->with('error', 'El equipo aún no ha subido la información de su proyecto.');
         }
 
         $evaluation = \App\Models\Evaluation::where('user_id', auth()->id())
@@ -85,7 +162,7 @@ class EvaluationController extends Controller
         );
 
 
-        return redirect()->route('event.evaluate', $evento_id)->with('success', 'Evaluación guardada correctamente.');
+        return redirect()->route('events.evaluate.show', $evento_id)->with('success', 'Evaluación guardada correctamente.');
     }
 
     public function ranking($id)
@@ -123,36 +200,4 @@ class EvaluationController extends Controller
         return view('ranking', compact('evento', 'ranking'));
     }
 
-    public function certificate($evento_id, $equipo_id)
-    {
-        $evento = Evento::with('equipos.evaluations')->findOrFail($evento_id);
-        $equipo = \App\Models\Equipo::findOrFail($equipo_id);
-
-        if ($equipo->evento_id !== $evento->id) {
-            abort(404);
-        }
-
-        // Calculate ranking to verify position
-        $ranking = $evento->equipos->map(function ($e) {
-            $evaluations = $e->evaluations;
-            if ($evaluations->isEmpty()) return ['id' => $e->id, 'score' => 0];
-            $score = $evaluations->sum(function ($eval) {
-                return $eval->score_innovation + $eval->score_social_impact + $eval->score_technical_viability;
-            }) / $evaluations->count();
-            return ['id' => $e->id, 'score' => $score];
-        })->sortByDesc('score')->values();
-
-        // Find rank
-        $rank = $ranking->search(function ($item) use ($equipo_id) {
-            return $item['id'] == $equipo_id;
-        });
-
-        if ($rank === false) {
-            abort(404);
-        }
-
-        $rank += 1; // 0-indexed to 1-indexed
-
-        return view('certificate', compact('evento', 'equipo', 'rank'));
-    }
 }

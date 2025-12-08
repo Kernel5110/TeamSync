@@ -11,8 +11,8 @@
         @endif
 
         <div class="profile-header">
-            <div class="profile-avatar">
-                {{ strtoupper(substr($user->name, 0, 2)) }}
+            <div class="profile-avatar" style="{{ $user->profile_photo_path ? 'background-image: url(' . asset('storage/' . $user->profile_photo_path) . '); background-size: cover; background-position: center; color: transparent;' : '' }}">
+                {{ $user->profile_photo_path ? '' : strtoupper(substr($user->name, 0, 2)) }}
             </div>
 
             <div class="profile-info">
@@ -88,15 +88,15 @@
         <div id="equipos" class="tab-content" style="display: none;">
             <div class="details-card">
                 <h3>Mis Equipos</h3>
-                @if($user->participante && $user->participante->equipo)
+                @if($user->participant && $user->participant->equipo)
                     <div style="padding: 1rem; border: 1px solid #e5e7eb; border-radius: 8px; margin-top: 1rem;">
-                        <h4>{{ $user->participante->equipo->nombre }}</h4>
-                        <p>Evento: {{ $user->participante->equipo->evento->nombre ?? 'Evento desconocido' }}</p>
-                        <a href="{{ route('team') }}" style="color: #4f46e5; text-decoration: none; font-weight: 600; margin-top: 0.5rem; display: inline-block;">Ver Equipo &rarr;</a>
+                        <h4>{{ $user->participant->equipo->nombre }}</h4>
+                        <p>Evento: {{ $user->participant->equipo->evento->nombre ?? 'Evento desconocido' }}</p>
+                        <a href="{{ route('teams.index') }}" style="color: #4f46e5; text-decoration: none; font-weight: 600; margin-top: 0.5rem; display: inline-block;">Ver Equipo &rarr;</a>
                     </div>
                 @else
                     <p style="margin-top: 1rem; color: #6b7280;">No perteneces a ningún equipo actualmente.</p>
-                    <a href="{{ route('event') }}" style="color: #4f46e5; text-decoration: none; font-weight: 600; margin-top: 0.5rem; display: inline-block;">Buscar Eventos &rarr;</a>
+                    <a href="{{ route('events.index') }}" style="color: #4f46e5; text-decoration: none; font-weight: 600; margin-top: 0.5rem; display: inline-block;">Buscar Eventos &rarr;</a>
                 @endif
             </div>
         </div>
@@ -117,8 +117,15 @@
                 <h2>Editar Perfil</h2>
                 <span class="close-modal" id="close-editar">&times;</span>
             </div>
-            <form action="{{ route('perfil.update') }}" method="POST" class="profile-form">
+            <form action="{{ route('profile.update') }}" method="POST" class="profile-form" enctype="multipart/form-data">
                 @csrf
+                <div class="form-group">
+                    <label for="profile_photo">Foto de Perfil</label>
+                    <div class="input-with-icon">
+                        <x-icon name="image" />
+                        <input type="file" id="profile_photo" name="profile_photo" accept="image/*">
+                    </div>
+                </div>
                 <div class="form-group">
                     <label for="name">Nombre Completo</label>
                     <div class="input-with-icon">
@@ -152,7 +159,7 @@
                 <h2>Crear Juez</h2>
                 <span class="close-modal" id="close-crear-juez">&times;</span>
             </div>
-            <form action="{{ route('admin.createJudge') }}" method="POST" class="profile-form">
+            <form action="{{ route('admin.judges.create') }}" method="POST" class="profile-form">
                 @csrf
                 <div class="form-group">
                     <label for="juez-name">Nombre Completo</label>

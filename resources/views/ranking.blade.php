@@ -28,7 +28,7 @@
                         <h3 style="font-weight: 700; color: #1f2937; margin-bottom: 5px;">{{ $ranking[1]['equipo']->nombre }}</h3>
                         <p style="color: #64748b; font-weight: 600; font-size: 1.2rem;">{{ $ranking[1]['average_score'] }} pts</p>
                         <div style="margin-top: 10px; font-size: 0.9rem; color: #94a3b8;">2º Lugar</div>
-                        <a href="{{ route('event.certificate', ['evento_id' => $evento->id, 'equipo_id' => $ranking[1]['equipo']->id]) }}" target="_blank" style="margin-top: 10px; font-size: 0.8rem; color: #4f46e5; text-decoration: none; font-weight: 600;">Ver Certificado</a>
+                        <a href="{{ route('events.certificate', ['eventId' => $evento->id, 'teamId' => $ranking[1]['equipo']->id]) }}" target="_blank" style="margin-top: 10px; font-size: 0.8rem; color: #4f46e5; text-decoration: none; font-weight: 600;">Ver Certificado</a>
                     </div>
                 </div>
                 
@@ -41,7 +41,7 @@
                         <h3 style="font-weight: 800; color: #1f2937; margin-bottom: 5px; font-size: 1.3rem;">{{ $ranking[0]['equipo']->nombre }}</h3>
                         <p style="color: #d97706; font-weight: 700; font-size: 1.5rem;">{{ $ranking[0]['average_score'] }} pts</p>
                         <div style="margin-top: 10px; font-size: 1rem; color: #fbbf24; font-weight: 700;">1º Lugar</div>
-                        <a href="{{ route('event.certificate', ['evento_id' => $evento->id, 'equipo_id' => $ranking[0]['equipo']->id]) }}" target="_blank" style="margin-top: 15px; font-size: 0.9rem; color: #4f46e5; text-decoration: none; font-weight: 600; background-color: #e0e7ff; padding: 4px 10px; border-radius: 4px;">Ver Certificado</a>
+                        <a href="{{ route('events.certificate', ['eventId' => $evento->id, 'teamId' => $ranking[0]['equipo']->id]) }}" target="_blank" style="margin-top: 15px; font-size: 0.9rem; color: #4f46e5; text-decoration: none; font-weight: 600; background-color: #e0e7ff; padding: 4px 10px; border-radius: 4px;">Ver Certificado</a>
                     </div>
                 </div>
 
@@ -54,7 +54,7 @@
                         <h3 style="font-weight: 700; color: #1f2937; margin-bottom: 5px;">{{ $ranking[2]['equipo']->nombre }}</h3>
                         <p style="color: #b45309; font-weight: 600; font-size: 1.2rem;">{{ $ranking[2]['average_score'] }} pts</p>
                         <div style="margin-top: 10px; font-size: 0.9rem; color: #b45309;">3º Lugar</div>
-                        <a href="{{ route('event.certificate', ['evento_id' => $evento->id, 'equipo_id' => $ranking[2]['equipo']->id]) }}" target="_blank" style="margin-top: 10px; font-size: 0.8rem; color: #4f46e5; text-decoration: none; font-weight: 600;">Ver Certificado</a>
+                        <a href="{{ route('events.certificate', ['eventId' => $evento->id, 'teamId' => $ranking[2]['equipo']->id]) }}" target="_blank" style="margin-top: 10px; font-size: 0.8rem; color: #4f46e5; text-decoration: none; font-weight: 600;">Ver Certificado</a>
                     </div>
                 </div>
             </div>
@@ -70,6 +70,7 @@
                         <th style="padding: 16px 24px; text-align: left; font-size: 0.85rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Integrantes</th>
                         <th style="padding: 16px 24px; text-align: center; font-size: 0.85rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Evaluaciones</th>
                         <th style="padding: 16px 24px; text-align: right; font-size: 0.85rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Puntaje Promedio</th>
+                        <th style="padding: 16px 24px; text-align: center; font-size: 0.85rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Constancia</th>
                     </tr>
                 </thead>
                 <tbody style="divide-y: 1px solid #e5e7eb;">
@@ -106,6 +107,11 @@
                                 <span style="font-weight: 700; color: #4f46e5; font-size: 1.1rem;">{{ $item['average_score'] }}</span>
                                 <span style="font-size: 0.85rem; color: #9ca3af;">/ 30</span>
                             </td>
+                            <td style="padding: 16px 24px; text-align: center;">
+                                <button onclick="openEmailModal('{{ route('events.certificate.email', ['eventId' => $evento->id, 'teamId' => $item['equipo']->id]) }}')" style="background-color: #4f46e5; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85rem;">
+                                    <x-icon name="email" style="width: 16px; height: 16px; vertical-align: middle;" /> Enviar
+                                </button>
+                            </td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -113,4 +119,43 @@
         </div>
     @endif
 </div>
+
+<!-- Email Modal -->
+<div id="emailModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000;">
+    <div style="background: white; padding: 24px; border-radius: 12px; width: 400px; max-width: 90%; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);">
+        <h3 style="margin-top: 0; color: #1f2937;">Enviar Constancia por Correo</h3>
+        <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 20px;">Ingresa el correo electrónico donde deseas recibir la constancia.</p>
+        
+        <form id="emailForm" action="" method="POST">
+            @csrf
+            <div style="margin-bottom: 16px;">
+                <label for="email" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 4px;">Correo Electrónico</label>
+                <input type="email" name="email" id="email" required style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.9rem;">
+            </div>
+            
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" onclick="closeEmailModal()" style="background: white; border: 1px solid #d1d5db; color: #374151; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500;">Cancelar</button>
+                <button type="submit" style="background: #4f46e5; border: none; color: white; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500;">Enviar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openEmailModal(actionUrl) {
+        document.getElementById('emailForm').action = actionUrl;
+        document.getElementById('emailModal').style.display = 'flex';
+    }
+
+    function closeEmailModal() {
+        document.getElementById('emailModal').style.display = 'none';
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('emailModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeEmailModal();
+        }
+    });
+</script>
 @endsection

@@ -29,7 +29,7 @@
                     <p style="color: #b45309; font-size: 1.1rem; margin-bottom: 20px;">
                         Tu equipo ha obtenido el <strong>{{ $rank }}º Lugar</strong> en este evento.
                     </p>
-                    <a href="{{ route('event.certificate', ['evento_id' => $evento->id, 'equipo_id' => $equipo->id]) }}" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; background-color: #d97706; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; transition: background-color 0.2s;">
+                    <a href="{{ route('events.certificate', ['eventId' => $evento->id, 'teamId' => $equipo->id]) }}" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; background-color: #d97706; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; transition: background-color 0.2s;">
                         <x-icon name="download" /> Descargar Certificado
                     </a>
                 </div>
@@ -57,7 +57,7 @@
                     </div>
                 @endif
 
-                <form action="{{ route('participation.upload', $evento->id) }}" method="POST" class="form-upload">
+                <form action="{{ route('events.participate.upload', $evento->id) }}" method="POST" class="form-upload" enctype="multipart/form-data">
                     @csrf
                     
                     <div class="form-group">
@@ -83,6 +83,16 @@
                     <div class="form-group">
                         <label for="project_description">Descripción y Avances</label>
                         <textarea name="project_description" id="project_description" class="input-textarea" rows="5" required placeholder="Describe tu proyecto y los avances realizados..." {{ $isEvaluated ? 'disabled' : '' }}>{{ $equipo->project_description ?? '' }}</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="evidence">Evidencia (PDF, Imagen - Máx 5MB)</label>
+                        @if($equipo->evidence_path)
+                            <div style="margin-bottom: 10px;">
+                                <a href="{{ asset('storage/' . $equipo->evidence_path) }}" target="_blank" style="color: #4f46e5; text-decoration: underline;">Ver Evidencia Actual</a>
+                            </div>
+                        @endif
+                        <input type="file" name="evidence" id="evidence" class="input-text" accept=".pdf,image/*" {{ $isEvaluated ? 'disabled' : '' }}>
                     </div>
                     
                     @if(!$isEvaluated)

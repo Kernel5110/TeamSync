@@ -22,6 +22,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'profile_photo_path',
     ];
 
     /**
@@ -47,12 +48,12 @@ class User extends Authenticatable
         ];
     }
 
-    public function eventosComoJuez()
+    public function judgeEvents(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
         return $this->belongsToMany(Evento::class, 'evento_juez', 'user_id', 'evento_id');
     }
 
-    public function participante()
+    public function participant(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(Participante::class, 'usuario_id');
     }

@@ -35,9 +35,9 @@
                 <h4>Enlaces Rápidos</h4>
                 <ul>
                     <li><a href="{{ route('index') }}">Inicio</a></li>
-                    <li><a href="{{ route('event') }}">Eventos</a></li>
+                    <li><a href="{{ route('events.index') }}">Eventos</a></li>
                     @unlessrole('juez')
-                        <li><a href="{{ route('team') }}">Equipos</a></li>
+                        <li><a href="{{ route('teams.index') }}">Equipos</a></li>
                     @endunlessrole
                     <li><a href="#">Sobre Nosotros</a></li>
                     <li><a href="#">Cómo Funciona</a></li>
