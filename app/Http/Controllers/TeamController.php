@@ -15,7 +15,8 @@ class TeamController extends Controller
         $user = Auth::user();
         $participante = $user->participant;
         $equipo = $participante ? $participante->equipo : null;
-        $eventos = Evento::all(); // For creating a team
+        // Only show upcoming events for team creation
+        $eventos = Evento::where('fecha_inicio', '>', now())->get();
         
         $allTeams = null;
         if ($user->hasRole('admin')) {
@@ -138,8 +139,9 @@ class TeamController extends Controller
         $evento = Evento::findOrFail($request->evento_id);
         
         // Validate Event Status
-        if ($evento->status !== 'En Curso' && $evento->status !== 'Próximo') {
-             return back()->with('error', 'El evento no está disponible para registros (Estado: ' . $evento->status . ').');
+        // Validate Event Status - Only allow joining upcoming events
+        if ($evento->fecha_inicio <= now()) {
+             return back()->with('error', 'No puedes unirte a un evento que ya ha iniciado o finalizado.');
         }
 
         if ($evento->equipos()->count() >= $evento->capacidad) {

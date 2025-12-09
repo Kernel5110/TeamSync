@@ -42,15 +42,11 @@ class EvaluationController extends Controller
              $rankText = ($rank + 1);
         }
 
-        return view('certificate', compact('evento', 'equipo', 'rankText'));
+        return view('certificate', compact('evento', 'equipo', 'rankText', 'rank'));
     }
 
-    public function emailCertificate(Request $request, $evento_id, $equipo_id)
+    public function downloadCertificate($evento_id, $equipo_id)
     {
-        $request->validate([
-            'email' => 'required|email',
-        ]);
-
         $evento = Evento::with('equipos.evaluations')->findOrFail($evento_id);
         $equipo = \App\Models\Equipo::findOrFail($equipo_id);
 
@@ -77,7 +73,50 @@ class EvaluationController extends Controller
              $rankText = ($rank + 1);
         }
 
-        $pdf = Pdf::loadView('certificate', compact('evento', 'equipo', 'rankText'));
+        $pdf = Pdf::loadView('certificate', compact('evento', 'equipo', 'rankText', 'rank') + ['isPdf' => true])
+            ->setPaper('letter', 'landscape');
+
+        return $pdf->download('certificado-' . $equipo->nombre . '-' . $evento->nombre . '.pdf');
+    }
+
+    public function emailCertificate(Request $request, $evento_id, $equipo_id)
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $evento = Evento::with('equipos.evaluations')->findOrFail($evento_id);
+        $equipo = \App\Models\Equipo::findOrFail($equipo_id);
+
+        if (!$evento->jueces->contains(auth()->user()->id)) {
+            abort(403, 'Solo los jueces pueden enviar constancias.');
+        }
+
+        if ($equipo->evento_id !== $evento->id) {
+            abort(404);
+        }
+
+        // Calculate ranking
+        $ranking = $evento->equipos->map(function ($e) {
+            $evaluations = $e->evaluations;
+            if ($evaluations->isEmpty()) return ['id' => $e->id, 'score' => 0];
+            $score = $evaluations->sum(function ($eval) {
+                return $eval->score_innovation + $eval->score_social_impact + $eval->score_technical_viability;
+            }) / $evaluations->count();
+            return ['id' => $e->id, 'score' => $score];
+        })->sortByDesc('score')->values();
+
+        $rank = $ranking->search(function ($item) use ($equipo_id) {
+            return $item['id'] == $equipo_id;
+        });
+
+        $rankText = 'Participante';
+        if ($rank !== false && $rank < 3) {
+             $rankText = ($rank + 1);
+        }
+
+        $pdf = Pdf::loadView('certificate', compact('evento', 'equipo', 'rankText', 'rank') + ['isPdf' => true])
+            ->setPaper('letter', 'landscape');
 
         Mail::to($request->email)->send(new CertificateMail($pdf->output(), $equipo->nombre, $evento->nombre));
 
@@ -196,8 +235,9 @@ class EvaluationController extends Controller
             ];
         })->sortByDesc('average_score')->values();
 
+        $isJudge = $evento->jueces->contains(auth()->id());
 
-        return view('ranking', compact('evento', 'ranking'));
+        return view('ranking', compact('evento', 'ranking', 'isJudge'));
     }
 
 }

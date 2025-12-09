@@ -83,6 +83,7 @@ Route::middleware('auth')->group(function () {
     // Evaluation & Certificates
     Route::get('/events/{id}/ranking', [EvaluationController::class, 'ranking'])->name('events.ranking');
     Route::get('/events/{eventId}/certificates/{teamId}', [EvaluationController::class, 'certificate'])->name('events.certificate');
+    Route::get('/events/{eventId}/certificates/{teamId}/download', [EvaluationController::class, 'downloadCertificate'])->name('events.certificate.download');
     Route::post('/events/{eventId}/certificates/{teamId}/email', [EvaluationController::class, 'emailCertificate'])->name('events.certificate.email');
 });
 

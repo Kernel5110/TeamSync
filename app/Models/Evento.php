@@ -30,7 +30,7 @@ class Evento extends Model
     public function getStatusAttribute()
     {
         $now = now('America/Mexico_City');
-        $startDateTime = $this->fecha_inicio->copy()->setTimeFromTimeString($this->start_time);
+        $startDateTime = $this->fecha_inicio->copy()->setTimeFromTimeString($this->start_time ?? '00:00:00');
         $endDateTime = $this->fecha_fin->copy()->endOfDay();
 
         if ($now->lessThan($startDateTime)) {

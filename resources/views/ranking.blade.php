@@ -28,7 +28,9 @@
                         <h3 style="font-weight: 700; color: #1f2937; margin-bottom: 5px;">{{ $ranking[1]['equipo']->nombre }}</h3>
                         <p style="color: #64748b; font-weight: 600; font-size: 1.2rem;">{{ $ranking[1]['average_score'] }} pts</p>
                         <div style="margin-top: 10px; font-size: 0.9rem; color: #94a3b8;">2º Lugar</div>
+                        @if(($isJudge ?? false) || ($ranking[1]['equipo']->participantes->contains('user_id', auth()->id())))
                         <a href="{{ route('events.certificate', ['eventId' => $evento->id, 'teamId' => $ranking[1]['equipo']->id]) }}" target="_blank" style="margin-top: 10px; font-size: 0.8rem; color: #4f46e5; text-decoration: none; font-weight: 600;">Ver Certificado</a>
+                        @endif
                     </div>
                 </div>
                 
@@ -41,7 +43,9 @@
                         <h3 style="font-weight: 800; color: #1f2937; margin-bottom: 5px; font-size: 1.3rem;">{{ $ranking[0]['equipo']->nombre }}</h3>
                         <p style="color: #d97706; font-weight: 700; font-size: 1.5rem;">{{ $ranking[0]['average_score'] }} pts</p>
                         <div style="margin-top: 10px; font-size: 1rem; color: #fbbf24; font-weight: 700;">1º Lugar</div>
+                        @if(($isJudge ?? false) || ($ranking[0]['equipo']->participantes->contains('user_id', auth()->id())))
                         <a href="{{ route('events.certificate', ['eventId' => $evento->id, 'teamId' => $ranking[0]['equipo']->id]) }}" target="_blank" style="margin-top: 15px; font-size: 0.9rem; color: #4f46e5; text-decoration: none; font-weight: 600; background-color: #e0e7ff; padding: 4px 10px; border-radius: 4px;">Ver Certificado</a>
+                        @endif
                     </div>
                 </div>
 
@@ -54,7 +58,9 @@
                         <h3 style="font-weight: 700; color: #1f2937; margin-bottom: 5px;">{{ $ranking[2]['equipo']->nombre }}</h3>
                         <p style="color: #b45309; font-weight: 600; font-size: 1.2rem;">{{ $ranking[2]['average_score'] }} pts</p>
                         <div style="margin-top: 10px; font-size: 0.9rem; color: #b45309;">3º Lugar</div>
+                        @if(($isJudge ?? false) || ($ranking[2]['equipo']->participantes->contains('user_id', auth()->id())))
                         <a href="{{ route('events.certificate', ['eventId' => $evento->id, 'teamId' => $ranking[2]['equipo']->id]) }}" target="_blank" style="margin-top: 10px; font-size: 0.8rem; color: #4f46e5; text-decoration: none; font-weight: 600;">Ver Certificado</a>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -70,7 +76,9 @@
                         <th style="padding: 16px 24px; text-align: left; font-size: 0.85rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Integrantes</th>
                         <th style="padding: 16px 24px; text-align: center; font-size: 0.85rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Evaluaciones</th>
                         <th style="padding: 16px 24px; text-align: right; font-size: 0.85rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Puntaje Promedio</th>
+                        @if($isJudge ?? false)
                         <th style="padding: 16px 24px; text-align: center; font-size: 0.85rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Constancia</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody style="divide-y: 1px solid #e5e7eb;">
@@ -107,11 +115,13 @@
                                 <span style="font-weight: 700; color: #4f46e5; font-size: 1.1rem;">{{ $item['average_score'] }}</span>
                                 <span style="font-size: 0.85rem; color: #9ca3af;">/ 30</span>
                             </td>
+                            @if($isJudge ?? false)
                             <td style="padding: 16px 24px; text-align: center;">
                                 <button onclick="openEmailModal('{{ route('events.certificate.email', ['eventId' => $evento->id, 'teamId' => $item['equipo']->id]) }}')" style="background-color: #4f46e5; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85rem;">
                                     <x-icon name="email" style="width: 16px; height: 16px; vertical-align: middle;" /> Enviar
                                 </button>
                             </td>
+                            @endif
                         </tr>
                     @endforeach
                 </tbody>

@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Great+Vibes&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
     <style>
         @page {
-            size: landscape;
+            size: letter landscape;
             margin: 0;
         }
         body {
@@ -15,71 +15,87 @@
             padding: 0;
             background-color: #f0f0f0;
             font-family: 'Open Sans', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+            width: 100%;
+            height: 100%;
         }
         .certificate-container {
-            width: 297mm;
-            height: 210mm;
-            background-color: #fff;
+            width: 279.4mm;
+            height: 215.9mm;
             position: relative;
+            background-color: #fff;
+            @if($isPdf ?? false)
+            background-image: url('{{ public_path('certificate_bg-1.png') }}');
+            @else
+            background-image: url('/certificate_bg-1.png');
+            @endif
+            background-size: 100% 100%; /* Force stretch */
+            background-repeat: no-repeat;
             box-shadow: 0 0 20px rgba(0,0,0,0.1);
             overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
             text-align: center;
-            border: 20px solid #fff;
-            outline: 5px solid #1f2937;
-            outline-offset: -10px;
+            color: #1f2937;
         }
-        .watermark {
+
+        /* PDF specific adjustments */
+        @if($isPdf ?? false)
+        .certificate-container {
+            width: 100%;
+            height: 100%;
+            box-shadow: none;
+        }
+        @endif
+
+        .content-wrapper {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            opacity: 0.05;
-            width: 60%;
-            pointer-events: none;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* Use table for vertical centering in DomPDF if flex fails, but absolute + top padding is safer */
+            padding-top: 50px; 
+            box-sizing: border-box;
         }
+
         .header-text {
             font-family: 'Cinzel', serif;
-            font-size: 3rem;
+            font-size: 40px; /* Use px for PDF consistency */
             font-weight: 700;
             color: #1f2937;
             margin-bottom: 10px;
             text-transform: uppercase;
             letter-spacing: 5px;
+            margin-top: 40px;
         }
         .sub-header {
             font-family: 'Cinzel', serif;
-            font-size: 1.5rem;
+            font-size: 20px;
             color: #4b5563;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             letter-spacing: 2px;
         }
         .presented-to {
-            font-size: 1.2rem;
+            font-size: 16px;
             color: #6b7280;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             font-style: italic;
         }
         .recipient-name {
             font-family: 'Great Vibes', cursive;
-            font-size: 4rem;
-            color: #d97706; /* Gold/Amber color */
+            font-size: 60px;
+            color: #d97706;
             margin-bottom: 20px;
             line-height: 1;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
         }
         .description {
-            font-size: 1.2rem;
+            font-size: 16px;
             color: #374151;
-            max-width: 80%;
-            margin: 0 auto 40px;
+            width: 80%;
+            margin: 0 auto 30px;
             line-height: 1.6;
+            background-color: rgba(255, 255, 255, 0.6);
+            padding: 15px;
+            border-radius: 5px;
         }
         .event-name {
             font-weight: 700;
@@ -89,38 +105,44 @@
             font-weight: 700;
             color: #d97706;
         }
-        .signatures {
-            display: flex;
-            justify-content: space-around;
+
+        /* Signatures Table for PDF compatibility */
+        .signatures-table {
             width: 80%;
-            margin-top: 40px;
+            margin: 40px auto 0;
+            border-collapse: collapse;
         }
-        .signature-block {
+        .signatures-table td {
+            width: 50%;
+            vertical-align: top;
             text-align: center;
+            padding: 0 20px;
         }
         .signature-line {
-            width: 250px;
+            width: 100%;
             border-top: 2px solid #1f2937;
             margin-bottom: 10px;
+            display: block;
         }
         .signature-name {
             font-weight: 600;
             color: #1f2937;
+            font-size: 14px;
         }
         .signature-title {
-            font-size: 0.9rem;
+            font-size: 12px;
             color: #6b7280;
         }
-        .date {
-            position: absolute;
-            bottom: 40px;
-            font-size: 1rem;
-            color: #6b7280;
-        }
-        .print-btn {
+
+        .btn-container {
             position: fixed;
             top: 20px;
             right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+        }
+        .print-btn {
             background-color: #4f46e5;
             color: white;
             padding: 10px 20px;
@@ -129,64 +151,58 @@
             cursor: pointer;
             font-weight: 600;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            z-index: 1000;
+            text-decoration: none;
+            display: inline-block;
         }
         .print-btn:hover {
             background-color: #4338ca;
         }
         @media print {
-            body {
-                background-color: #fff;
-            }
-            .certificate-container {
-                box-shadow: none;
-                width: 100%;
-                height: 100%;
-                border: none; /* Let the outline handle the border look */
-                outline: 5px solid #1f2937;
-                outline-offset: -10px;
-                page-break-after: always;
-            }
-            .print-btn {
-                display: none;
-            }
-            @page {
-                margin: 0;
-            }
+            .btn-container { display: none; }
+            .certificate-container { box-shadow: none; border: none; }
         }
     </style>
 </head>
 <body>
-    <button class="print-btn" onclick="window.print()">Imprimir / Guardar como PDF</button>
+    @unless($isPdf ?? false)
+    <div class="btn-container">
+        <a href="{{ route('events.certificate.download', ['eventId' => $evento->id, 'teamId' => $equipo->id]) }}" class="print-btn">
+            Descargar PDF
+        </a>
+        <button class="print-btn" onclick="window.print()">Imprimir / Guardar como PDF</button>
+    </div>
+    @endunless
 
     <div class="certificate-container">
-        <!-- Optional Watermark SVG -->
-        <svg class="watermark" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
-        </svg>
+        <div class="content-wrapper">
+            <!-- Optional Watermark SVG -->
+            <!-- <svg class="watermark" ...> (Removed for cleaner look) -->
 
-        <div class="header-text">Certificado de Reconocimiento</div>
-        <div class="sub-header">Premio a la Excelencia en Innovación</div>
+            <div class="header-text">Certificado de Reconocimiento</div>
+            <div class="sub-header">Premio a la Excelencia en Innovación</div>
 
-        <div class="presented-to">Otorgado al equipo</div>
-        <div class="recipient-name">{{ $equipo->nombre }}</div>
+            <div class="presented-to">Otorgado al equipo</div>
+            <div class="recipient-name">{{ $equipo->nombre }}</div>
 
-        <div class="description">
-            Por obtener el <span class="rank-text">{{ $rank }}º Lugar</span> en el evento <span class="event-name">{{ $evento->nombre }}</span>.<br>
-            Reconocemos su destacado desempeño, creatividad y contribución tecnológica con el proyecto "{{ $equipo->project_name ?? 'Proyecto Innovador' }}".
-        </div>
-
-        <div class="signatures">
-            <div class="signature-block">
-                <div class="signature-line"></div>
-                <div class="signature-name">Comité Organizador</div>
-                <div class="signature-title">TeamSync</div>
+            <div class="description">
+                Por obtener el <span class="rank-text">{{ $rankText }}º Lugar</span> en el evento <span class="event-name">{{ $evento->nombre }}</span>.<br>
+                Reconocemos su destacado desempeño, creatividad y contribución tecnológica con el proyecto "{{ $equipo->project_name ?? 'Proyecto Innovador' }}".
             </div>
-            <div class="signature-block">
-                <div class="signature-line"></div>
-                <div class="signature-name">{{ now()->format('d \d\e F \d\e Y') }}</div>
-                <div class="signature-title">Fecha</div>
-            </div>
+
+            <table class="signatures-table">
+                <tr>
+                    <td>
+                        <div class="signature-line"></div>
+                        <div class="signature-name">Comité Organizador</div>
+                        <div class="signature-title">TeamSync</div>
+                    </td>
+                    <td>
+                        <div class="signature-line"></div>
+                        <div class="signature-name">{{ now()->format('d \d\e F \d\e Y') }}</div>
+                        <div class="signature-title">Fecha</div>
+                    </td>
+                </tr>
+            </table>
         </div>
     </div>
 

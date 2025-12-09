@@ -10,7 +10,7 @@ sleep 5
 
 # 2. Iniciar Servidor Laravel (en segundo plano)
 echo "🚀 Iniciando servidor Laravel..."
-nohup php artisan serve --port=8002 > laravel.log 2>&1 &
+nohup php -d extension=gd artisan serve --port=8002 > laravel.log 2>&1 &
 LARAVEL_PID=$!
 
 # 3. Iniciar Ngrok (en segundo plano)
@@ -21,7 +21,6 @@ NGROK_PID=$!
 # Esperar a que Ngrok genere la URL
 sleep 3
 
-# 4. Obtener la URL de Ngrok
 # 4. Obtener la URL de Ngrok
 # Intentar obtener desde la API local (más robusto)
 if command -v jq >/dev/null 2>&1; then
