@@ -5,8 +5,10 @@
 
 body {
     margin: 0;
-    font-family: 'Inter', sans-serif; /* O la fuente que estés usando */
-    background-color: #f8f9ff; /* Fondo gris muy claro/azulado para la página */
+    font-family: 'Inter', sans-serif;
+    /* O la fuente que estés usando */
+    background-color: #f8f9ff;
+    /* Fondo gris muy claro/azulado para la página */
 }
 
 /* Contenedor Principal para centrar la tarjeta */
@@ -14,7 +16,8 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: calc(100vh - 80px); /* Restamos altura aprox del header */
+    min-height: calc(100vh - 80px);
+    /* Restamos altura aprox del header */
     padding: 20px;
 }
 
@@ -22,7 +25,8 @@ body {
 .auth-card {
     width: 100%;
     min-height: 600px;
-    max-width: 500px; /* Ancho similar a la imagen */
+    max-width: 500px;
+    /* Ancho similar a la imagen */
     /* Degradado exacto de la imagen: Azul/Morado a Azul Claro */
     background: linear-gradient(180deg, #5b4eff 0%, #84caff 100%);
     padding: 60px 50px;
@@ -67,18 +71,22 @@ body {
     position: relative;
     display: flex;
     align-items: center;
+    width: 100%;
 }
 
 .input-wrapper input {
     width: 100%;
-    padding: 12px 40px; /* Espacio para los iconos a los lados */
+    padding: 12px 45px;
+    /* Aumentar un poco el padding para asegurar que el texto no toque el icono */
     border-radius: 12px;
     border: none;
     outline: none;
     font-size: 16px;
     color: #333;
-    background-color: #f3f4f6; /* Fondo gris muy suave del input */
+    background-color: #f3f4f6;
     transition: all 0.2s;
+    position: relative;
+    z-index: 1;
 }
 
 .input-wrapper input:focus {
@@ -95,17 +103,36 @@ body {
     position: absolute;
     display: flex;
     align-items: center;
-    pointer-events: none; /* Para que el click pase a través del icono */
+    justify-content: center;
+    z-index: 10;
+    /* Encima del input */
+    width: 40px;
+    /* Ancho fijo estricto */
+    height: 100%;
+    top: 0;
+    pointer-events: none;
+    /* CRITICO: Permitir clicks a través del contenedor */
+}
+
+.input-icon svg {
+    pointer-events: none;
+    /* CRITICO: Permitir clicks a través del SVG */
 }
 
 .input-icon.left {
-    left: 12px;
+    left: 0;
 }
 
 .input-icon.right {
-    right: 12px;
+    right: 0;
+    pointer-events: auto;
+    /* Solo el contenedor derecho captura clicks */
     cursor: pointer;
-    pointer-events: auto; /* El ojo sí debe ser clickeable */
+}
+
+.input-icon.right svg {
+    pointer-events: none;
+    /* El click lo captura el span, no el SVG */
 }
 
 /* Enlaces */
@@ -124,7 +151,7 @@ body {
     text-decoration-thickness: 1px;
     opacity: 0.9;
     font-size: 16px;
-    
+
     transition: opacity 0.2s;
 }
 
@@ -147,7 +174,8 @@ body {
     font-weight: 600;
     cursor: pointer;
     transition: background-color 0.3s;
-    backdrop-filter: blur(5px); /* Efecto cristal */
+    backdrop-filter: blur(5px);
+    /* Efecto cristal */
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
