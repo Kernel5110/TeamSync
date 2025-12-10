@@ -9,11 +9,12 @@ class Categoria extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['nombre'];
+    protected $table = 'categories';
+    protected $fillable = ['name'];
 
     public function eventos()
     {
-        return $this->belongsToMany(Event::class, 'categoria_evento', 'categoria_id', 'evento_id');
+        return $this->belongsToMany(Event::class, 'category_event', 'category_id', 'event_id');
     }
     //
 }

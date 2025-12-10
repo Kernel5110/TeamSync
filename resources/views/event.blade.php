@@ -65,7 +65,7 @@
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
                             @endif
                         </div>
-                        <h2>{{ $evento->nombre }}</h2>
+                        <h2>{{ $evento->name }}</h2>
                     </div>
                     @php
                         $status = $evento->status;
@@ -83,41 +83,40 @@
                     <div style="margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 5px;">
                         @foreach($evento->categories as $cat)
                             <span style="background-color: #e0e7ff; color: #4338ca; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600;">
-                                {{ $cat->nombre }}
+                                {{ $cat->name }}
                             </span>
                         @endforeach
                     </div>
                 @endif
 
                 <p class="evento-descripcion">
-                    {{ $evento->descripcion }}
+                    {{ $evento->description }}
                 </p>
 
                 <div class="evento-detalles">
                     <div class="detalle-item">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                        <span>{{ $evento->fecha_inicio->format('d/m/Y') }} {{ \Carbon\Carbon::parse($evento->start_time)->format('H:i') }} - {{ $evento->fecha_fin->format('d/m/Y') }}</span>
+                        <span>{{ $evento->starts_at->format('d/m/Y H:i') }} - {{ $evento->ends_at->format('d/m/Y') }}</span>
                     </div>
                     <div class="detalle-item">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                        <span>{{ $evento->ubicacion }}</span>
+                        <span>{{ $evento->location }}</span>
                     </div>
                     <div class="detalle-item">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-    <span>Equipos: {{ $evento->teams->count() }} / {{ (int)$evento->capacidad }}</span>
+    <span>Equipos: {{ $evento->teams->count() }} / {{ (int)$evento->capacity }}</span>
 </div>
                 </div>
 
                 <div class="evento-acciones">
 
                     <a href="#" class="btn-detalles"
-                       data-nombre="{{ $evento->nombre }}"
-                       data-descripcion="{{ $evento->descripcion }}"
-                       data-fecha-inicio="{{ $evento->fecha_inicio->format('d F Y') }}"
-                       data-start-time="{{ \Carbon\Carbon::parse($evento->start_time)->format('H:i') }}"
-                       data-fecha-fin="{{ $evento->fecha_fin->format('d F Y') }}"
-                       data-ubicacion="{{ $evento->ubicacion }}"
-                       data-capacidad="{{ $evento->capacidad }}">
+                       data-name="{{ $evento->name }}"
+                       data-description="{{ $evento->description }}"
+                       data-starts-at="{{ $evento->starts_at->format('d F Y H:i') }}"
+                       data-ends-at="{{ $evento->ends_at->format('d F Y') }}"
+                       data-location="{{ $evento->location }}"
+                       data-capacity="{{ $evento->capacity }}">
                         Ver Detalles
                     </a>
 
@@ -150,15 +149,14 @@
                 $userParticipante = auth()->user()->participant;
                 $userTeamId = $userParticipante ? $userParticipante->team_id : null;
 
-                $hasTeamInEvent = \App\Models\Team::where('evento_id', $evento->id)
+                $hasTeamInEvent = \App\Models\Team::where('event_id', $evento->id)
                     ->whereHas('participants', function($q) {
-                        $q->where('usuario_id', auth()->id());
+                        $q->where('user_id', auth()->id());
                     })->exists();
 
                 // Time Validation
-                $startDateTime = $evento->fecha_inicio->copy()->setTimeFromTimeString($evento->start_time);
                 $now = now('America/Mexico_City');
-                $hasStarted = $now->greaterThanOrEqualTo($startDateTime);
+                $hasStarted = $now->greaterThanOrEqualTo($evento->starts_at);
             @endphp
 
             @if($hasTeamInEvent)
@@ -168,17 +166,17 @@
                     </a>
                 @else
                     <button disabled style="background-color: #9ca3af; color: white; padding: 0.75rem; border-radius: 9999px; border: none; font-weight: 600; font-size: 1rem; cursor: not-allowed;">
-                        Inicia: {{ $startDateTime->format('H:i') }}
+                        Inicia: {{ $evento->starts_at->format('H:i') }}
                     </button>
                 @endif
             @else
                 @if($evento->status !== 'Finalizado')
-                    <button class="btn-registrar" data-id="{{ $evento->id }}" data-nombre="{{ $evento->nombre }}" style="background-color: #4f46e5; color: white; padding: 0.75rem; border-radius: 9999px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: background-color 0.2s; border: none; cursor: pointer;">
+                    <button class="btn-registrar" data-id="{{ $evento->id }}" data-name="{{ $evento->name }}" style="background-color: #4f46e5; color: white; padding: 0.75rem; border-radius: 9999px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: background-color 0.2s; border: none; cursor: pointer;">
                         Participar
                     </button>
                     @if(!$hasStarted)
                         <div style="text-align: center; font-size: 0.8rem; color: #6b7280; margin-top: 5px;">
-                            Inicia: {{ $startDateTime->format('d/m H:i') }}
+                            Inicia: {{ $evento->starts_at->format('d/m H:i') }}
                         </div>
                     @endif
                 @else
@@ -205,15 +203,14 @@
 
                         <button class="btn-admin-action edit btn-editar-evento"
                                 data-id="{{ $evento->id }}"
-                                data-nombre="{{ $evento->nombre }}"
-                                data-descripcion="{{ $evento->descripcion }}"
-                                data-fecha-inicio="{{ $evento->fecha_inicio->format('Y-m-d') }}"
-                                data-start-time="{{ \Carbon\Carbon::parse($evento->start_time)->format('H:i') }}"
-                                data-fecha-fin="{{ $evento->fecha_fin->format('Y-m-d') }}"
-                                data-ubicacion="{{ $evento->ubicacion }}"
-                                data-capacidad="{{ $evento->capacidad }}"
-                                data-capacidad="{{ $evento->capacidad }}"
-                                data-categorias="{{ $evento->categories->pluck('nombre')->toJson() }}"
+                                data-name="{{ $evento->name }}"
+                                data-description="{{ $evento->description }}"
+                                data-starts-at="{{ $evento->starts_at->format('Y-m-d') }}"
+                                data-start-time="{{ $evento->starts_at->format('H:i') }}"
+                                data-ends-at="{{ $evento->ends_at->format('Y-m-d') }}"
+                                data-location="{{ $evento->location }}"
+                                data-capacity="{{ $evento->capacity }}"
+                                data-categories="{{ $evento->categories->pluck('name')->toJson() }}"
                                 data-criteria="{{ $evento->criteria->toJson() }}"
                                 data-status-manual="{{ $evento->status_manual }}"
                                 title="Editar Evento">
@@ -247,7 +244,7 @@
                                     <x-icon name="send" style="width: 20px; height: 20px; color: #2563eb;" />
                                 </button>
                             </form>
-                            <button class="btn-admin-action btn-announcement" data-id="{{ $evento->id }}" data-nombre="{{ $evento->nombre }}" title="Enviar Anuncio Masivo" style="color: #9333ea; background: rgba(147, 51, 234, 0.1); display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; border: none; cursor: pointer;">
+                            <button class="btn-admin-action btn-announcement" data-id="{{ $evento->id }}" data-name="{{ $evento->name }}" title="Enviar Anuncio Masivo" style="color: #9333ea; background: rgba(147, 51, 234, 0.1); display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; border: none; cursor: pointer;">
                                 <x-icon name="campaign" style="width: 20px; height: 20px; color: #9333ea;" />
                             </button>
                         </div>
@@ -267,13 +264,13 @@
 
                     <!-- Admin Team List Section -->
                     <div id="teams-{{ $evento->id }}" style="display: none; margin-top: 15px; border-top: 1px solid #e5e7eb; padding-top: 10px;">
-                        <h4 style="font-size: 0.9rem; color: #4b5563; margin-bottom: 10px;">Equipos Registrados ({{ $evento->teams->count() }}/{{ $evento->capacidad }})</h4>
+                        <h4 style="font-size: 0.9rem; color: #4b5563; margin-bottom: 10px;">Equipos Registrados ({{ $evento->teams->count() }}/{{ $evento->capacity }})</h4>
                         @if($evento->teams->count() > 0)
                             <ul style="list-style: none; padding: 0; margin: 0; max-height: 150px; overflow-y: auto;">
                                 @foreach($evento->teams as $team)
                                     <li style="display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px dashed #e5e7eb; font-size: 0.85rem;">
                                         <div>
-                                            <span style="font-weight: 600; color: #1f2937;">{{ $team->nombre }}</span>
+                                            <span style="font-weight: 600; color: #1f2937;">{{ $team->name }}</span>
                                             <span style="color: #6b7280; font-size: 0.75rem;">({{ $team->participants->count() }} miembros)</span>
                                         </div>
                                         <div style="display: flex; gap: 5px;">
@@ -284,7 +281,7 @@
                                             </a>
                                             @endif
                                             <!-- Delete Team -->
-                                            <form action="{{ route('teams.destroy', $team->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('¿Eliminar equipo {{ $team->nombre }}?');">
+                                            <form action="{{ route('teams.destroy', $team->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('¿Eliminar equipo {{ $team->name }}?');">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" style="background: none; border: none; cursor: pointer; color: #ef4444; padding: 0;" title="Eliminar Equipo">
@@ -323,13 +320,13 @@
 
             <form action="{{ route('teams.store') }}" method="POST" id="form-registro-equipo">
                 @csrf
-                <input type="hidden" name="evento_id" id="modal-evento-id">
+                <input type="hidden" name="event_id" id="modal-event-id">
 
                 <div class="form-group">
                     <label for="seleccion-equipo">Seleccionar Equipo</label>
                     <select id="seleccion-equipo" name="seleccion_equipo" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #d1d5db; margin-bottom: 15px;">
                         @if(isset($equipo))
-                            <option value="existing" data-nombre="{{ $equipo->nombre }}">{{ $equipo->nombre }} (Tu equipo actual)</option>
+                            <option value="existing" data-name="{{ $equipo->name }}">{{ $equipo->name }} (Tu equipo actual)</option>
                         @endif
                         <option value="new" {{ !isset($equipo) ? 'selected' : '' }}>Crear nuevo equipo</option>
                     </select>
@@ -446,8 +443,8 @@
                             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px;">
                                 @foreach($allCategories as $cat)
                                     <div style="display: flex; align-items: center; gap: 6px;">
-                                        <input type="checkbox" id="cat-{{ $cat->id }}" name="categorias[]" value="{{ $cat->nombre }}" style="width: 14px; height: 14px; cursor: pointer;">
-                                        <label for="cat-{{ $cat->id }}" style="font-size: 0.85rem; font-weight: normal; cursor: pointer; margin: 0; line-height: 1.2;">{{ $cat->nombre }}</label>
+                                        <input type="checkbox" id="cat-{{ $cat->id }}" name="categorias[]" value="{{ $cat->name }}" style="width: 14px; height: 14px; cursor: pointer;">
+                                        <label for="cat-{{ $cat->id }}" style="font-size: 0.85rem; font-weight: normal; cursor: pointer; margin: 0; line-height: 1.2;">{{ $cat->name }}</label>
                                     </div>
                                 @endforeach
                             </div>
@@ -531,7 +528,7 @@
                 btn.addEventListener('click', function(e) {
                     e.preventDefault();
                     const eventoId = this.getAttribute('data-id');
-                    const eventoNombre = this.getAttribute('data-nombre');
+                    const eventoNombre = this.getAttribute('data-name');
 
                     eventoIdInput.value = eventoId;
                     eventoNombreDisplay.textContent = 'Evento: ' + eventoNombre;
@@ -558,11 +555,11 @@
             btnsDetalles.forEach(btn => {
                 btn.addEventListener('click', function(e) {
                     e.preventDefault();
-                    detNombre.textContent = this.getAttribute('data-nombre');
-                    detDesc.textContent = this.getAttribute('data-descripcion');
-                    detFecha.textContent = this.getAttribute('data-fecha-inicio') + ' - ' + this.getAttribute('data-fecha-fin');
-                    detUbicacion.textContent = this.getAttribute('data-ubicacion');
-                    detCapacidad.textContent = this.getAttribute('data-capacidad') + ' personas';
+                    detNombre.textContent = this.getAttribute('data-name');
+                    detDesc.textContent = this.getAttribute('data-description');
+                    detFecha.textContent = this.getAttribute('data-starts-at') + ' - ' + this.getAttribute('data-ends-at');
+                    detUbicacion.textContent = this.getAttribute('data-location');
+                    detCapacidad.textContent = this.getAttribute('data-capacity') + ' personas';
 
                     modalDetalles.style.display = 'flex';
                 });
@@ -651,14 +648,13 @@
                     formEvento.action = "/events/" + id;
                     methodSpoofing.innerHTML = '@method("PUT")';
 
-                    inputEventoNombre.value = this.getAttribute('data-nombre');
-                    inputEventoDesc.value = this.getAttribute('data-descripcion');
-                    inputEventoInicio.value = this.getAttribute('data-fecha-inicio');
+                    inputEventoNombre.value = this.getAttribute('data-name');
+                    inputEventoDesc.value = this.getAttribute('data-description');
+                    inputEventoInicio.value = this.getAttribute('data-starts-at');
                     document.getElementById('evento-start-time').value = this.getAttribute('data-start-time');
-                    inputEventoFin.value = this.getAttribute('data-fecha-fin');
-                    inputEventoUbicacion.value = this.getAttribute('data-ubicacion');
-                    inputEventoUbicacion.value = this.getAttribute('data-ubicacion');
-                    inputEventoCapacidad.value = this.getAttribute('data-capacidad');
+                    inputEventoFin.value = this.getAttribute('data-ends-at');
+                    inputEventoUbicacion.value = this.getAttribute('data-location');
+                    inputEventoCapacidad.value = this.getAttribute('data-capacity');
 
                     // Status Manual
                     const statusManual = this.getAttribute('data-status-manual');
@@ -740,7 +736,7 @@
             btnsAnnouncement.forEach(btn => {
                 btn.addEventListener('click', function() {
                     const eventId = this.getAttribute('data-id');
-                    const eventName = this.getAttribute('data-nombre');
+                    const eventName = this.getAttribute('data-name');
                     formAnnouncement.action = "/events/" + eventId + "/announcement";
                     announcementEventName.textContent = 'Evento: ' + eventName;
                     modalAnnouncement.style.display = 'flex';

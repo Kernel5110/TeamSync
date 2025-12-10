@@ -6,7 +6,7 @@
 <div class="container" style="max-width: 1000px; margin: 0 auto; padding: 40px 20px;">
     <div class="header-section" style="text-align: center; margin-bottom: 50px;">
         <h1 style="font-size: 2.5rem; font-weight: 800; color: #1f2937; margin-bottom: 10px;">Ranking de Ganadores</h1>
-        <p style="color: #6b7280; font-size: 1.2rem;">{{ $evento->nombre }}</p>
+        <p style="color: #6b7280; font-size: 1.2rem;">{{ $evento->name }}</p>
     </div>
 
     @if($ranking->isEmpty())
@@ -25,7 +25,7 @@
                         <x-icon name="emoji_events" style="width: 90px; height: 90px; color: #94a3b8;" />
                     </div>
                     <div style="background: white; padding: 20px; border-radius: 12px 12px 0 0; border-top: 4px solid #94a3b8; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); height: 180px; display: flex; flex-direction: column; justify-content: center;">
-                        <h3 style="font-weight: 700; color: #1f2937; margin-bottom: 5px;">{{ $ranking[1]['equipo']->nombre }}</h3>
+                        <h3 style="font-weight: 700; color: #1f2937; margin-bottom: 5px;">{{ $ranking[1]['equipo']->name }}</h3>
                         <p style="color: #64748b; font-weight: 600; font-size: 1.2rem;">{{ $ranking[1]['average_score'] }} pts</p>
                         <div style="margin-top: 10px; font-size: 0.9rem; color: #94a3b8;">2º Lugar</div>
                         @if(($isJudge ?? false) || ($ranking[1]['equipo']->participants->contains('user_id', auth()->id())))
@@ -40,7 +40,7 @@
                         <x-icon name="emoji_events" style="width: 120px; height: 120px; color: #fbbf24;" />
                     </div>
                     <div style="background: white; padding: 20px; border-radius: 12px 12px 0 0; border-top: 4px solid #fbbf24; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); height: 220px; display: flex; flex-direction: column; justify-content: center; position: relative; z-index: 10;">
-                        <h3 style="font-weight: 800; color: #1f2937; margin-bottom: 5px; font-size: 1.3rem;">{{ $ranking[0]['equipo']->nombre }}</h3>
+                        <h3 style="font-weight: 800; color: #1f2937; margin-bottom: 5px; font-size: 1.3rem;">{{ $ranking[0]['equipo']->name }}</h3>
                         <p style="color: #d97706; font-weight: 700; font-size: 1.5rem;">{{ $ranking[0]['average_score'] }} pts</p>
                         <div style="margin-top: 10px; font-size: 1rem; color: #fbbf24; font-weight: 700;">1º Lugar</div>
                         @if(($isJudge ?? false) || ($ranking[0]['equipo']->participants->contains('user_id', auth()->id())))
@@ -55,7 +55,7 @@
                         <x-icon name="emoji_events" style="width: 90px; height: 90px; color: #b45309;" />
                     </div>
                     <div style="background: white; padding: 20px; border-radius: 12px 12px 0 0; border-top: 4px solid #b45309; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); height: 150px; display: flex; flex-direction: column; justify-content: center;">
-                        <h3 style="font-weight: 700; color: #1f2937; margin-bottom: 5px;">{{ $ranking[2]['equipo']->nombre }}</h3>
+                        <h3 style="font-weight: 700; color: #1f2937; margin-bottom: 5px;">{{ $ranking[2]['equipo']->name }}</h3>
                         <p style="color: #b45309; font-weight: 600; font-size: 1.2rem;">{{ $ranking[2]['average_score'] }} pts</p>
                         <div style="margin-top: 10px; font-size: 0.9rem; color: #b45309;">3º Lugar</div>
                         @if(($isJudge ?? false) || ($ranking[2]['equipo']->participants->contains('user_id', auth()->id())))
@@ -98,7 +98,7 @@
                                 </div>
                             </td>
                             <td style="padding: 16px 24px;">
-                                <div style="font-weight: 600; color: #1f2937;">{{ $item['equipo']->nombre }}</div>
+                                <div style="font-weight: 600; color: #1f2937;">{{ $item['equipo']->name }}</div>
                                 <div style="font-size: 0.85rem; color: #6b7280;">{{ $item['equipo']->project_name ?? 'Sin nombre de proyecto' }}</div>
                             </td>
                             <td style="padding: 16px 24px;">
@@ -187,7 +187,7 @@
 
     // Admin Modal Functions
     function openAdminModal(equipo, evaluations) {
-        document.getElementById('adminModalTitle').textContent = 'Administrar: ' + equipo.nombre;
+        document.getElementById('adminModalTitle').textContent = 'Administrar: ' + equipo.name;
         const list = document.getElementById('adminEvaluationsList');
         list.innerHTML = '';
 

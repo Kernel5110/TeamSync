@@ -52,11 +52,32 @@ class User extends Authenticatable
 
     public function judgeEvents(): BelongsToMany
     {
-        return $this->belongsToMany(Event::class, 'evento_juez', 'user_id', 'evento_id');
+        return $this->belongsToMany(Event::class, 'event_judge', 'user_id', 'event_id');
     }
 
     public function participant(): HasOne
     {
-        return $this->hasOne(Participant::class, 'usuario_id');
+        return $this->hasOne(Participant::class, 'user_id');
+    }
+
+    /**
+     * Get the event the user is currently participating in, if it is active.
+     */
+    public function getActiveEventAttribute(): ?Event
+    {
+        // Assuming a user has one participant record, which belongs to one team.
+        $participant = $this->participant;
+        
+        if (!$participant || !$participant->team) {
+            return null;
+        }
+
+        $event = $participant->team->event;
+
+        if ($event && ($event->status === 'En Curso' || $event->status === 'Próximo')) {
+            return $event;
+        }
+
+        return null;
     }
 }

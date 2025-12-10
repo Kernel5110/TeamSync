@@ -32,7 +32,7 @@ class EventReportMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Reporte del Evento: ' . $this->evento->nombre,
+            subject: 'Reporte del Evento: ' . $this->evento->name,
         );
     }
 
@@ -54,7 +54,7 @@ class EventReportMail extends Mailable
     public function attachments(): array
     {
         return [
-            Attachment::fromData(fn () => $this->pdf->output(), 'Reporte_' . $this->evento->nombre . '.pdf')
+            Attachment::fromData(fn () => $this->pdf->output(), 'Reporte_' . $this->evento->name . '.pdf')
                 ->withMime('application/pdf'),
         ];
     }

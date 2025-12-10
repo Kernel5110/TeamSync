@@ -10,33 +10,33 @@ class Event extends Model
     /** @use HasFactory<\Database\Factories\EventoFactory> */
     use HasFactory;
 
-    protected $table = 'eventos';
+    protected $table = 'events';
 
-    protected $fillable = ['nombre', 'descripcion', 'fecha_inicio', 'fecha_fin', 'start_time', 'ubicacion', 'capacidad', 'problem_statement', 'categoria', 'status_manual'];
+    protected $fillable = ['name', 'description', 'starts_at', 'ends_at', 'location', 'capacity', 'problem_statement', 'status_manual'];
 
     protected $casts = [
-        'fecha_inicio' => 'date',
-        'fecha_fin' => 'date',
+        'starts_at' => 'datetime',
+        'ends_at' => 'datetime',
     ];
 
     public function teams()
     {
-        return $this->hasMany(Team::class, 'evento_id');
+        return $this->hasMany(Team::class, 'event_id');
     }
 
     public function judges()
     {
-        return $this->belongsToMany(User::class, 'evento_juez', 'evento_id', 'user_id');
+        return $this->belongsToMany(User::class, 'event_judge', 'event_id', 'user_id');
     }
 
     public function categories()
     {
-        return $this->belongsToMany(Categoria::class, 'categoria_evento', 'evento_id', 'categoria_id');
+        return $this->belongsToMany(Categoria::class, 'category_event', 'event_id', 'category_id');
     }
 
     public function criteria()
     {
-        return $this->hasMany(Criterion::class, 'evento_id');
+        return $this->hasMany(Criterion::class, 'event_id');
     }
 
     public function getStatusAttribute()
@@ -46,15 +46,67 @@ class Event extends Model
         }
 
         $now = now('America/Mexico_City');
-        $startDateTime = $this->fecha_inicio->copy()->setTimeFromTimeString($this->start_time ?? '00:00:00');
-        $endDateTime = $this->fecha_fin->copy()->endOfDay();
-
-        if ($now->lessThan($startDateTime)) {
+        
+        if ($now->lessThan($this->starts_at)) {
             return 'Próximo';
-        } elseif ($now->between($startDateTime, $endDateTime)) {
+        } elseif ($now->between($this->starts_at, $this->ends_at)) {
             return 'En Curso';
         } else {
             return 'Finalizado';
         }
+    }
+
+    public function syncCriteria(array $criteriaData)
+    {
+        $sentIds = [];
+        foreach ($criteriaData as $criterion) {
+            if (!empty($criterion['name'])) {
+                if (isset($criterion['id'])) {
+                    $crit = $this->criteria()->find($criterion['id']);
+                    if ($crit) {
+                        $crit->update([
+                            'name' => $criterion['name'],
+                            'max_score' => $criterion['max_score'] ?? 10,
+                            'description' => $criterion['description'] ?? null,
+                        ]);
+                        $sentIds[] = $crit->id;
+                    }
+                } else {
+                    $newCrit = $this->criteria()->create([
+                        'name' => $criterion['name'],
+                        'max_score' => $criterion['max_score'] ?? 10,
+                        'description' => $criterion['description'] ?? null,
+                    ]);
+                    $sentIds[] = $newCrit->id;
+                }
+            }
+        }
+        // Delete criteria not in request
+        $this->criteria()->whereNotIn('id', $sentIds)->delete();
+    }
+
+    /**
+     * Get the ranking of teams for this event based on evaluations.
+     */
+    public function getRanking()
+    {
+        return $this->teams->map(function ($team) {
+            $evaluations = $team->evaluations;
+            if ($evaluations->isEmpty()) {
+                $team->total_score = 0;
+            } else {
+                // Return average of (Sum of components)
+                // If there are multiple evaluations, we take the average of their totals? 
+                // Or average of each component and then sum?
+                // Mathematically equivalent if weights are 1.
+                // ParticipationController had: sum(components) / count.
+                // Which is Average Total Score per Judge.
+                
+                $team->total_score = $evaluations->avg(function ($eval) {
+                     return $eval->score_innovation + $eval->score_social_impact + $eval->score_technical_viability;
+                });
+            }
+            return $team;
+        })->sortByDesc('total_score')->values();
     }
 }

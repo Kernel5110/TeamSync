@@ -9,9 +9,9 @@ class Solicitud extends Model
 {
     use HasFactory;
 
-    protected $table = 'solicitudes';
+    protected $table = 'requests';
 
-    protected $fillable = ['user_id', 'equipo_id', 'status'];
+    protected $fillable = ['user_id', 'team_id', 'status'];
 
     public function user()
     {
@@ -20,6 +20,6 @@ class Solicitud extends Model
 
     public function team()
     {
-        return $this->belongsTo(Team::class, 'equipo_id');
+        return $this->belongsTo(Team::class, 'team_id');
     }
 }

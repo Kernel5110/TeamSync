@@ -8,8 +8,8 @@ class Evaluation extends Model
 {
     protected $fillable = [
         'user_id',
-        'equipo_id',
-        'evento_id',
+        'team_id',
+        'event_id',
         'score_innovation',
         'score_social_impact',
         'score_technical_viability',
@@ -31,12 +31,12 @@ class Evaluation extends Model
 
     public function team()
     {
-        return $this->belongsTo(Team::class, 'equipo_id');
+        return $this->belongsTo(Team::class, 'team_id');
     }
 
     public function event()
     {
-        return $this->belongsTo(Event::class, 'evento_id');
+        return $this->belongsTo(Event::class, 'event_id');
     }
 
     public function scores()

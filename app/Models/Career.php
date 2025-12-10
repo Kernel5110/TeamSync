@@ -10,11 +10,11 @@ class Career extends Model
     /** @use HasFactory<\Database\Factories\CareerFactory> */
     use HasFactory;
 
-    protected $table = 'carreras'; // Explicitly set table name if needed
-    protected $fillable = ['nombre'];
+    protected $table = 'careers'; // Explicitly set table name if needed
+    protected $fillable = ['name'];
 
     public function participants()
     {
-        return $this->hasMany(Participant::class, 'carrera_id');
+        return $this->hasMany(Participant::class, 'career_id');
     }
 }

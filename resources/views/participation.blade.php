@@ -6,7 +6,7 @@
 <div class="contenedor-participacion">
     <div class="tarjeta-participacion">
         <div class="header-participacion">
-            <h1>{{ $evento->nombre }}</h1>
+            <h1>{{ $evento->name }}</h1>
             <p>Participación en el evento</p>
         </div>
         

@@ -72,7 +72,7 @@
                     <p><x-icon name="date_range" /> Miembro desde {{ $user->created_at->format('M Y') }}</p>
                     <p><x-icon name="school" /> {{ $user->participant->institution ?? 'No especificada' }}</p>
                     @if($user->participant && $user->participant->team)
-                        <p><x-icon name="groups" /> Equipo: {{ $user->participant->team->nombre }}</p>
+                        <p><x-icon name="groups" /> Equipo: {{ $user->participant->team->name }}</p>
                     @endif
                     @if($user->expertise)
                         <p><x-icon name="star" /> <strong>Experiencia:</strong> {{ $user->expertise }}</p>
@@ -106,8 +106,8 @@
                 <h3>Mis Equipos</h3>
                 @if($user->participant && $user->participant->team)
                     <div style="padding: 1rem; border: 1px solid #e5e7eb; border-radius: 8px; margin-top: 1rem;">
-                        <h4>{{ $user->participant->team->nombre }}</h4>
-                        <p>Evento: {{ $user->participant->team->event->nombre ?? 'Evento desconocido' }}</p>
+                        <h4>{{ $user->participant->team->name }}</h4>
+                        <p>Evento: {{ $user->participant->team->event->name ?? 'Evento desconocido' }}</p>
                         <a href="{{ route('teams.index') }}" style="color: #4f46e5; text-decoration: none; font-weight: 600; margin-top: 0.5rem; display: inline-block;">Ver Equipo &rarr;</a>
                     </div>
                 @else
@@ -212,15 +212,15 @@
                                     @foreach($instituciones as $inst)
                                         <tr>
                                             <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; color: #6b7280;">{{ $inst->id }}</td>
-                                            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #1f2937;">{{ $inst->nombre }}</td>
+                                            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #1f2937;">{{ $inst->name }}</td>
                                             <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
                                                 <button class="btn-editar-institucion" 
                                                         data-id="{{ $inst->id }}" 
-                                                        data-nombre="{{ $inst->nombre }}"
+                                                        data-name="{{ $inst->name }}"
                                                         style="background-color: #3b82f6; color: white; padding: 6px 12px; border: none; border-radius: 6px; font-size: 0.8rem; cursor: pointer; margin-right: 5px;">
                                                     <x-icon name="edit" style="font-size: 16px;" />
                                                 </button>
-                                                <form action="{{ route('admin.instituciones.destroy', $inst->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('¿Eliminar institución {{ $inst->nombre }}?');">
+                                                <form action="{{ route('admin.instituciones.destroy', $inst->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('¿Eliminar institución {{ $inst->name }}?');">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" style="background-color: #ef4444; color: white; padding: 6px 12px; border: none; border-radius: 6px; font-size: 0.8rem; cursor: pointer;">
@@ -252,15 +252,15 @@
                                     @foreach($carreras as $carrera)
                                         <tr>
                                             <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; color: #6b7280;">{{ $carrera->id }}</td>
-                                            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #1f2937;">{{ $carrera->nombre }}</td>
+                                            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #1f2937;">{{ $carrera->name }}</td>
                                             <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
                                                 <button class="btn-editar-carrera" 
                                                         data-id="{{ $carrera->id }}" 
-                                                        data-nombre="{{ $carrera->nombre }}"
+                                                        data-name="{{ $carrera->name }}"
                                                         style="background-color: #3b82f6; color: white; padding: 6px 12px; border: none; border-radius: 6px; font-size: 0.8rem; cursor: pointer; margin-right: 5px;">
                                                     <x-icon name="edit" style="font-size: 16px;" />
                                                 </button>
-                                                <form action="{{ route('admin.carreras.destroy', $carrera->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('¿Eliminar carrera {{ $carrera->nombre }}?');">
+                                                <form action="{{ route('admin.carreras.destroy', $carrera->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('¿Eliminar carrera {{ $carrera->name }}?');">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" style="background-color: #ef4444; color: white; padding: 6px 12px; border: none; border-radius: 6px; font-size: 0.8rem; cursor: pointer;">
@@ -611,7 +611,7 @@
                 document.querySelectorAll('.btn-editar-institucion').forEach(btn => {
                     btn.addEventListener('click', function() {
                         const id = this.getAttribute('data-id');
-                        const nombre = this.getAttribute('data-nombre');
+                        const nombre = this.getAttribute('data-name');
                         
                         formInstitucion.action = "/admin/instituciones/" + id;
                         methodInstitucion.innerHTML = '@method("PUT")';
@@ -624,7 +624,7 @@
                 document.querySelectorAll('.btn-editar-carrera').forEach(btn => {
                     btn.addEventListener('click', function() {
                         const id = this.getAttribute('data-id');
-                        const nombre = this.getAttribute('data-nombre');
+                        const nombre = this.getAttribute('data-name');
                         
                         formCarrera.action = "/admin/carreras/" + id;
                         methodCarrera.innerHTML = '@method("PUT")';

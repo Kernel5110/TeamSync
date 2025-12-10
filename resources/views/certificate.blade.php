@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Certificado de Reconocimiento - {{ $equipo->nombre }}</title>
+    <title>Certificado de Reconocimiento - {{ $equipo->name }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Great+Vibes&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
     <style>
         @font-face {
@@ -214,10 +214,10 @@
             <div class="sub-header">Premio a la Excelencia en Innovación</div>
 
             <div class="presented-to">Otorgado al equipo</div>
-            <div class="recipient-name">{{ $equipo->nombre }}</div>
+            <div class="recipient-name">{{ $equipo->name }}</div>
 
             <div class="description">
-                Por obtener el <span class="rank-text">{{ $rankText }}º Lugar</span> en el evento <span class="event-name">{{ $evento->nombre }}</span>.<br>
+                Por obtener el <span class="rank-text">{{ $rankText }}º Lugar</span> en el evento <span class="event-name">{{ $evento->name }}</span>.<br>
                 Reconocemos su destacado desempeño, creatividad y contribución tecnológica con el proyecto "{{ $equipo->project_name ?? 'Proyecto Innovador' }}".
             </div>
 

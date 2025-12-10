@@ -97,7 +97,7 @@
                 </div>
                 <div class="form-group" style="margin-bottom: 15px;">
                     <label for="edit-evento" style="display: block; margin-bottom: 5px; font-weight: 600;">Evento</label>
-                    <select id="edit-evento" name="evento_id" required style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                    <select id="edit-evento" name="event_id" required style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
                         @foreach(\App\Models\Event::all() as $evento)
                             <option value="{{ $evento->id }}">{{ $evento->nombre }}</option>
                         @endforeach

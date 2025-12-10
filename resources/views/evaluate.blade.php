@@ -7,7 +7,7 @@
 @section('content')
 <div class="evaluation-container">
     <div class="evaluation-header">
-        <h1>Evaluación: {{ $evento->nombre }}</h1>
+        <h1>Evaluación: {{ $evento->name }}</h1>
         <p>Panel de Juez - Calificación de Proyectos</p>
     </div>
 
@@ -31,7 +31,7 @@
                 @forelse($evento->teams as $equipo)
                     <a href="{{ route('events.evaluate.team', ['eventId' => $evento->id, 'teamId' => $equipo->id]) }}" style="text-decoration: none; color: inherit;">
                         <div class="team-card" style="cursor: pointer; transition: transform 0.2s; border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; margin-bottom: 10px; background: white;">
-                            <div class="team-name" style="font-weight: 600; font-size: 1.1rem; color: #1f2937; margin-bottom: 5px;">{{ $equipo->nombre }}</div>
+                            <div class="team-name" style="font-weight: 600; font-size: 1.1rem; color: #1f2937; margin-bottom: 5px;">{{ $equipo->name }}</div>
                             <div class="team-members" style="font-size: 0.9rem; color: #6b7280; margin-bottom: 10px;">
                                 {{ $equipo->participants->map(fn($p) => $p->user->name ?? 'Participante')->join(', ') }}
                             </div>

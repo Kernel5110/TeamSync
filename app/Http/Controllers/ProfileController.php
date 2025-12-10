@@ -53,7 +53,7 @@ class ProfileController extends Controller
             // Create participant record if it doesn't exist (only if not admin/judge purely)
              if (!$user->hasRole('admin') && !$user->hasRole('juez')) {
                 Participant::create([
-                    'usuario_id' => $user->id,
+                    'user_id' => $user->id,
                     'institution' => $request->institucion ?? 'No especificada',
                     'carrera_id' => 1, // Default or handle appropriately
                 ]);

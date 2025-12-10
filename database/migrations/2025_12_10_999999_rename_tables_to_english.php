@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         // Rename Tables
-        Schema::rename('eventos', 'events');
+        // Schema::rename('eventos', 'events'); // Already done in refactor_events_table
         Schema::rename('participantes', 'participants');
         Schema::rename('equipos', 'teams');
         Schema::rename('carreras', 'careers');
@@ -20,8 +20,11 @@ return new class extends Migration
         Schema::rename('solicitudes', 'requests');
         Schema::rename('categorias', 'categories');
         Schema::rename('evento_juez', 'event_judge');
+        Schema::rename('categoria_evento', 'category_event');
+        // Schema::rename('criterios', 'criteria'); // Already criteria
 
-        // Rename Columns: events
+        // Rename Columns: events - SKIPPED (Handled in refactor_events_table)
+        /*
         Schema::table('events', function (Blueprint $table) {
             $table->renameColumn('nombre', 'name');
             $table->renameColumn('descripcion', 'description');
@@ -30,6 +33,7 @@ return new class extends Migration
             $table->renameColumn('ubicacion', 'location');
             $table->renameColumn('capacidad', 'capacity');
         });
+        */
 
         // Rename Columns: participants
         Schema::table('participants', function (Blueprint $table) {
@@ -57,12 +61,27 @@ return new class extends Migration
         
         // Rename Columns: requests
         Schema::table('requests', function (Blueprint $table) {
-             // Assuming requests table structure based on context, checking if it needs column renames
-             // Usually pivot tables or simple request tables might have foreign keys.
-             // Let's assume standard foreign keys if they exist in Spanish.
-             // Since I didn't read the file, I'll skip column renames for requests if I'm not sure, 
-             // but I should probably check it. 
-             // Wait, I should check `create_solicitudes_table.php` to be safe.
+             $table->renameColumn('equipo_id', 'team_id');
+             // user_id is likely already user_id
+        });
+        
+        // Rename Columns: category_event
+        Schema::table('category_event', function (Blueprint $table) {
+            $table->renameColumn('categoria_id', 'category_id');
+            $table->renameColumn('evento_id', 'event_id');
+        });
+
+        // Rename Columns: evaluations
+        Schema::table('evaluations', function (Blueprint $table) {
+            $table->renameColumn('equipo_id', 'team_id');
+            $table->renameColumn('evento_id', 'event_id');
+        });
+
+        // Rename Columns: criteria
+        Schema::table('criteria', function (Blueprint $table) {
+            $table->renameColumn('evento_id', 'event_id');
+            // $table->renameColumn('nombre', 'name'); // Already name
+            // $table->renameColumn('descripcion', 'description'); // Already description
         });
         
         // Rename Columns: categories
@@ -111,6 +130,7 @@ return new class extends Migration
             $table->renameColumn('institution', 'institucion');
         });
 
+        /*
         Schema::table('events', function (Blueprint $table) {
             $table->renameColumn('name', 'nombre');
             $table->renameColumn('description', 'descripcion');
@@ -119,6 +139,7 @@ return new class extends Migration
             $table->renameColumn('location', 'ubicacion');
             $table->renameColumn('capacity', 'capacidad');
         });
+        */
 
         // Reverse Rename Tables
         Schema::rename('event_judge', 'evento_juez');
@@ -128,6 +149,6 @@ return new class extends Migration
         Schema::rename('careers', 'carreras');
         Schema::rename('teams', 'equipos');
         Schema::rename('participants', 'participantes');
-        Schema::rename('events', 'eventos');
+        // Schema::rename('events', 'eventos');
     }
 };

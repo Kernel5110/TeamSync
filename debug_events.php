@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\Evento;
+use App\Models\Event;
 use Carbon\Carbon;
 
 require __DIR__.'/vendor/autoload.php';
@@ -11,21 +11,17 @@ $kernel->bootstrap();
 $now = now();
 echo "Current Time: " . $now . "\n";
 echo "--------------------------------------------------\n";
-echo "Events Status Check (New Logic):\n";
+echo "Events Status Check (Refactored):\n";
 
-$eventos = Evento::all();
+$events = Event::all();
 
-foreach ($eventos as $evento) {
-    echo "ID: " . $evento->id . "\n";
-    echo "Name: " . $evento->nombre . "\n";
-    echo "Start: " . $evento->fecha_inicio . "\n";
-    echo "End:   " . $evento->fecha_fin . "\n";
+foreach ($events as $event) {
+    echo "ID: " . $event->id . "\n";
+    echo "Name: " . $event->name . "\n";
+    echo "Start: " . $event->starts_at . "\n";
+    echo "End:   " . $event->ends_at . "\n";
     
-    // New Logic Simulation
-    $isVisibleInIndex = $evento->fecha_fin >= $now;
-    $canJoinStore = $evento->fecha_fin >= $now;
-    
-    echo "Visible in Index? " . ($isVisibleInIndex ? "YES" : "NO (Ended)") . "\n";
-    echo "Can Join (Store)? " . ($canJoinStore ? "YES" : "NO (Ended)") . "\n";
+    // Status Logic check
+    echo "Status: " . $event->status . "\n";
     echo "--------------------------------------------------\n";
 }

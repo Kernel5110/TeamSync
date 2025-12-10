@@ -48,10 +48,10 @@
                         <img src="{{ asset('storage/' . $equipo->logo_path) }}" alt="Logo {{ $equipo->nombre }}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #e5e7eb;">
                     @else
                         <div style="width: 50px; height: 50px; border-radius: 50%; background-color: #e0e7ff; color: #4f46e5; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem;">
-                            {{ strtoupper(substr($equipo->nombre, 0, 2)) }}
+                            {{ strtoupper(substr($equipo->name, 0, 2)) }}
                         </div>
                     @endif
-                    Miembros del Equipo: {{ $equipo->nombre }}
+                    Miembros del Equipo: {{ $equipo->name }}
                     @if(auth()->user()->participant && auth()->user()->participant->rol == 'Líder' && auth()->user()->participant->team_id == $equipo->id)
                         <a href="#modal-editar-mi-equipo" id="btn-editar-mi-equipo" style="color: #6b7280; text-decoration: none;" title="Editar Equipo">
                             <x-icon name="edit" />
@@ -72,7 +72,7 @@
                             <tr>
                                 <td>{{ $participante->user->name }}</td>
                                 <td>{{ $participante->institution }}</td>
-                                <td>{{ $participante->career->nombre }}</td>
+                                <td>{{ $participante->career->name }}</td>
                                 <td>
                                     @php
                                         $rolClass = 'rol-analista';
@@ -115,7 +115,7 @@
                      <div class="tarjeta-miembros" style="text-align: center; padding: 3rem;">
                         <x-icon name="pending" style="font-size: 4rem; color: #f59e0b;" />
                         <h2 style="margin-top: 1rem; color: #374151;">Solicitud Enviada</h2>
-                        <p style="color: #6b7280; margin-bottom: 2rem;">Has solicitado unirte al equipo <strong>{{ $myPendingRequest->team->nombre }}</strong>. Espera a que el líder acepte tu solicitud.</p>
+                        <p style="color: #6b7280; margin-bottom: 2rem;">Has solicitado unirte al equipo <strong>{{ $myPendingRequest->team->name }}</strong>. Espera a que el líder acepte tu solicitud.</p>
                     </div>
                 @else
                     <div class="tarjeta-miembros" style="text-align: center; padding: 3rem;">
@@ -151,7 +151,7 @@
                             <tr>
                                 <td>{{ $request->user->name }}</td>
                                 <td>{{ $request->user->participant->institution ?? 'N/A' }}</td>
-                                <td>{{ $request->user->participant->career->nombre ?? 'N/A' }}</td>
+                                <td>{{ $request->user->participant->career->name ?? 'N/A' }}</td>
                                 <td>
                                     <div style="display: flex; gap: 10px;">
                                         <form action="{{ route('requests.accept', $request->id) }}" method="POST">
@@ -184,8 +184,8 @@
                         <div class="card-equipo" style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid #e5e7eb;">
                             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
                                 <div>
-                                    <h3 style="margin: 0; font-size: 1.2rem; color: #111827;">{{ $team->nombre }}</h3>
-                                    <span style="font-size: 0.9rem; color: #6b7280;">{{ $team->event->nombre ?? 'Sin Evento' }}</span>
+                                    <h3 style="margin: 0; font-size: 1.2rem; color: #111827;">{{ $team->name }}</h3>
+                                    <span style="font-size: 0.9rem; color: #6b7280;">{{ $team->event->name ?? 'Sin Evento' }}</span>
                                 </div>
                                 <span class="badge-rol" style="background: #e0e7ff; color: #4338ca;">
                                     {{ $team->participants->count() }} Miembros
@@ -246,8 +246,8 @@
                             @foreach($allTeams as $t)
                                 <tr>
                                     <td>{{ $t->id }}</td>
-                                    <td>{{ $t->nombre }}</td>
-                                    <td>{{ $t->event->nombre ?? 'N/A' }}</td>
+                                    <td>{{ $t->name }}</td>
+                                    <td>{{ $t->event->name ?? 'N/A' }}</td>
                                     <td>
                                         <ul style="margin: 0; padding-left: 20px; font-size: 0.9rem;">
                                             @foreach($t->participants as $p)
@@ -258,8 +258,8 @@
                                     <td>
                                         <button class="btn-editar-equipo"
                                                 data-id="{{ $t->id }}"
-                                                data-nombre="{{ $t->nombre }}"
-                                                data-evento-id="{{ $t->event_id }}"
+                                                data-name="{{ $t->name }}"
+                                                data-event-id="{{ $t->event_id }}"
                                                 data-project-name="{{ $t->project_name }}"
                                                 data-project-description="{{ $t->project_description }}"
                                                 data-technologies="{{ $t->technologies }}"
@@ -309,10 +309,10 @@
                     <input type="file" id="edit-logo" name="logo" accept="image/*">
                 </div>
                 <div class="form-group">
-                    <label for="edit-evento_id">Evento</label>
-                    <select id="edit-evento_id" name="evento_id" required>
+                    <label for="edit-event_id">Evento</label>
+                    <select id="edit-event_id" name="event_id" required>
                         @foreach($eventos as $evento)
-                            <option value="{{ $evento->id }}">{{ $evento->nombre }}</option>
+                            <option value="{{ $evento->id }}">{{ $evento->name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -369,7 +369,7 @@
             const closeEditar = document.getElementById('close-editar-equipo');
             const formEditar = document.getElementById('form-editar-equipo');
             const inputNombre = document.getElementById('edit-nombre');
-            const selectEvento = document.getElementById('edit-evento_id');
+            const selectEvento = document.getElementById('edit-event_id');
             const inputProjectName = document.getElementById('edit-project_name');
             const inputProjectDesc = document.getElementById('edit-project_description');
             const inputTechnologies = document.getElementById('edit-technologies');
@@ -382,8 +382,8 @@
                     
                     try {
                         const id = this.getAttribute('data-id');
-                        const nombre = this.getAttribute('data-nombre');
-                        const eventoId = this.getAttribute('data-evento-id');
+                        const nombre = this.getAttribute('data-name');
+                        const eventoId = this.getAttribute('data-event-id');
                         
                         let members = [];
                         const membersAttr = this.getAttribute('data-members');
@@ -486,10 +486,10 @@
                     <input type="file" id="logo" name="logo" accept="image/*">
                 </div>
                 <div class="form-group">
-                    <label for="evento_id">Evento</label>
-                    <select id="evento_id" name="evento_id" required>
+                    <label for="event_id">Evento</label>
+                    <select id="event_id" name="event_id" required>
                         @foreach($eventos as $evento)
-                            <option value="{{ $evento->id }}">{{ $evento->nombre }}</option>
+                            <option value="{{ $evento->id }}">{{ $evento->name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -507,10 +507,10 @@
             <form action="{{ route('teams.update', $equipo->id) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
-                <input type="hidden" name="evento_id" value="{{ $equipo->event_id }}">
+                <input type="hidden" name="event_id" value="{{ $equipo->event_id }}">
                 <div class="form-group">
                     <label for="mi-equipo-nombre">Nombre del Equipo</label>
-                    <input type="text" id="mi-equipo-nombre" name="nombre" value="{{ $equipo->nombre }}" required>
+                    <input type="text" id="mi-equipo-nombre" name="nombre" value="{{ $equipo->name }}" required>
                 </div>
                 
                 <div style="border-top: 1px solid #e5e7eb; margin: 1.5rem 0; padding-top: 1rem;">
@@ -684,10 +684,10 @@
                 <input type="text" id="edit-nombre" name="nombre" required>
             </div>
             <div class="form-group">
-                <label for="edit-evento_id">Evento</label>
-                <select id="edit-evento_id" name="evento_id" required>
+                <label for="edit-event_id">Evento</label>
+                <select id="edit-event_id" name="event_id" required>
                     @foreach($eventos as $evento)
-                        <option value="{{ $evento->id }}">{{ $evento->nombre }}</option>
+                        <option value="{{ $evento->id }}">{{ $evento->name }}</option>
                     @endforeach
                 </select>
             </div>

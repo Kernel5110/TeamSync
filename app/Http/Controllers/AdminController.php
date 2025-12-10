@@ -34,11 +34,11 @@ class AdminController extends Controller
             abort(403);
         }
 
-        $request->validate(['nombre' => 'required|string|unique:instituciones,nombre']);
+        $request->validate(['nombre' => 'required|string|unique:institutions,name']);
 
-        $institucion = Institution::create(['nombre' => $request->nombre]);
+        $institucion = Institution::create(['name' => $request->nombre]);
 
-        AuditLogger::log('create', Institution::class, $institucion->id, "Institución creada: {$institucion->nombre}");
+        AuditLogger::log('create', Institution::class, $institucion->id, "Institución creada: {$institucion->name}");
 
         return back()->with('success', 'Institución agregada correctamente.');
     }
@@ -52,7 +52,7 @@ class AdminController extends Controller
         $institucion = Institution::findOrFail($id);
         $institucion->delete();
 
-        AuditLogger::log('delete', Institution::class, $id, "Institución eliminada: {$institucion->nombre}");
+        AuditLogger::log('delete', Institution::class, $id, "Institución eliminada: {$institucion->name}");
 
         return back()->with('success', 'Institución eliminada correctamente.');
     }
@@ -63,11 +63,11 @@ class AdminController extends Controller
             abort(403);
         }
 
-        $request->validate(['nombre' => 'required|string|unique:carreras,nombre']);
+        $request->validate(['nombre' => 'required|string|unique:careers,name']);
 
-        $carrera = Career::create(['nombre' => $request->nombre]);
+        $carrera = Career::create(['name' => $request->nombre]);
 
-        AuditLogger::log('create', Career::class, $carrera->id, "Carrera creada: {$carrera->nombre}");
+        AuditLogger::log('create', Career::class, $carrera->id, "Carrera creada: {$carrera->name}");
 
         return back()->with('success', 'Carrera agregada correctamente.');
     }
@@ -81,7 +81,7 @@ class AdminController extends Controller
         $carrera = Career::findOrFail($id);
         $carrera->delete();
 
-        AuditLogger::log('delete', Career::class, $id, "Carrera eliminada: {$carrera->nombre}");
+        AuditLogger::log('delete', Career::class, $id, "Carrera eliminada: {$carrera->name}");
 
         return back()->with('success', 'Carrera eliminada correctamente.');
     }
@@ -108,7 +108,7 @@ class AdminController extends Controller
         return redirect()->route('profile.show')->with('success', 'Juez creado correctamente.');
     }
 
-    public function assignJudge(Request $request, $evento_id)
+    public function assignJudge(Request $request, $eventId)
     {
         if (!auth()->user()->hasRole('admin')) {
             abort(403);
@@ -118,7 +118,7 @@ class AdminController extends Controller
             'user_id' => 'required|exists:users,id',
         ]);
 
-        $evento = Event::findOrFail($evento_id);
+        $evento = Event::findOrFail($eventId);
         $user = User::findOrFail($request->user_id);
 
         // 🚨 CAMBIO CLAVE: Se eliminó la validación que requería el rol 'juez'.

@@ -78,9 +78,9 @@
 </head>
 <body>
     <div class="header">
-        <h1>{{ $evento->nombre }}</h1>
+        <h1>{{ $evento->name }}</h1>
         <div class="meta">
-            {{ $evento->fecha_inicio->format('d/m/Y') }} - {{ $evento->fecha_fin->format('d/m/Y') }} | {{ $evento->ubicacion }}
+            {{ $evento->starts_at->format('d/m/Y') }} - {{ $evento->ends_at->format('d/m/Y') }} | {{ $evento->location }}
         </div>
         <div class="meta">
             Categoría: {{ $evento->categoria ?? 'General' }}
@@ -127,7 +127,7 @@
                                     #{{ $index + 1 }}
                                 @endif
                             </td>
-                            <td>{{ $team->nombre }}</td>
+                            <td>{{ $team->name }}</td>
                             <td>{{ $team->project_name ?? 'N/A' }}</td>
                             <td>{{ $team->technologies ?? 'N/A' }}</td>
                             <td><strong>{{ number_format($team->total_score, 2) }}</strong></td>
@@ -154,7 +154,7 @@
             <tbody>
                 @foreach($evento->teams as $team)
                     <tr>
-                        <td>{{ $team->nombre }}</td>
+                        <td>{{ $team->name }}</td>
                         <td>
                             @foreach($team->participants as $p)
                                 {{ $p->user->name }}<br>

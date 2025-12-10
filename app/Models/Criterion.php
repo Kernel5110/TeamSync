@@ -6,10 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class Criterion extends Model
 {
-    protected $fillable = ['evento_id', 'name', 'max_score', 'description'];
+    protected $fillable = ['event_id', 'name', 'max_score', 'description'];
 
     public function event()
     {
-        return $this->belongsTo(Event::class, 'evento_id');
+        return $this->belongsTo(Event::class, 'event_id');
     }
 }

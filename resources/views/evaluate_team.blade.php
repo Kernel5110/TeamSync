@@ -6,7 +6,7 @@
 <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 40px 20px;">
     <div class="header-section" style="margin-bottom: 40px; text-align: center;">
         <h1 style="font-size: 2.5rem; font-weight: 700; color: #1f2937; margin-bottom: 10px;">Evaluación de Proyecto</h1>
-        <p style="color: #6b7280; font-size: 1.1rem;">Evento: {{ $evento->nombre }}</p>
+        <p style="color: #6b7280; font-size: 1.1rem;">Evento: {{ $evento->name }}</p>
     </div>
 
     <div class="grid-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
@@ -18,7 +18,7 @@
                 </h2>
                 <div style="margin-bottom: 20px;">
                     <h3 style="font-size: 1.1rem; font-weight: 600; color: #4b5563; margin-bottom: 5px;">Nombre del Equipo</h3>
-                    <p style="font-size: 1.2rem; color: #111827; font-weight: 500;">{{ $equipo->nombre }}</p>
+                    <p style="font-size: 1.2rem; color: #111827; font-weight: 500;">{{ $equipo->name }}</p>
                 </div>
                 <div style="margin-bottom: 20px;">
                     <h3 style="font-size: 1.1rem; font-weight: 600; color: #4b5563; margin-bottom: 5px;">Integrantes</h3>
@@ -104,7 +104,7 @@
 
                 <form action="{{ route('events.evaluate.store', $evento->id) }}" method="POST">
                     @csrf
-                    <input type="hidden" name="equipo_id" value="{{ $equipo->id }}">
+                    <input type="hidden" name="team_id" value="{{ $equipo->id }}">
 
                     @if($evento->criteria->count() > 0)
                         @foreach($evento->criteria as $criterion)

@@ -48,7 +48,7 @@ class RegisterController extends Controller
         ]);
 
         Participant::create([
-            'usuario_id' => $user->id,
+            'user_id' => $user->id,
             'carrera_id' => $request->career,
             'institution' => $request->institucion,
         ]);

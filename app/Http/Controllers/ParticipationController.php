@@ -11,51 +11,45 @@ use Illuminate\Support\Facades\Storage;
 
 class ParticipationController extends Controller
 {
-    public function show(int $evento_id): \Illuminate\View\View|\Illuminate\Http\RedirectResponse
+    public function show(int $eventId): \Illuminate\View\View|\Illuminate\Http\RedirectResponse
     {
-        $evento = Event::findOrFail($evento_id);
+        $event = Event::findOrFail($eventId);
         $user = Auth::user();
 
         // Check if user has a team in this event
-        $equipo = Team::where('evento_id', $evento_id)
+        $team = Team::where('event_id', $eventId)
             ->whereHas('participants', function($query) use ($user) {
-                $query->where('usuario_id', $user->id);
+                $query->where('user_id', $user->id);
             })->first();
 
-        if (!$equipo) {
+        if (!$team) {
             return redirect()->route('events.index')->with('error', 'Debes registrar un equipo para participar en este evento.');
         }
 
         // Calculate Rank
         $rank = null;
-        $eventTeams = $evento->teams;
+        $ranking = $event->getRanking();
         
-        // Only calculate if there are evaluations
-        if ($eventTeams->count() > 0) {
-            $ranking = $eventTeams->map(function ($e) {
-                $evaluations = $e->evaluations;
-                if ($evaluations->isEmpty()) return ['id' => $e->id, 'score' => 0];
-                $score = $evaluations->sum(function ($eval) {
-                    return $eval->score_innovation + $eval->score_social_impact + $eval->score_technical_viability;
-                }) / $evaluations->count();
-                return ['id' => $e->id, 'score' => $score];
-            })->sortByDesc('score')->values();
+        $foundRank = $ranking->search(function ($item) use ($team) {
+            return $item->id == $team->id;
+        });
 
-            $foundRank = $ranking->search(function ($item) use ($equipo) {
-                return $item['id'] == $equipo->id;
-            });
-
-            if ($foundRank !== false) {
-                $rank = $foundRank + 1;
-            }
+        if ($foundRank !== false) {
+            $rank = $foundRank + 1;
         }
 
-        $isEvaluated = $equipo->evaluations()->exists();
+        $isEvaluated = $team->evaluations()->exists();
 
-        return view('participation', compact('evento', 'equipo', 'rank', 'isEvaluated'));
+        // Passing 'evento' and 'equipo' to view to avoid breaking blade templates for now
+        return view('participation', [
+            'evento' => $event,
+            'equipo' => $team,
+            'rank' => $rank,
+            'isEvaluated' => $isEvaluated
+        ]);
     }
 
-    public function upload(Request $request, int $evento_id): \Illuminate\Http\RedirectResponse
+    public function upload(Request $request, int $eventId): \Illuminate\Http\RedirectResponse
     {
         $request->validate([
             'project_name' => 'required|string|max:255',
@@ -66,10 +60,10 @@ class ParticipationController extends Controller
             'evidence' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120', // 5MB Max
         ]);
 
-        $evento = Event::findOrFail($evento_id);
+        $event = Event::findOrFail($eventId);
 
         // Time Validation
-        $startDateTime = $evento->fecha_inicio->copy()->setTimeFromTimeString($evento->start_time);
+        $startDateTime = $event->starts_at;
         $now = now('America/Mexico_City');
         
         if ($now->lessThan($startDateTime)) {
@@ -78,16 +72,16 @@ class ParticipationController extends Controller
         
         // Find the team of the current user for this event.
         $user = Auth::user();
-        $equipo = Team::where('evento_id', $evento_id)
+        $team = Team::where('event_id', $eventId)
             ->whereHas('participants', function($query) use ($user) {
-                $query->where('usuario_id', $user->id); 
+                $query->where('user_id', $user->id); 
             })->first();
 
-        if (!$equipo) {
+        if (!$team) {
              return back()->with('error', 'No eres parte de un equipo en este evento.');
         }
 
-        if ($equipo->evaluations()->exists()) {
+        if ($team->evaluations()->exists()) {
             return back()->with('error', 'No puedes editar el proyecto porque ya ha sido evaluado.');
         }
 
@@ -104,7 +98,7 @@ class ParticipationController extends Controller
             $data['evidence_path'] = $path;
         }
 
-        $equipo->update($data);
+        $team->update($data);
 
         return back()->with('success', 'Información del proyecto actualizada exitosamente.');
     }

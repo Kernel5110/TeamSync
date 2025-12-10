@@ -9,11 +9,11 @@ class Team extends Model
 {
     use HasFactory;
 
-    protected $table = 'equipos'; // Explicitly set table name if needed
+    protected $table = 'teams'; // Explicitly set table name if needed
 
     protected $fillable = [
-        'nombre', 
-        'evento_id', 
+        'name', 
+        'event_id', 
         'submission_path',
         'github_repo',
         'github_pages',
@@ -26,17 +26,17 @@ class Team extends Model
 
     public function event()
     {
-        return $this->belongsTo(Event::class, 'evento_id');
+        return $this->belongsTo(Event::class, 'event_id');
     }
 
     public function participants()
     {
-        return $this->hasMany(Participant::class, 'equipo_id');
+        return $this->hasMany(Participant::class, 'team_id');
     }
 
     public function evaluations()
     {
-        return $this->hasMany(Evaluation::class, 'equipo_id');
+        return $this->hasMany(Evaluation::class, 'team_id');
     }
 
     public function getProgressAttribute()

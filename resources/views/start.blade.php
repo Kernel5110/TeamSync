@@ -116,8 +116,8 @@
                     @foreach($judgeEvents as $evento)
                         <div class="card" style="background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); overflow: hidden; transition: transform 0.2s;">
                             <div style="background: linear-gradient(to right, #4f46e5, #3b82f6); padding: 15px 20px; color: white;">
-                                <h3 style="margin: 0; font-size: 1.2rem; font-weight: 600;">{{ $evento->nombre }}</h3>
-                                <p style="margin: 5px 0 0; font-size: 0.9rem; opacity: 0.9;">{{ $evento->fecha_inicio }}</p>
+                                <h3 style="margin: 0; font-size: 1.2rem; font-weight: 600;">{{ $evento->name }}</h3>
+                                <p style="margin: 5px 0 0; font-size: 0.9rem; opacity: 0.9;">{{ $evento->starts_at->format('d/m/Y') }}</p>
                             </div>
                             <div style="padding: 20px;">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
@@ -204,7 +204,7 @@
                             <h3 style="margin: 0; font-size: 1.2rem; font-weight: 600;">Evento Actual</h3>
                         </div>
                         <div style="padding: 25px;">
-                            <h2 style="margin: 0 0 10px; color: #1f2937; font-size: 1.3rem;">{{ $evento->nombre }}</h2>
+                            <h2 style="margin: 0 0 10px; color: #1f2937; font-size: 1.3rem;">{{ $evento->name }}</h2>
                             <p style="color: #6b7280; margin-bottom: 20px;">
                                 Estado: 
                                 <span style="font-weight: 600; color: {{ $evento->status_manual == 'Finalizado' ? '#059669' : '#d97706' }}">
