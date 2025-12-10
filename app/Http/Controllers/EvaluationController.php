@@ -25,18 +25,11 @@ class EvaluationController extends Controller
         }
 
         // Calculate ranking to verify position
-        $ranking = $evento->teams->map(function ($e) {
-            $evaluations = $e->evaluations;
-            if ($evaluations->isEmpty()) return ['id' => $e->id, 'score' => 0];
-            $score = $evaluations->sum(function ($eval) {
-                return $eval->score_innovation + $eval->score_social_impact + $eval->score_technical_viability;
-            }) / $evaluations->count();
-            return ['id' => $e->id, 'score' => $score];
-        })->sortByDesc('score')->values();
+        $ranking = $evento->getRanking();
 
         // Find rank
         $rank = $ranking->search(function ($item) use ($teamId) {
-            return $item['id'] == $teamId;
+            return $item->id == $teamId;
         });
 
         $rankText = 'Participante';
@@ -57,17 +50,10 @@ class EvaluationController extends Controller
         }
 
         // Calculate ranking
-        $ranking = $evento->teams->map(function ($e) {
-            $evaluations = $e->evaluations;
-            if ($evaluations->isEmpty()) return ['id' => $e->id, 'score' => 0];
-            $score = $evaluations->sum(function ($eval) {
-                return $eval->score_innovation + $eval->score_social_impact + $eval->score_technical_viability;
-            }) / $evaluations->count();
-            return ['id' => $e->id, 'score' => $score];
-        })->sortByDesc('score')->values();
+        $ranking = $evento->getRanking();
 
         $rank = $ranking->search(function ($item) use ($teamId) {
-            return $item['id'] == $teamId;
+            return $item->id == $teamId;
         });
 
         $rankText = 'Participante';
@@ -99,17 +85,10 @@ class EvaluationController extends Controller
         }
 
         // Calculate ranking
-        $ranking = $evento->teams->map(function ($e) {
-            $evaluations = $e->evaluations;
-            if ($evaluations->isEmpty()) return ['id' => $e->id, 'score' => 0];
-            $score = $evaluations->sum(function ($eval) {
-                return $eval->score_innovation + $eval->score_social_impact + $eval->score_technical_viability;
-            }) / $evaluations->count();
-            return ['id' => $e->id, 'score' => $score];
-        })->sortByDesc('score')->values();
+        $ranking = $evento->getRanking();
 
         $rank = $ranking->search(function ($item) use ($teamId) {
-            return $item['id'] == $teamId;
+            return $item->id == $teamId;
         });
 
         $rankText = 'Participante';
@@ -231,35 +210,23 @@ class EvaluationController extends Controller
     {
         $evento = Event::with(['teams.evaluations.user', 'teams.participants.user'])->findOrFail($eventId);
 
-        $ranking = $evento->teams->map(function ($equipo) {
-            $evaluations = $equipo->evaluations;
-            
-            if ($evaluations->isEmpty()) {
-                return [
-                    'equipo' => $equipo,
-                    'average_score' => 0,
-                    'evaluators_count' => 0
-                ];
-            }
+        // Use centralized ranking logic
+        $teams = $evento->getRanking();
 
-            $totalScore = $evaluations->sum(function ($eval) {
-                return $eval->scores->sum('score');
-            });
-
-            // Average score per judge
-            $averageScore = $evaluations->count() > 0 ? $totalScore / $evaluations->count() : 0;
-
+        $ranking = $teams->map(function ($equipo) {
             return [
                 'equipo' => $equipo,
-                'average_score' => round($averageScore, 2),
-                'evaluators_count' => $evaluations->count()
+                'average_score' => round($equipo->total_score, 2),
+                'evaluators_count' => $equipo->evaluations->count()
             ];
-        })->sortByDesc('average_score')->values();
+        }); // getRanking already sorts by score desc
 
         $isJudge = $evento->judges->contains(auth()->id());
 
         return view('ranking', compact('evento', 'ranking', 'isJudge'));
     }
+
+
 
     public function declareConflict($eventId, $teamId)
     {

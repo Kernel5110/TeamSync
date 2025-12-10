@@ -2,91 +2,101 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Institucion;
-use App\Models\Carrera;
+use App\Models\Institution;
+use App\Models\Career;
 use Illuminate\Http\Request;
+use App\Services\AuditLogger;
 
 class AdminDataController extends Controller
 {
-    public function index()
+    public function storeInstitution(Request $request)
     {
-        $instituciones = Institucion::all();
-        $carreras = Carrera::all();
-        return view('admin.data', compact('instituciones', 'carreras'));
+        if (!auth()->user()->hasRole('admin')) {
+            abort(403);
+        }
+
+        $request->validate(['nombre' => 'required|string|unique:institutions,name']);
+
+        $institution = Institution::create(['name' => $request->nombre]);
+
+        AuditLogger::log('create', Institution::class, $institution->id, "Institución creada: {$institution->name}");
+
+        return back()->with('success', 'Institución agregada correctamente.');
     }
 
-    // Instituciones
-    public function storeInstitucion(Request $request)
+    public function updateInstitution(Request $request, $id)
     {
-        $request->validate([
-            'nombre' => 'required|string|max:255|unique:instituciones,nombre',
-        ]);
+        if (!auth()->user()->hasRole('admin')) {
+            abort(403);
+        }
 
-        $institucion = Institucion::create($request->all());
+        $institution = Institution::findOrFail($id);
+        
+        $request->validate(['nombre' => 'required|string|unique:institutions,name,' . $id]);
 
-        \App\Services\AuditLogger::log('create', Institucion::class, $institucion->id, "Institución creada: {$institucion->nombre}");
+        $institution->update(['name' => $request->nombre]);
 
-        return back()->with('success', 'Institución creada correctamente.');
-    }
-
-    public function updateInstitucion(Request $request, $id)
-    {
-        $request->validate([
-            'nombre' => 'required|string|max:255|unique:instituciones,nombre,' . $id,
-        ]);
-
-        $institucion = Institucion::findOrFail($id);
-        $institucion->update($request->all());
-
-        \App\Services\AuditLogger::log('update', Institucion::class, $institucion->id, "Institución actualizada: {$institucion->nombre}");
+        AuditLogger::log('update', Institution::class, $institution->id, "Institución actualizada: {$institution->name}");
 
         return back()->with('success', 'Institución actualizada correctamente.');
     }
 
-    public function destroyInstitucion($id)
+    public function destroyInstitution($id)
     {
-        $institucion = Institucion::findOrFail($id);
-        $institucion->delete();
+        if (!auth()->user()->hasRole('admin')) {
+            abort(403);
+        }
 
-        \App\Services\AuditLogger::log('delete', Institucion::class, $id, "Institución eliminada: {$institucion->nombre}");
+        $institution = Institution::findOrFail($id);
+        $institution->delete();
+
+        AuditLogger::log('delete', Institution::class, $id, "Institución eliminada: {$institution->name}");
 
         return back()->with('success', 'Institución eliminada correctamente.');
     }
 
-    // Carreras
-    public function storeCarrera(Request $request)
+    public function storeCareer(Request $request)
     {
-        $request->validate([
-            'nombre' => 'required|string|max:255|unique:carreras,nombre',
-        ]);
+        if (!auth()->user()->hasRole('admin')) {
+            abort(403);
+        }
 
-        $carrera = Carrera::create($request->all());
+        $request->validate(['nombre' => 'required|string|unique:careers,name']);
 
-        \App\Services\AuditLogger::log('create', Carrera::class, $carrera->id, "Carrera creada: {$carrera->nombre}");
+        $career = Career::create(['name' => $request->nombre]);
 
-        return back()->with('success', 'Carrera creada correctamente.');
+        AuditLogger::log('create', Career::class, $career->id, "Carrera creada: {$career->name}");
+
+        return back()->with('success', 'Carrera agregada correctamente.');
     }
 
-    public function updateCarrera(Request $request, $id)
+    public function updateCareer(Request $request, $id)
     {
-        $request->validate([
-            'nombre' => 'required|string|max:255|unique:carreras,nombre,' . $id,
-        ]);
+        if (!auth()->user()->hasRole('admin')) {
+            abort(403);
+        }
 
-        $carrera = Carrera::findOrFail($id);
-        $carrera->update($request->all());
+        $career = Career::findOrFail($id);
 
-        \App\Services\AuditLogger::log('update', Carrera::class, $carrera->id, "Carrera actualizada: {$carrera->nombre}");
+        $request->validate(['nombre' => 'required|string|unique:careers,name,' . $id]);
+
+        $career->update(['name' => $request->nombre]);
+
+        AuditLogger::log('update', Career::class, $career->id, "Carrera actualizada: {$career->name}");
 
         return back()->with('success', 'Carrera actualizada correctamente.');
     }
 
-    public function destroyCarrera($id)
+    public function destroyCareer($id)
     {
-        $carrera = Carrera::findOrFail($id);
-        $carrera->delete();
+        if (!auth()->user()->hasRole('admin')) {
+            abort(403);
+        }
 
-        \App\Services\AuditLogger::log('delete', Carrera::class, $id, "Carrera eliminada: {$carrera->nombre}");
+        $career = Career::findOrFail($id);
+        $career->delete();
+
+        AuditLogger::log('delete', Career::class, $id, "Carrera eliminada: {$career->name}");
 
         return back()->with('success', 'Carrera eliminada correctamente.');
     }

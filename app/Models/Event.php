@@ -95,15 +95,13 @@ class Event extends Model
             if ($evaluations->isEmpty()) {
                 $team->total_score = 0;
             } else {
-                // Return average of (Sum of components)
-                // If there are multiple evaluations, we take the average of their totals? 
-                // Or average of each component and then sum?
-                // Mathematically equivalent if weights are 1.
-                // ParticipationController had: sum(components) / count.
-                // Which is Average Total Score per Judge.
+                // Return average of (Sum of scores from EvaluationScore)
+                // We assume each evaluation has many scores (one per criterion)
+                // The total score for an evaluation is the sum of its criterion scores.
+                // The team score is the average of these totals (one per judge).
                 
                 $team->total_score = $evaluations->avg(function ($eval) {
-                     return $eval->score_innovation + $eval->score_social_impact + $eval->score_technical_viability;
+                     return $eval->scores->sum('score');
                 });
             }
             return $team;

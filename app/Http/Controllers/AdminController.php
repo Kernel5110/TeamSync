@@ -22,69 +22,34 @@ class AdminController extends Controller
             abort(403);
         }
 
-        $instituciones = Institution::all();
-        $carreras = Career::all();
+        $institutions = Institution::all();
+        $careers = Career::all();
 
-        return view('admin.settings', compact('instituciones', 'carreras'));
+        // Passing as 'instituciones' and 'carreras' to match existing blade view expectations
+        return view('admin.settings', ['instituciones' => $institutions, 'carreras' => $careers]);
     }
 
-    public function storeInstitucion(Request $request)
+    public function teams(Request $request)
     {
         if (!auth()->user()->hasRole('admin')) {
             abort(403);
         }
 
-        $request->validate(['nombre' => 'required|string|unique:institutions,name']);
+        $query = $request->input('query');
+        $teams = \App\Models\Team::with(['event', 'participants.user']);
 
-        $institucion = Institution::create(['name' => $request->nombre]);
-
-        AuditLogger::log('create', Institution::class, $institucion->id, "Institución creada: {$institucion->name}");
-
-        return back()->with('success', 'Institución agregada correctamente.');
-    }
-
-    public function destroyInstitucion($id)
-    {
-        if (!auth()->user()->hasRole('admin')) {
-            abort(403);
+        if ($query) {
+            $teams->where('name', 'LIKE', "%{$query}%") // Changed 'nombre' to 'name'
+                  ->orWhereHas('event', function($q) use ($query) {
+                      $q->where('name', 'LIKE', "%{$query}%"); // Changed 'nombre' to 'name'
+                  });
         }
 
-        $institucion = Institution::findOrFail($id);
-        $institucion->delete();
+        $teams = $teams->paginate(10);
 
-        AuditLogger::log('delete', Institution::class, $id, "Institución eliminada: {$institucion->name}");
-
-        return back()->with('success', 'Institución eliminada correctamente.');
+        return view('admin.teams', compact('teams', 'query'));
     }
 
-    public function storeCarrera(Request $request)
-    {
-        if (!auth()->user()->hasRole('admin')) {
-            abort(403);
-        }
-
-        $request->validate(['nombre' => 'required|string|unique:careers,name']);
-
-        $carrera = Career::create(['name' => $request->nombre]);
-
-        AuditLogger::log('create', Career::class, $carrera->id, "Carrera creada: {$carrera->name}");
-
-        return back()->with('success', 'Carrera agregada correctamente.');
-    }
-
-    public function destroyCarrera($id)
-    {
-        if (!auth()->user()->hasRole('admin')) {
-            abort(403);
-        }
-
-        $carrera = Career::findOrFail($id);
-        $carrera->delete();
-
-        AuditLogger::log('delete', Career::class, $id, "Carrera eliminada: {$carrera->name}");
-
-        return back()->with('success', 'Carrera eliminada correctamente.');
-    }
     public function createJudge(Request $request)
     {
         if (!auth()->user()->hasRole('admin')) {
@@ -118,21 +83,21 @@ class AdminController extends Controller
             'user_id' => 'required|exists:users,id',
         ]);
 
-        $evento = Event::findOrFail($eventId);
+        $event = Event::findOrFail($eventId);
         $user = User::findOrFail($request->user_id);
 
-        // 🚨 CAMBIO CLAVE: Se eliminó la validación que requería el rol 'juez'.
-        // Ahora, cualquier usuario (participante) puede ser asignado como juez al evento.
+        if (!$user->hasRole('juez') && !$user->hasRole('admin')) {
+             return back()->with('error', 'El usuario no tiene el rol de juez.');
+        }
 
-        // Check if already assigned
-        // Asume que Event::jueces() es la relación Many-to-Many
-        if (!$evento->jueces()->where('user_id', $user->id)->exists()) {
-            $evento->jueces()->attach($user->id);
+        if (!$event->judges()->where('user_id', $user->id)->exists()) {
+            $event->judges()->attach($user->id);
             return back()->with('success', 'Juez asignado correctamente.');
         }
 
         return back()->with('info', 'El juez ya está asignado a este evento.');
     }
+
     public function users(Request $request)
     {
         if (!auth()->user()->hasRole('admin')) {
@@ -209,7 +174,7 @@ class AdminController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'role' => 'required|in:admin,juez,participante', // Added participante as it might be useful
+            'role' => 'required|in:admin,juez,participante',
         ]);
 
         $user->update([

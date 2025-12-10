@@ -52,20 +52,4 @@ class PageController extends Controller
         return view('start', compact('equipo', 'evento'));
     }
 
-    public function adminTeams(Request $request)
-    {
-        $query = $request->input('query');
-        $teams = \App\Models\Team::with(['event', 'participants.user']);
-
-        if ($query) {
-            $teams->where('nombre', 'LIKE', "%{$query}%")
-                  ->orWhereHas('event', function($q) use ($query) {
-                      $q->where('nombre', 'LIKE', "%{$query}%");
-                  });
-        }
-
-        $teams = $teams->paginate(10);
-
-        return view('admin.teams', compact('teams', 'query'));
-    }
 }

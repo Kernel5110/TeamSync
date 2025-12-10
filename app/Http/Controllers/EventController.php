@@ -18,110 +18,19 @@ use App\Services\AuditLogger;
 
 class EventController extends Controller
 {
-    public function generatePdfReport(int $id): \Illuminate\Http\Response
-    {
-        if (!Auth::user()->hasRole('admin')) {
-            abort(403);
-        }
-
-        $evento = Event::with(['teams.participants.user', 'teams.evaluations'])->findOrFail($id);
-        
-        // Calculate ranking
-        $ranking = $evento->teams->map(function ($team) {
-            $team->total_score = $team->evaluations->avg('score');
-            return $team;
-        })->sortByDesc('total_score')->values();
-
-        $pdf = Pdf::loadView('reports.event_summary', compact('evento', 'ranking'));
-        
-        return $pdf->download('Reporte_' . $evento->name . '.pdf');
-    }
-
-    public function generateCsvReport(int $id): \Symfony\Component\HttpFoundation\StreamedResponse
-    {
-        if (!Auth::user()->hasRole('admin')) {
-            abort(403);
-        }
-
-        $evento = Event::with(['teams.participants.user', 'teams.evaluations'])->findOrFail($id);
-        
-        $csvFileName = 'Reporte_' . $evento->name . '.csv';
-        $headers = [
-            "Content-type"        => "text/csv",
-            "Content-Disposition" => "attachment; filename=$csvFileName",
-            "Pragma"              => "no-cache",
-            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
-            "Expires"             => "0"
-        ];
-
-        $columns = ['Equipo', 'Proyecto', 'Tecnologias', 'Puntaje Promedio', 'Miembros', 'Progreso', 'Repositorio'];
-
-        $callback = function() use($evento, $columns) {
-            $file = fopen('php://output', 'w');
-            fputcsv($file, $columns);
-
-            foreach ($evento->teams as $team) {
-                $score = $team->evaluations->avg('score') ?? 0;
-                $members = $team->participants->map(fn($p) => $p->user->name)->implode(', ');
-                
-                fputcsv($file, [
-                    $team->name,
-                    $team->project_name,
-                    $team->technologies,
-                    number_format($score, 2),
-                    $members,
-                    $team->progress . '%',
-                    $team->github_repo
-                ]);
-            }
-
-            fclose($file);
-        };
-
-        return Response::stream($callback, 200, $headers);
-    }
-
-    public function emailReport(int $id): \Illuminate\Http\RedirectResponse
-    {
-        if (!Auth::user()->hasRole('admin')) {
-            abort(403);
-        }
-
-        $evento = Event::with(['teams.participants.user', 'teams.evaluations'])->findOrFail($id);
-        
-        // Calculate ranking for PDF
-        $ranking = $evento->teams->map(function ($team) {
-            $team->total_score = $team->evaluations->avg('score');
-            return $team;
-        })->sortByDesc('total_score')->values();
-
-        $pdf = Pdf::loadView('reports.event_summary', compact('evento', 'ranking'));
-
-        Mail::to(Auth::user()->email)->send(new EventReportMail($evento, $pdf));
-
-        return back()->with('success', 'Reporte enviado a tu correo electrónico.');
-    }
-
-    /**
-     * Mostrar la página de eventos
-     */
-   // En EventController.php
-    /**
-     * Mostrar la página de eventos
-     */
     public function index(): \Illuminate\View\View
     {
         // AÑADIDO: 'judges' para cargar la lista de jueces asignados a cada evento.
-        $eventos = Event::with(['teams.participants.user', 'judges'])->paginate(9);
-        $equipo = null;
+        $events = Event::with(['teams.participants.user', 'judges'])->paginate(9);
+        $team = null;
 
         if (auth()->check() && auth()->user()->participant) {
-            $equipo = auth()->user()->participant->team;
+            $team = auth()->user()->participant->team;
         }
 
-        return view('event', compact('eventos', 'equipo'));
+        // Passing 'eventos' and 'equipo' to view to maintain compatibility with blade files
+        return view('event', ['eventos' => $events, 'equipo' => $team]);
     }
-// ... resto del controller
 
     public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
@@ -130,7 +39,7 @@ class EventController extends Controller
         }
 
         $request->validate([
-            'nombre' => 'required|string|max:255', // View likely still sends 'nombre'
+            'nombre' => 'required|string|max:255',
             'descripcion' => 'required|string',
             'fecha_inicio' => 'required|date',
             'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
@@ -142,7 +51,6 @@ class EventController extends Controller
             'status_manual' => 'nullable|string|in:Próximo,En Curso,Finalizado',
         ]);
 
-        // Map inputs to new schema
         $data = [
             'name' => $request->nombre,
             'description' => $request->descripcion,
@@ -154,24 +62,24 @@ class EventController extends Controller
             'ends_at' => \Carbon\Carbon::parse($request->fecha_fin)->endOfDay(),
         ];
 
-        $evento = Event::create($data);
+        $event = Event::create($data);
 
         if ($request->has('categorias')) {
             $categoryIds = [];
             foreach ($request->categorias as $catName) {
                 if ($catName) {
-                    $category = \App\Models\Categoria::firstOrCreate(['name' => trim($catName)]); // Categoria model might need update too? It was renamed to categories table.
+                    $category = \App\Models\Categoria::firstOrCreate(['name' => trim($catName)]);
                     $categoryIds[] = $category->id;
                 }
             }
-            $evento->categories()->sync($categoryIds); // Relationship name is categories()
+            $event->categories()->sync($categoryIds);
         }
 
         if ($request->has('criteria')) {
-            $evento->syncCriteria($request->criteria);
+            $event->syncCriteria($request->criteria);
         }
 
-        AuditLogger::log('create', Event::class, $evento->id, "Evento creado: {$evento->name}");
+        AuditLogger::log('create', Event::class, $event->id, "Evento creado: {$event->name}");
 
         return redirect()->route('events.index')->with('success', 'Evento creado correctamente.');
     }
@@ -220,6 +128,10 @@ class EventController extends Controller
             }
             $event->categories()->sync($categoryIds);
         } else {
+             // If array exists but is empty? Or if not present?
+             // View usually sends it if inputs exist.
+             // But existing logic detached if strictly has 'categorias'. 
+             // Logic preserved but cleaned.
              if ($request->has('categorias')) {
                  $event->categories()->detach();
              }
@@ -240,12 +152,10 @@ class EventController extends Controller
             abort(403);
         }
 
-        $evento = Event::findOrFail($id);
-        $evento->delete();
+        $event = Event::findOrFail($id);
+        $event->delete();
 
-
-
-        AuditLogger::log('delete', Event::class, $id, "Evento eliminado: {$evento->name}");
+        AuditLogger::log('delete', Event::class, $id, "Evento eliminado: {$event->name}");
 
         return redirect()->route('events.index')->with('success', 'Evento eliminado correctamente.');
     }
@@ -265,10 +175,10 @@ class EventController extends Controller
 
         // Collect all participant emails
         $emails = collect();
-        foreach ($event->teams as $equipo) {
-            foreach ($equipo->participants as $participante) {
-                if ($participante->user && $participante->user->email) {
-                    $emails->push($participante->user->email);
+        foreach ($event->teams as $team) {
+            foreach ($team->participants as $participant) {
+                if ($participant->user && $participant->user->email) {
+                    $emails->push($participant->user->email);
                 }
             }
         }

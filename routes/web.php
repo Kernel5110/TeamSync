@@ -104,13 +104,13 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/admin/judges', [AdminController::class, 'createJudge'])->name('admin.judges.create');
     Route::post('/events/{eventId}/judges', [AdminController::class, 'assignJudge'])->name('events.judges.assign');
     Route::put('/events/{eventId}/status', [EventController::class, 'changeStatus'])->name('events.status.update');
-    Route::get('/admin/teams', [PageController::class, 'adminTeams'])->name('admin.teams');
+    Route::get('/admin/teams', [AdminController::class, 'teams'])->name('admin.teams');
     
     // Reports
-    Route::get('/events/{eventId}/reports/pdf', [EventController::class, 'generatePdfReport'])->name('events.reports.pdf');
-    Route::get('/events/{eventId}/reports/csv', [EventController::class, 'generateCsvReport'])->name('events.reports.csv');
-    Route::post('/events/{eventId}/announcement', [EventController::class, 'sendAnnouncement'])->name('events.announcement.send');
-    Route::post('/events/{eventId}/reports/email', [EventController::class, 'emailReport'])->name('events.reports.email');
+    Route::get('/events/{eventId}/reports/pdf', [\App\Http\Controllers\ReportController::class, 'generatePdfReport'])->name('events.reports.pdf');
+    Route::get('/events/{eventId}/reports/csv', [\App\Http\Controllers\ReportController::class, 'generateCsvReport'])->name('events.reports.csv');
+    Route::post('/events/{eventId}/announcement', [\App\Http\Controllers\EventController::class, 'sendAnnouncement'])->name('events.announcement.send');
+    Route::post('/events/{eventId}/reports/email', [\App\Http\Controllers\ReportController::class, 'emailReport'])->name('events.reports.email');
 
     // User Management
     Route::get('/admin/users', [AdminController::class, 'users'])->name('admin.users');
@@ -122,13 +122,14 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/settings', [AdminController::class, 'settings'])->name('admin.settings');
     Route::post('/admin/settings', [AdminController::class, 'updateSettings'])->name('admin.settings.update');
     Route::get('/admin/logs', [AuditLogController::class, 'index'])->name('admin.logs');
-    Route::post('/admin/instituciones', [AdminDataController::class, 'storeInstitucion'])->name('admin.instituciones.store');
-    Route::put('/admin/instituciones/{id}', [AdminDataController::class, 'updateInstitucion'])->name('admin.instituciones.update');
-    Route::delete('/admin/instituciones/{id}', [AdminDataController::class, 'destroyInstitucion'])->name('admin.instituciones.destroy');
     
-    Route::post('/admin/carreras', [AdminDataController::class, 'storeCarrera'])->name('admin.carreras.store');
-    Route::put('/admin/carreras/{id}', [AdminDataController::class, 'updateCarrera'])->name('admin.carreras.update');
-    Route::delete('/admin/carreras/{id}', [AdminDataController::class, 'destroyCarrera'])->name('admin.carreras.destroy');
+    Route::post('/admin/instituciones', [\App\Http\Controllers\AdminDataController::class, 'storeInstitution'])->name('admin.instituciones.store');
+    Route::put('/admin/instituciones/{id}', [\App\Http\Controllers\AdminDataController::class, 'updateInstitution'])->name('admin.instituciones.update');
+    Route::delete('/admin/instituciones/{id}', [\App\Http\Controllers\AdminDataController::class, 'destroyInstitution'])->name('admin.instituciones.destroy');
+    
+    Route::post('/admin/carreras', [\App\Http\Controllers\AdminDataController::class, 'storeCareer'])->name('admin.carreras.store');
+    Route::put('/admin/carreras/{id}', [\App\Http\Controllers\AdminDataController::class, 'updateCareer'])->name('admin.carreras.update');
+    Route::delete('/admin/carreras/{id}', [\App\Http\Controllers\AdminDataController::class, 'destroyCareer'])->name('admin.carreras.destroy');
     
     Route::post('/admin/evaluations/{id}/unlock', [EvaluationController::class, 'unlock'])->name('admin.evaluations.unlock');
 });

@@ -94,33 +94,50 @@ try {
     echo "Testing Event Ranking...\n";
     $activeEvent->update(['status_manual' => 'En Curso']); // Restore
     
+    // Create Criterion
+    $crit1 = \App\Models\Criterion::create(['event_id' => $activeEvent->id, 'name' => 'Innovation', 'max_score' => 10]);
+    $crit2 = \App\Models\Criterion::create(['event_id' => $activeEvent->id, 'name' => 'Impact', 'max_score' => 10]);
+    $crit3 = \App\Models\Criterion::create(['event_id' => $activeEvent->id, 'name' => 'Technical', 'max_score' => 10]);
+
     $team2 = Team::create([
         'name' => 'Team Beta',
         'event_id' => $activeEvent->id
     ]);
     
-    // Add evaluations
+    // Add evaluations with SCORES
     // Team Alpha: 10 + 10 + 10 = 30
-    Evaluation::create([
+    $eval1 = Evaluation::create([
         'user_id' => $user->id,
         'team_id' => $team->id,
         'event_id' => $activeEvent->id,
-        'score_innovation' => 10,
-        'score_social_impact' => 10,
-        'score_technical_viability' => 10,
+        // Legacy columns can be 0 or null
+        'score_innovation' => 0,
+        'score_social_impact' => 0,
+        'score_technical_viability' => 0,
     ]);
     
+    \App\Models\EvaluationScore::create(['evaluation_id' => $eval1->id, 'criterion_id' => $crit1->id, 'score' => 10]);
+    \App\Models\EvaluationScore::create(['evaluation_id' => $eval1->id, 'criterion_id' => $crit2->id, 'score' => 10]);
+    \App\Models\EvaluationScore::create(['evaluation_id' => $eval1->id, 'criterion_id' => $crit3->id, 'score' => 10]);
+    
     // Team Beta: 5 + 5 + 5 = 15
-     Evaluation::create([
+     $eval2 = Evaluation::create([
         'user_id' => $user->id,
         'team_id' => $team2->id,
         'event_id' => $activeEvent->id,
-        'score_innovation' => 5,
-        'score_social_impact' => 5,
-        'score_technical_viability' => 5,
+        'score_innovation' => 0,
+        'score_social_impact' => 0,
+        'score_technical_viability' => 0,
     ]);
     
+    \App\Models\EvaluationScore::create(['evaluation_id' => $eval2->id, 'criterion_id' => $crit1->id, 'score' => 5]);
+    \App\Models\EvaluationScore::create(['evaluation_id' => $eval2->id, 'criterion_id' => $crit2->id, 'score' => 5]);
+    \App\Models\EvaluationScore::create(['evaluation_id' => $eval2->id, 'criterion_id' => $crit3->id, 'score' => 5]);
+    
     $ranking = $activeEvent->getRanking();
+    
+    // Total for Alpha = 30. Avg = 30 (1 judge).
+    // Total for Beta = 15. Avg = 15.
     
     if ($ranking->count() == 2 && $ranking[0]->id == $team->id) {
         echo "[PASS] Ranking order correct (Alpha first).\n";
