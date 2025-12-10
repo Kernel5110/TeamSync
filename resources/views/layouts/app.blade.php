@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="@yield('meta_description', 'TeamSync es la plataforma definitiva para la gestión de equipos en eventos de innovación y tecnología.')">
-    <meta name="keywords" content="@yield('meta_keywords', 'TeamSync, equipos, innovación, tecnología, Inovatec, Hackatec, colaboración, estudiantes, competencias')">
+
     <meta name="author" content="TeamSync">
 
     <!-- Open Graph / Facebook -->

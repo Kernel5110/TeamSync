@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Evento;
+use App\Models\Participant;
+use App\Models\Event;
+use App\Models\Team;
 
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Mail;
@@ -15,15 +17,15 @@ class EvaluationController extends Controller
 
     public function certificate($evento_id, $equipo_id)
     {
-        $evento = Evento::with('equipos.evaluations')->findOrFail($evento_id);
-        $equipo = \App\Models\Equipo::findOrFail($equipo_id);
+        $evento = Event::with('teams.evaluations')->findOrFail($evento_id);
+        $equipo = \App\Models\Team::findOrFail($equipo_id);
 
         if ($equipo->evento_id !== $evento->id) {
             abort(404);
         }
 
         // Calculate ranking to verify position
-        $ranking = $evento->equipos->map(function ($e) {
+        $ranking = $evento->teams->map(function ($e) {
             $evaluations = $e->evaluations;
             if ($evaluations->isEmpty()) return ['id' => $e->id, 'score' => 0];
             $score = $evaluations->sum(function ($eval) {
@@ -47,15 +49,15 @@ class EvaluationController extends Controller
 
     public function downloadCertificate($evento_id, $equipo_id)
     {
-        $evento = Evento::with('equipos.evaluations')->findOrFail($evento_id);
-        $equipo = \App\Models\Equipo::findOrFail($equipo_id);
+        $evento = Event::with('teams.evaluations')->findOrFail($evento_id);
+        $equipo = \App\Models\Team::findOrFail($equipo_id);
 
         if ($equipo->evento_id !== $evento->id) {
             abort(404);
         }
 
         // Calculate ranking
-        $ranking = $evento->equipos->map(function ($e) {
+        $ranking = $evento->teams->map(function ($e) {
             $evaluations = $e->evaluations;
             if ($evaluations->isEmpty()) return ['id' => $e->id, 'score' => 0];
             $score = $evaluations->sum(function ($eval) {
@@ -85,10 +87,10 @@ class EvaluationController extends Controller
             'email' => 'required|email',
         ]);
 
-        $evento = Evento::with('equipos.evaluations')->findOrFail($evento_id);
-        $equipo = \App\Models\Equipo::findOrFail($equipo_id);
+        $evento = Event::with('teams.evaluations')->findOrFail($evento_id);
+        $equipo = \App\Models\Team::findOrFail($equipo_id);
 
-        if (!$evento->jueces->contains(auth()->user()->id)) {
+        if (!$evento->judges->contains(auth()->user()->id)) {
             abort(403, 'Solo los jueces pueden enviar constancias.');
         }
 
@@ -97,7 +99,7 @@ class EvaluationController extends Controller
         }
 
         // Calculate ranking
-        $ranking = $evento->equipos->map(function ($e) {
+        $ranking = $evento->teams->map(function ($e) {
             $evaluations = $e->evaluations;
             if ($evaluations->isEmpty()) return ['id' => $e->id, 'score' => 0];
             $score = $evaluations->sum(function ($eval) {
@@ -125,10 +127,10 @@ class EvaluationController extends Controller
 
     public function show($id)
     {
-        $evento = Evento::with('equipos.participantes')->findOrFail($id);
+        $evento = Event::with('teams.participants')->findOrFail($id);
         
         // Check if user is assigned as judge for this event
-        if (!$evento->jueces->contains(auth()->user()->id)) {
+        if (!$evento->judges->contains(auth()->user()->id)) {
             abort(403, 'No tienes permiso para evaluar este evento.');
         }
 
@@ -143,10 +145,10 @@ class EvaluationController extends Controller
 
     public function evaluateTeam($evento_id, $equipo_id)
     {
-        $evento = Evento::findOrFail($evento_id);
-        $equipo = \App\Models\Equipo::findOrFail($equipo_id);
+        $evento = Event::findOrFail($evento_id);
+        $equipo = \App\Models\Team::findOrFail($equipo_id);
 
-        if (!$evento->jueces->contains(auth()->user()->id)) {
+        if (!$evento->judges->contains(auth()->user()->id)) {
             abort(403, 'No tienes permiso para evaluar este evento.');
         }
 
@@ -177,9 +179,9 @@ class EvaluationController extends Controller
             'private_notes' => 'nullable|string',
         ]);
 
-        $evento = Evento::findOrFail($evento_id);
+        $evento = Event::findOrFail($evento_id);
 
-        if (!$evento->jueces->contains(auth()->user()->id)) {
+        if (!$evento->judges->contains(auth()->user()->id)) {
             abort(403, 'No tienes permiso para evaluar este evento.');
         }
 
@@ -227,9 +229,9 @@ class EvaluationController extends Controller
 
     public function ranking($id)
     {
-        $evento = Evento::with(['equipos.evaluations.user', 'equipos.participantes.user'])->findOrFail($id);
+        $evento = Event::with(['teams.evaluations.user', 'teams.participants.user'])->findOrFail($id);
 
-        $ranking = $evento->equipos->map(function ($equipo) {
+        $ranking = $evento->teams->map(function ($equipo) {
             $evaluations = $equipo->evaluations;
             
             if ($evaluations->isEmpty()) {
@@ -254,16 +256,16 @@ class EvaluationController extends Controller
             ];
         })->sortByDesc('average_score')->values();
 
-        $isJudge = $evento->jueces->contains(auth()->id());
+        $isJudge = $evento->judges->contains(auth()->id());
 
         return view('ranking', compact('evento', 'ranking', 'isJudge'));
     }
 
     public function declareConflict($evento_id, $equipo_id)
     {
-        $evento = Evento::findOrFail($evento_id);
+        $evento = Event::findOrFail($evento_id);
         
-        if (!$evento->jueces->contains(auth()->user()->id)) {
+        if (!$evento->judges->contains(auth()->user()->id)) {
             abort(403, 'No tienes permiso para evaluar este evento.');
         }
 
@@ -313,12 +315,12 @@ class EvaluationController extends Controller
         $user = auth()->user();
         $participante = $user->participant;
 
-        if (!$participante || !$participante->equipo) {
+        if (!$participante || !$participante->team) {
             return redirect()->route('start')->with('error', 'No tienes un equipo asignado.');
         }
 
-        $equipo = $participante->equipo;
-        $evento = $equipo->evento;
+        $equipo = $participante->team;
+        $evento = $equipo->event;
 
         // Only show feedback if event is finalized or evaluations are done (logic depends on requirements, assuming finalized evaluations are visible)
         // Or maybe only if event status is 'Finalizado'

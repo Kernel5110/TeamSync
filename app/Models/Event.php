@@ -5,10 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Evento extends Model
+class Event extends Model
 {
     /** @use HasFactory<\Database\Factories\EventoFactory> */
     use HasFactory;
+
+    protected $table = 'eventos';
 
     protected $fillable = ['nombre', 'descripcion', 'fecha_inicio', 'fecha_fin', 'start_time', 'ubicacion', 'capacidad', 'problem_statement', 'categoria', 'status_manual'];
 
@@ -17,24 +19,24 @@ class Evento extends Model
         'fecha_fin' => 'date',
     ];
 
-    public function equipos()
+    public function teams()
     {
-        return $this->hasMany(Equipo::class);
+        return $this->hasMany(Team::class, 'evento_id');
     }
 
-    public function jueces()
+    public function judges()
     {
         return $this->belongsToMany(User::class, 'evento_juez', 'evento_id', 'user_id');
     }
 
-    public function categorias()
+    public function categories()
     {
         return $this->belongsToMany(Categoria::class, 'categoria_evento', 'evento_id', 'categoria_id');
     }
 
     public function criteria()
     {
-        return $this->hasMany(Criterion::class);
+        return $this->hasMany(Criterion::class, 'evento_id');
     }
 
     public function getStatusAttribute()

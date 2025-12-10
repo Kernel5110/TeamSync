@@ -8,8 +8,8 @@ class Criterion extends Model
 {
     protected $fillable = ['evento_id', 'name', 'max_score', 'description'];
 
-    public function evento()
+    public function event()
     {
-        return $this->belongsTo(Evento::class);
+        return $this->belongsTo(Event::class, 'evento_id');
     }
 }

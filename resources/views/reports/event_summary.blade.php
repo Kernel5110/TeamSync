@@ -90,11 +90,11 @@
     <div class="section">
         <div class="stats-grid">
             <div class="stat-item">
-                <span class="stat-number">{{ $evento->equipos->count() }}</span>
+                <span class="stat-number">{{ $evento->teams->count() }}</span>
                 <span class="stat-label">Equipos</span>
             </div>
             <div class="stat-item">
-                <span class="stat-number">{{ $evento->equipos->sum(function($team) { return $team->participantes->count(); }) }}</span>
+                <span class="stat-number">{{ $evento->teams->sum(function($team) { return $team->participants->count(); }) }}</span>
                 <span class="stat-label">Participantes</span>
             </div>
             <div class="stat-item">
@@ -152,11 +152,11 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($evento->equipos as $team)
+                @foreach($evento->teams as $team)
                     <tr>
                         <td>{{ $team->nombre }}</td>
                         <td>
-                            @foreach($team->participantes as $p)
+                            @foreach($team->participants as $p)
                                 {{ $p->user->name }}<br>
                             @endforeach
                         </td>

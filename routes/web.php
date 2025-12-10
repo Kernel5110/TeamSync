@@ -29,16 +29,12 @@ use App\Http\Controllers\AuditLogController;
 Route::get('/', [IndexController::class, 'index'])->name('index');
 Route::redirect('/home', '/')->name('home');
 
-// Legacy Redirects (to fix 404s from old links)
-Route::redirect('/event', '/events');
-Route::redirect('/team', '/teams');
-Route::redirect('/perfil', '/profile');
-Route::redirect('/registrar', '/register');
+
 
 // Authentication Routes
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [LoginController::class, 'login'])->name('login.post');
+    Route::post('/login', [LoginController::class, 'login'])->name('login.store');
     Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
     Route::post('/register', [RegisterController::class, 'register'])->name('register.post');
 });
@@ -87,7 +83,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/events/{id}/ranking', [EvaluationController::class, 'ranking'])->name('events.ranking');
     Route::get('/events/{eventId}/certificates/{teamId}', [EvaluationController::class, 'certificate'])->name('events.certificate');
     Route::get('/events/{eventId}/certificates/{teamId}/download', [EvaluationController::class, 'downloadCertificate'])->name('events.certificate.download');
-    Route::get('/events/{eventId}/certificates/{teamId}/download', [EvaluationController::class, 'downloadCertificate'])->name('events.certificate.download');
+
     Route::post('/events/{eventId}/certificates/{teamId}/email', [EvaluationController::class, 'emailCertificate'])->name('events.certificate.email');
     
     // Participant Feedback

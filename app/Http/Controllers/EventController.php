@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Evento;
+use App\Models\Event;
+use App\Models\Team;
+use App\Models\Categoria;
+use App\Models\Criterion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -21,10 +24,10 @@ class EventController extends Controller
             abort(403);
         }
 
-        $evento = Evento::with(['equipos.participantes.user', 'equipos.evaluations'])->findOrFail($id);
+        $evento = Event::with(['teams.participants.user', 'teams.evaluations'])->findOrFail($id);
         
         // Calculate ranking
-        $ranking = $evento->equipos->map(function ($team) {
+        $ranking = $evento->teams->map(function ($team) {
             $team->total_score = $team->evaluations->avg('score');
             return $team;
         })->sortByDesc('total_score')->values();
@@ -40,7 +43,7 @@ class EventController extends Controller
             abort(403);
         }
 
-        $evento = Evento::with(['equipos.participantes.user', 'equipos.evaluations'])->findOrFail($id);
+        $evento = Event::with(['teams.participants.user', 'teams.evaluations'])->findOrFail($id);
         
         $csvFileName = 'Reporte_' . $evento->nombre . '.csv';
         $headers = [
@@ -57,9 +60,9 @@ class EventController extends Controller
             $file = fopen('php://output', 'w');
             fputcsv($file, $columns);
 
-            foreach ($evento->equipos as $team) {
+            foreach ($evento->teams as $team) {
                 $score = $team->evaluations->avg('score') ?? 0;
-                $members = $team->participantes->map(fn($p) => $p->user->name)->implode(', ');
+                $members = $team->participants->map(fn($p) => $p->user->name)->implode(', ');
                 
                 fputcsv($file, [
                     $team->nombre,
@@ -84,10 +87,10 @@ class EventController extends Controller
             abort(403);
         }
 
-        $evento = Evento::with(['equipos.participantes.user', 'equipos.evaluations'])->findOrFail($id);
+        $evento = Event::with(['teams.participants.user', 'teams.evaluations'])->findOrFail($id);
         
         // Calculate ranking for PDF
-        $ranking = $evento->equipos->map(function ($team) {
+        $ranking = $evento->teams->map(function ($team) {
             $team->total_score = $team->evaluations->avg('score');
             return $team;
         })->sortByDesc('total_score')->values();
@@ -108,12 +111,12 @@ class EventController extends Controller
      */
     public function index(): \Illuminate\View\View
     {
-        // AÑADIDO: 'jueces' para cargar la lista de jueces asignados a cada evento.
-        $eventos = Evento::with(['equipos.participantes.user', 'jueces'])->paginate(9);
+        // AÑADIDO: 'judges' para cargar la lista de jueces asignados a cada evento.
+        $eventos = Event::with(['teams.participants.user', 'judges'])->paginate(9);
         $equipo = null;
 
         if (auth()->check() && auth()->user()->participant) {
-            $equipo = auth()->user()->participant->equipo;
+            $equipo = auth()->user()->participant->team;
         }
 
         return view('event', compact('eventos', 'equipo'));
@@ -139,7 +142,7 @@ class EventController extends Controller
             'status_manual' => 'nullable|string|in:Próximo,En Curso,Finalizado',
         ]);
 
-        $evento = Evento::create($request->except('categorias'));
+        $evento = Event::create($request->except('categorias'));
 
         if ($request->has('categorias')) {
             $categoryIds = [];
@@ -166,7 +169,7 @@ class EventController extends Controller
 
 
 
-        AuditLogger::log('create', Evento::class, $evento->id, "Evento creado: {$evento->nombre}");
+        AuditLogger::log('create', Event::class, $evento->id, "Evento creado: {$evento->nombre}");
 
         return redirect()->route('events.index')->with('success', 'Evento creado correctamente.');
     }
@@ -177,7 +180,7 @@ class EventController extends Controller
             abort(403);
         }
 
-        $evento = Evento::findOrFail($id);
+        $evento = Event::findOrFail($id);
 
         $request->validate([
             'nombre' => 'required|string|max:255',
@@ -256,7 +259,7 @@ class EventController extends Controller
 
 
 
-        AuditLogger::log('update', Evento::class, $evento->id, "Evento actualizado: {$evento->nombre}");
+        AuditLogger::log('update', Event::class, $evento->id, "Evento actualizado: {$evento->nombre}");
 
         return redirect()->route('events.index')->with('success', 'Evento actualizado correctamente.');
     }
@@ -267,12 +270,12 @@ class EventController extends Controller
             abort(403);
         }
 
-        $evento = Evento::findOrFail($id);
+        $evento = Event::findOrFail($id);
         $evento->delete();
 
 
 
-        AuditLogger::log('delete', Evento::class, $id, "Evento eliminado: {$evento->nombre}");
+        AuditLogger::log('delete', Event::class, $id, "Evento eliminado: {$evento->nombre}");
 
         return redirect()->route('events.index')->with('success', 'Evento eliminado correctamente.');
     }
@@ -283,7 +286,7 @@ class EventController extends Controller
             abort(403);
         }
 
-        $evento = Evento::with('equipos.participantes.user')->findOrFail($id);
+        $evento = Event::with('teams.participants.user')->findOrFail($id);
 
         $request->validate([
             'subject' => 'required|string|max:255',
@@ -292,8 +295,8 @@ class EventController extends Controller
 
         // Collect all participant emails
         $emails = collect();
-        foreach ($evento->equipos as $equipo) {
-            foreach ($equipo->participantes as $participante) {
+        foreach ($evento->teams as $equipo) {
+            foreach ($equipo->participants as $participante) {
                 if ($participante->user && $participante->user->email) {
                     $emails->push($participante->user->email);
                 }
@@ -311,7 +314,7 @@ class EventController extends Controller
             Mail::to($email)->queue(new \App\Mail\EventAnnouncement($request->subject, $request->message, $evento->nombre));
         }
 
-        AuditLogger::log('announcement', Evento::class, $evento->id, "Anuncio enviado a {$emails->count()} participantes. Asunto: {$request->subject}");
+        AuditLogger::log('announcement', Event::class, $evento->id, "Anuncio enviado a {$emails->count()} participantes. Asunto: {$request->subject}");
 
         return back()->with('success', "Anuncio enviado correctamente a {$emails->count()} participantes.");
     }
@@ -322,7 +325,7 @@ class EventController extends Controller
             abort(403);
         }
 
-        $evento = Evento::findOrFail($id);
+        $evento = Event::findOrFail($id);
 
         $request->validate([
             'status_manual' => 'required|string|in:Próximo,En Curso,Finalizado',
@@ -330,7 +333,7 @@ class EventController extends Controller
 
         $evento->update(['status_manual' => $request->status_manual]);
 
-        AuditLogger::log('status_change', Evento::class, $evento->id, "Estado cambiado a: {$request->status_manual}");
+        AuditLogger::log('status_change', Event::class, $evento->id, "Estado cambiado a: {$request->status_manual}");
 
         return back()->with('success', 'Estado del evento actualizado correctamente.');
     }

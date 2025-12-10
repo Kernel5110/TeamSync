@@ -122,20 +122,20 @@
                             <div style="padding: 20px;">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                                     <span style="color: #6b7280; font-size: 0.9rem;">Equipos Asignados</span>
-                                    <span style="font-weight: 700; color: #1f2937; font-size: 1.1rem;">{{ $evento->equipos->count() }}</span>
+                                    <span style="font-weight: 700; color: #1f2937; font-size: 1.1rem;">{{ $evento->teams->count() }}</span>
                                 </div>
                                 
                                 @php
-                                    $evaluatedCount = $evento->equipos->sum(function($equipo) {
+                                    $evaluatedCount = $evento->teams->sum(function($equipo) {
                                         return $equipo->evaluations_count;
                                     });
-                                    $progress = $evento->equipos->count() > 0 ? ($evaluatedCount / $evento->equipos->count()) * 100 : 0;
+                                    $progress = $evento->teams->count() > 0 ? ($evaluatedCount / $evento->teams->count()) * 100 : 0;
                                 @endphp
 
                                 <div style="margin-bottom: 20px;">
                                     <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.85rem;">
                                         <span style="color: #4b5563;">Progreso</span>
-                                        <span style="color: #4f46e5; font-weight: 600;">{{ $evaluatedCount }} / {{ $evento->equipos->count() }}</span>
+                                        <span style="color: #4f46e5; font-weight: 600;">{{ $evaluatedCount }} / {{ $evento->teams->count() }}</span>
                                     </div>
                                     <div style="background-color: #e5e7eb; border-radius: 9999px; height: 8px; overflow: hidden;">
                                         <div style="background-color: #4f46e5; height: 100%; width: {{ $progress }}%;"></div>
@@ -181,7 +181,7 @@
                                     </div>
                                 @endif
                                 <h2 style="margin: 0; color: #1f2937; font-size: 1.5rem;">{{ $equipo->nombre }}</h2>
-                                <p style="color: #6b7280; margin: 5px 0;">{{ $equipo->participantes->count() }} Miembros</p>
+                                <p style="color: #6b7280; margin: 5px 0;">{{ $equipo->participants->count() }} Miembros</p>
                             </div>
                             <a href="{{ route('teams.index') }}" style="display: block; width: 100%; padding: 12px; text-align: center; background-color: #f3f4f6; color: #374151; text-decoration: none; border-radius: 8px; font-weight: 600; transition: background 0.2s;">
                                 Gestionar Equipo

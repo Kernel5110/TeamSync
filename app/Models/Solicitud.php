@@ -18,8 +18,8 @@ class Solicitud extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function equipo()
+    public function team()
     {
-        return $this->belongsTo(Equipo::class);
+        return $this->belongsTo(Team::class, 'equipo_id');
     }
 }

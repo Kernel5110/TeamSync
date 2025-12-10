@@ -52,7 +52,7 @@
                         </div>
                     @endif
                     Miembros del Equipo: {{ $equipo->nombre }}
-                    @if(auth()->user()->participant && auth()->user()->participant->rol == 'Líder' && auth()->user()->participant->equipo_id == $equipo->id)
+                    @if(auth()->user()->participant && auth()->user()->participant->rol == 'Líder' && auth()->user()->participant->team_id == $equipo->id)
                         <a href="#modal-editar-mi-equipo" id="btn-editar-mi-equipo" style="color: #6b7280; text-decoration: none;" title="Editar Equipo">
                             <x-icon name="edit" />
                         </a>
@@ -68,11 +68,11 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($equipo->participantes as $participante)
+                        @foreach($equipo->participants as $participante)
                             <tr>
                                 <td>{{ $participante->user->name }}</td>
-                                <td>{{ $participante->institucion }}</td>
-                                <td>{{ $participante->carrera->nombre }}</td>
+                                <td>{{ $participante->institution }}</td>
+                                <td>{{ $participante->career->nombre }}</td>
                                 <td>
                                     @php
                                         $rolClass = 'rol-analista';
@@ -93,7 +93,7 @@
 
             <div class="stats-grid">
                 <div class="stat-card blue">
-                    <div class="stat-number">{{ $equipo->participantes->count() }}</div>
+                    <div class="stat-number">{{ $equipo->participants->count() }}</div>
                     <div class="stat-label">Total Miembros</div>
                 </div>
                 <div class="stat-card cyan">
@@ -115,7 +115,7 @@
                      <div class="tarjeta-miembros" style="text-align: center; padding: 3rem;">
                         <x-icon name="pending" style="font-size: 4rem; color: #f59e0b;" />
                         <h2 style="margin-top: 1rem; color: #374151;">Solicitud Enviada</h2>
-                        <p style="color: #6b7280; margin-bottom: 2rem;">Has solicitado unirte al equipo <strong>{{ $myPendingRequest->equipo->nombre }}</strong>. Espera a que el líder acepte tu solicitud.</p>
+                        <p style="color: #6b7280; margin-bottom: 2rem;">Has solicitado unirte al equipo <strong>{{ $myPendingRequest->team->nombre }}</strong>. Espera a que el líder acepte tu solicitud.</p>
                     </div>
                 @else
                     <div class="tarjeta-miembros" style="text-align: center; padding: 3rem;">
@@ -150,8 +150,8 @@
                         @foreach($pendingRequests as $request)
                             <tr>
                                 <td>{{ $request->user->name }}</td>
-                                <td>{{ $request->user->participante->institucion ?? 'N/A' }}</td>
-                                <td>{{ $request->user->participante->carrera->nombre ?? 'N/A' }}</td>
+                                <td>{{ $request->user->participant->institution ?? 'N/A' }}</td>
+                                <td>{{ $request->user->participant->career->nombre ?? 'N/A' }}</td>
                                 <td>
                                     <div style="display: flex; gap: 10px;">
                                         <form action="{{ route('requests.accept', $request->id) }}" method="POST">
@@ -185,17 +185,17 @@
                             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
                                 <div>
                                     <h3 style="margin: 0; font-size: 1.2rem; color: #111827;">{{ $team->nombre }}</h3>
-                                    <span style="font-size: 0.9rem; color: #6b7280;">{{ $team->evento->nombre ?? 'Sin Evento' }}</span>
+                                    <span style="font-size: 0.9rem; color: #6b7280;">{{ $team->event->nombre ?? 'Sin Evento' }}</span>
                                 </div>
                                 <span class="badge-rol" style="background: #e0e7ff; color: #4338ca;">
-                                    {{ $team->participantes->count() }} Miembros
+                                    {{ $team->participants->count() }} Miembros
                                 </span>
                             </div>
                             
                             <div style="margin-bottom: 15px;">
                                 <p style="margin: 0; font-size: 0.9rem; color: #4b5563;">Líder: 
                                     @php
-                                        $lider = $team->participantes->where('rol', 'Líder')->first();
+                                        $lider = $team->participants->where('rol', 'Líder')->first();
                                     @endphp
                                     {{ $lider ? $lider->user->name : 'N/A' }}
                                 </p>
@@ -208,7 +208,7 @@
                                         Solicitar Unirse
                                     </button>
                                 </form>
-                            @elseif($myPendingRequest && $myPendingRequest->equipo_id == $team->id)
+                            @elseif($myPendingRequest && $myPendingRequest->team_id == $team->id)
                                 <button disabled class="btn-nuevo" style="width: 100%; justify-content: center; background: #9ca3af; cursor: not-allowed;">
                                     Solicitud Enviada
                                 </button>
@@ -247,10 +247,10 @@
                                 <tr>
                                     <td>{{ $t->id }}</td>
                                     <td>{{ $t->nombre }}</td>
-                                    <td>{{ $t->evento->nombre ?? 'N/A' }}</td>
+                                    <td>{{ $t->event->nombre ?? 'N/A' }}</td>
                                     <td>
                                         <ul style="margin: 0; padding-left: 20px; font-size: 0.9rem;">
-                                            @foreach($t->participantes as $p)
+                                            @foreach($t->participants as $p)
                                                 <li>{{ $p->user->name }}</li>
                                             @endforeach
                                         </ul>
@@ -259,13 +259,13 @@
                                         <button class="btn-editar-equipo"
                                                 data-id="{{ $t->id }}"
                                                 data-nombre="{{ $t->nombre }}"
-                                                data-evento-id="{{ $t->evento_id }}"
+                                                data-evento-id="{{ $t->event_id }}"
                                                 data-project-name="{{ $t->project_name }}"
                                                 data-project-description="{{ $t->project_description }}"
                                                 data-technologies="{{ $t->technologies }}"
                                                 data-github-repo="{{ $t->github_repo }}"
                                                 data-github-pages="{{ $t->github_pages }}"
-                                                data-members="{{ $t->participantes->map(function($p) { return ['id' => $p->user->id, 'name' => $p->user->name, 'rol' => $p->rol]; })->toJson() }}"
+                                                data-members="{{ $t->participants->map(function($p) { return ['id' => $p->user->id, 'name' => $p->user->name, 'rol' => $p->rol]; })->toJson() }}"
                                                 style="background: none; border: none; cursor: pointer; color: #4f46e5; margin-right: 10px;">
                                             <x-icon name="edit" />
                                         </button>
@@ -507,7 +507,7 @@
             <form action="{{ route('teams.update', $equipo->id) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
-                <input type="hidden" name="evento_id" value="{{ $equipo->evento_id }}">
+                <input type="hidden" name="evento_id" value="{{ $equipo->event_id }}">
                 <div class="form-group">
                     <label for="mi-equipo-nombre">Nombre del Equipo</label>
                     <input type="text" id="mi-equipo-nombre" name="nombre" value="{{ $equipo->nombre }}" required>

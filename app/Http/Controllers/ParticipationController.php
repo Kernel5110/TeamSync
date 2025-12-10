@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Evento;
-use App\Models\Equipo;
+use App\Models\Event;
+use App\Models\Team;
+use App\Models\Participant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -12,12 +13,12 @@ class ParticipationController extends Controller
 {
     public function show(int $evento_id): \Illuminate\View\View|\Illuminate\Http\RedirectResponse
     {
-        $evento = Evento::findOrFail($evento_id);
+        $evento = Event::findOrFail($evento_id);
         $user = Auth::user();
 
         // Check if user has a team in this event
-        $equipo = Equipo::where('evento_id', $evento_id)
-            ->whereHas('participantes', function($query) use ($user) {
+        $equipo = Team::where('evento_id', $evento_id)
+            ->whereHas('participants', function($query) use ($user) {
                 $query->where('usuario_id', $user->id);
             })->first();
 
@@ -27,7 +28,7 @@ class ParticipationController extends Controller
 
         // Calculate Rank
         $rank = null;
-        $eventTeams = $evento->equipos;
+        $eventTeams = $evento->teams;
         
         // Only calculate if there are evaluations
         if ($eventTeams->count() > 0) {
@@ -65,7 +66,7 @@ class ParticipationController extends Controller
             'evidence' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120', // 5MB Max
         ]);
 
-        $evento = Evento::findOrFail($evento_id);
+        $evento = Event::findOrFail($evento_id);
 
         // Time Validation
         $startDateTime = $evento->fecha_inicio->copy()->setTimeFromTimeString($evento->start_time);
@@ -77,8 +78,8 @@ class ParticipationController extends Controller
         
         // Find the team of the current user for this event.
         $user = Auth::user();
-        $equipo = Equipo::where('evento_id', $evento_id)
-            ->whereHas('participantes', function($query) use ($user) {
+        $equipo = Team::where('evento_id', $evento_id)
+            ->whereHas('participants', function($query) use ($user) {
                 $query->where('usuario_id', $user->id); 
             })->first();
 

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Event;
+use App\Models\Team;
 
 class PageController extends Controller
 {
@@ -23,16 +25,16 @@ class PageController extends Controller
     {
         if (auth()->user()->hasRole('admin')) {
             $stats = [
-                'eventos' => \App\Models\Evento::count(),
+                'eventos' => Event::count(),
                 'usuarios' => \App\Models\User::count(),
-                'equipos' => \App\Models\Equipo::count(),
+                'equipos' => Team::count(),
                 'jueces' => \App\Models\User::role('juez')->count(),
             ];
             return view('start', compact('stats'));
         }
         
         if (auth()->user()->hasRole('juez')) {
-            $judgeEvents = auth()->user()->judgeEvents()->with(['equipos' => function($q) {
+            $judgeEvents = auth()->user()->judgeEvents()->with(['teams' => function($q) {
                 $q->withCount(['evaluations' => function($query) {
                     $query->where('user_id', auth()->id());
                 }]);
@@ -44,8 +46,8 @@ class PageController extends Controller
         // Participant Logic
         $user = auth()->user();
         $participante = $user->participant;
-        $equipo = $participante ? $participante->equipo : null;
-        $evento = $equipo ? $equipo->evento : null;
+        $equipo = $participante ? $participante->team : null;
+        $evento = $equipo ? $equipo->event : null;
         
         return view('start', compact('equipo', 'evento'));
     }
@@ -53,11 +55,11 @@ class PageController extends Controller
     public function adminTeams(Request $request)
     {
         $query = $request->input('query');
-        $teams = \App\Models\Equipo::with(['evento', 'participantes.user']);
+        $teams = \App\Models\Team::with(['event', 'participants.user']);
 
         if ($query) {
             $teams->where('nombre', 'LIKE', "%{$query}%")
-                  ->orWhereHas('evento', function($q) use ($query) {
+                  ->orWhereHas('event', function($q) use ($query) {
                       $q->where('nombre', 'LIKE', "%{$query}%");
                   });
         }

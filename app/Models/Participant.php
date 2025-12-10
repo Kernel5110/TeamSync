@@ -5,10 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Participante extends Model
+class Participant extends Model
 {
-    /** @use HasFactory<\Database\Factories\ParticipanteFactory> */
+    /** @use HasFactory<\Database\Factories\ParticipantFactory> */
     use HasFactory;
+
+    protected $table = 'participantes'; // Explicitly set table name if needed
 
     protected $fillable = [
         'usuario_id',
@@ -24,13 +26,13 @@ class Participante extends Model
         return $this->belongsTo(User::class, 'usuario_id');
     }
 
-    public function carrera()
+    public function career()
     {
-        return $this->belongsTo(Carrera::class);
+        return $this->belongsTo(Career::class, 'carrera_id');
     }
 
-    public function equipo()
+    public function team()
     {
-        return $this->belongsTo(Equipo::class);
+        return $this->belongsTo(Team::class, 'equipo_id');
     }
 }

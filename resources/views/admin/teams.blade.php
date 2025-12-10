@@ -29,10 +29,10 @@
                     @forelse($teams as $team)
                         <tr>
                             <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #1f2937;">{{ $team->nombre }}</td>
-                            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; color: #4b5563;">{{ $team->evento->nombre }}</td>
+                            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; color: #4b5563;">{{ $team->event->nombre }}</td>
                             <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; color: #4b5563;">
                                 <ul style="margin: 0; padding-left: 20px;">
-                                    @foreach($team->participantes as $participante)
+                                    @foreach($team->participants as $participante)
                                         <li>
                                             {{ $participante->user->name }} 
                                             @if($participante->rol === 'Líder')
@@ -57,13 +57,13 @@
                                 <button class="btn-editar-equipo" 
                                         data-id="{{ $team->id }}" 
                                         data-nombre="{{ $team->nombre }}" 
-                                        data-evento-id="{{ $team->evento_id }}"
+                                        data-evento-id="{{ $team->event_id }}"
                                         style="background-color: #3b82f6; color: white; padding: 6px 12px; border: none; border-radius: 6px; font-size: 0.8rem; cursor: pointer; margin-left: 5px;">
                                     Editar
                                 </button>
                                 <button class="btn-cambiar-lider" 
                                         data-id="{{ $team->id }}" 
-                                        data-members="{{ json_encode($team->participantes->map(function($p){ return ['id' => $p->user->id, 'name' => $p->user->name]; })) }}"
+                                        data-members="{{ json_encode($team->participants->map(function($p){ return ['id' => $p->user->id, 'name' => $p->user->name]; })) }}"
                                         style="background-color: #8b5cf6; color: white; padding: 6px 12px; border: none; border-radius: 6px; font-size: 0.8rem; cursor: pointer; margin-left: 5px;">
                                     Líder
                                 </button>
@@ -98,7 +98,7 @@
                 <div class="form-group" style="margin-bottom: 15px;">
                     <label for="edit-evento" style="display: block; margin-bottom: 5px; font-weight: 600;">Evento</label>
                     <select id="edit-evento" name="evento_id" required style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
-                        @foreach(\App\Models\Evento::all() as $evento)
+                        @foreach(\App\Models\Event::all() as $evento)
                             <option value="{{ $evento->id }}">{{ $evento->nombre }}</option>
                         @endforeach
                     </select>

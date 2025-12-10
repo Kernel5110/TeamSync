@@ -79,9 +79,9 @@
                     <span class="badge-proximo" style="background-color: {{ $badgeColor }};">{{ $status }}</span>
                 </div>
 
-                @if($evento->categorias->count() > 0)
+                @if($evento->categories->count() > 0)
                     <div style="margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 5px;">
-                        @foreach($evento->categorias as $cat)
+                        @foreach($evento->categories as $cat)
                             <span style="background-color: #e0e7ff; color: #4338ca; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600;">
                                 {{ $cat->nombre }}
                             </span>
@@ -104,7 +104,7 @@
                     </div>
                     <div class="detalle-item">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-    <span>Equipos: {{ $evento->equipos->count() }} / {{ (int)$evento->capacidad }}</span>
+    <span>Equipos: {{ $evento->teams->count() }} / {{ (int)$evento->capacidad }}</span>
 </div>
                 </div>
 
@@ -130,7 +130,7 @@
 
     @php
         // Lógica del Juez (se ejecuta si el usuario está logueado)
-        $is_judge_or_assigned = Auth::user()->hasRole('juez') || $evento->jueces->contains(Auth::id());
+        $is_judge_or_assigned = Auth::user()->hasRole('juez') || $evento->judges->contains(Auth::id());
     @endphp
 
     {{-- 2. VERIFICA SI EL USUARIO ES JUEZ O ESTÁ ASIGNADO --}}
@@ -147,11 +147,11 @@
         {{-- BLOQUE PARTICIPANTE/OTRO ROL: Lógica original para ver si puede participar --}}
         @unlessrole('admin')
             @php
-                $userParticipante = auth()->user()->participante;
-                $userTeamId = $userParticipante ? $userParticipante->equipo_id : null;
+                $userParticipante = auth()->user()->participant;
+                $userTeamId = $userParticipante ? $userParticipante->team_id : null;
 
-                $hasTeamInEvent = \App\Models\Equipo::where('evento_id', $evento->id)
-                    ->whereHas('participantes', function($q) {
+                $hasTeamInEvent = \App\Models\Team::where('evento_id', $evento->id)
+                    ->whereHas('participants', function($q) {
                         $q->where('usuario_id', auth()->id());
                     })->exists();
 
@@ -213,7 +213,7 @@
                                 data-ubicacion="{{ $evento->ubicacion }}"
                                 data-capacidad="{{ $evento->capacidad }}"
                                 data-capacidad="{{ $evento->capacidad }}"
-                                data-categorias="{{ $evento->categorias->pluck('nombre')->toJson() }}"
+                                data-categorias="{{ $evento->categories->pluck('nombre')->toJson() }}"
                                 data-criteria="{{ $evento->criteria->toJson() }}"
                                 data-status-manual="{{ $evento->status_manual }}"
                                 title="Editar Evento">
@@ -267,18 +267,18 @@
 
                     <!-- Admin Team List Section -->
                     <div id="teams-{{ $evento->id }}" style="display: none; margin-top: 15px; border-top: 1px solid #e5e7eb; padding-top: 10px;">
-                        <h4 style="font-size: 0.9rem; color: #4b5563; margin-bottom: 10px;">Equipos Registrados ({{ $evento->equipos->count() }}/{{ $evento->capacidad }})</h4>
-                        @if($evento->equipos->count() > 0)
+                        <h4 style="font-size: 0.9rem; color: #4b5563; margin-bottom: 10px;">Equipos Registrados ({{ $evento->teams->count() }}/{{ $evento->capacidad }})</h4>
+                        @if($evento->teams->count() > 0)
                             <ul style="list-style: none; padding: 0; margin: 0; max-height: 150px; overflow-y: auto;">
-                                @foreach($evento->equipos as $team)
+                                @foreach($evento->teams as $team)
                                     <li style="display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px dashed #e5e7eb; font-size: 0.85rem;">
                                         <div>
                                             <span style="font-weight: 600; color: #1f2937;">{{ $team->nombre }}</span>
-                                            <span style="color: #6b7280; font-size: 0.75rem;">({{ $team->participantes->count() }} miembros)</span>
+                                            <span style="color: #6b7280; font-size: 0.75rem;">({{ $team->participants->count() }} miembros)</span>
                                         </div>
                                         <div style="display: flex; gap: 5px;">
                                             <!-- Edit Team (Redirect to Team Management) -->
-                                            @if(auth()->check() && auth()->user()->participant && auth()->user()->participant->equipo_id == $team->id && auth()->user()->participant->rol == 'Líder')
+                                            @if(auth()->check() && auth()->user()->participant && auth()->user()->participant->team_id == $team->id && auth()->user()->participant->rol == 'Líder')
                                             <a href="{{ route('teams.index') }}" style="color: #4f46e5; text-decoration: none;" title="Gestionar en Equipos">
                                                 <x-icon name="open_in_new" style="font-size: 16px;" />
                                             </a>

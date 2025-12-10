@@ -17,8 +17,8 @@
 
             <div class="profile-info">
                 <h1>{{ $user->name }}</h1>
-                <p>&lt;> {{ $user->participante->rol ?? 'Participante' }}</p>
-                <p>{{ $user->participante->institucion ?? 'Institución no especificada' }}</p>
+                <p>&lt;> {{ $user->participant->rol ?? 'Participante' }}</p>
+                <p>{{ $user->participant->institution ?? 'Institución no especificada' }}</p>
                 <div class="profile-badges">
                     <span class="profile-badge">Innovador</span>
                     <span class="profile-badge">Competidor</span>
@@ -58,7 +58,7 @@
                     <div class="label">Eventos Participados</div>
                 </div>
                 <div class="card">
-                    <div class="number">{{ $user->participante && $user->participante->equipo ? 1 : 0 }}</div>
+                    <div class="number">{{ $user->participant && $user->participant->team ? 1 : 0 }}</div>
                     <div class="label">Equipos Formados</div>
                 </div>
             </div>
@@ -70,9 +70,9 @@
                     <p><strong>Email:</strong> {{ $user->email }}</p>
                     <p><strong>Rol:</strong> {{ implode(', ', $user->getRoleNames()->toArray()) }}</p>
                     <p><x-icon name="date_range" /> Miembro desde {{ $user->created_at->format('M Y') }}</p>
-                    <p><x-icon name="school" /> {{ $user->participante->institucion ?? 'No especificada' }}</p>
-                    @if($user->participante && $user->participante->equipo)
-                        <p><x-icon name="groups" /> Equipo: {{ $user->participante->equipo->nombre }}</p>
+                    <p><x-icon name="school" /> {{ $user->participant->institution ?? 'No especificada' }}</p>
+                    @if($user->participant && $user->participant->team)
+                        <p><x-icon name="groups" /> Equipo: {{ $user->participant->team->nombre }}</p>
                     @endif
                     @if($user->expertise)
                         <p><x-icon name="star" /> <strong>Experiencia:</strong> {{ $user->expertise }}</p>
@@ -104,10 +104,10 @@
         <div id="equipos" class="tab-content" style="display: none;">
             <div class="details-card">
                 <h3>Mis Equipos</h3>
-                @if($user->participant && $user->participant->equipo)
+                @if($user->participant && $user->participant->team)
                     <div style="padding: 1rem; border: 1px solid #e5e7eb; border-radius: 8px; margin-top: 1rem;">
-                        <h4>{{ $user->participant->equipo->nombre }}</h4>
-                        <p>Evento: {{ $user->participant->equipo->evento->nombre ?? 'Evento desconocido' }}</p>
+                        <h4>{{ $user->participant->team->nombre }}</h4>
+                        <p>Evento: {{ $user->participant->team->event->nombre ?? 'Evento desconocido' }}</p>
                         <a href="{{ route('teams.index') }}" style="color: #4f46e5; text-decoration: none; font-weight: 600; margin-top: 0.5rem; display: inline-block;">Ver Equipo &rarr;</a>
                     </div>
                 @else
@@ -314,7 +314,7 @@
                     <label for="institucion">Institución</label>
                     <div class="input-with-icon">
                         <x-icon name="school" />
-                        <input type="text" id="institucion" name="institucion" value="{{ $user->participante->institucion ?? '' }}">
+                        <input type="text" id="institucion" name="institucion" value="{{ $user->participant->institution ?? '' }}">
                     </div>
                 </div>
                 <div class="form-group">

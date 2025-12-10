@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Participante;
+use App\Models\Participant;
 use Illuminate\Http\Request;
 
 class ProfileController extends Controller
@@ -16,8 +16,8 @@ class ProfileController extends Controller
         
         if ($user->hasRole('admin')) {
             $users = \App\Models\User::with('roles')->get();
-            $instituciones = \App\Models\Institucion::all();
-            $carreras = \App\Models\Carrera::all();
+            $instituciones = \App\Models\Institution::all();
+            $carreras = \App\Models\Career::all();
         }
         return view('perfil', compact('user', 'users', 'instituciones', 'carreras'));
     }
@@ -29,7 +29,7 @@ class ProfileController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'institucion' => 'nullable|string|max:255',
+            'institution' => 'nullable|string|max:255',
             'profile_photo' => 'nullable|image|max:2048', // 2MB Max
             'expertise' => 'nullable|string|max:1000',
         ]);
@@ -47,14 +47,14 @@ class ProfileController extends Controller
 
         if ($user->participant) {
             $user->participant->update([
-                'institucion' => $request->institucion,
+                'institution' => $request->institucion,
             ]);
         } else {
             // Create participant record if it doesn't exist (only if not admin/judge purely)
              if (!$user->hasRole('admin') && !$user->hasRole('juez')) {
-                Participante::create([
+                Participant::create([
                     'usuario_id' => $user->id,
-                    'institucion' => $request->institucion ?? 'No especificada',
+                    'institution' => $request->institucion ?? 'No especificada',
                     'carrera_id' => 1, // Default or handle appropriately
                 ]);
             }

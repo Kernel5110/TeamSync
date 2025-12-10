@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Carrera;
 use App\Models\Institucion;
-use App\Models\Participante;
+use App\Models\Participant;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,8 +14,8 @@ class RegisterController extends Controller
 {
     public function showRegistrationForm()
     {
-        $carreras = Carrera::all();
-        $instituciones = Institucion::all();
+        $carreras = Career::all();
+        $instituciones = Institution::all();
         return view('registrar', compact('carreras', 'instituciones'));
     }
 
@@ -24,8 +24,8 @@ class RegisterController extends Controller
         $request->validate([
             'nombre' => 'required|string|max:255',
             'apellido' => 'required|string|max:255',
-            'institucion' => 'required|string|max:255',
-            'carrera' => 'required|exists:carreras,id',
+            'institution' => 'required|string|max:255',
+            'career' => 'required|exists:carreras,id',
             'correo' => 'required|string|email|max:255|unique:users,email',
             'contraseña' => 'required|string|min:8',
         ], [
@@ -47,10 +47,10 @@ class RegisterController extends Controller
             'password' => Hash::make($request->contraseña),
         ]);
 
-        Participante::create([
+        Participant::create([
             'usuario_id' => $user->id,
-            'carrera_id' => $request->carrera,
-            'institucion' => $request->institucion,
+            'carrera_id' => $request->career,
+            'institution' => $request->institucion,
         ]);
 
         $user->assignRole('competidor');

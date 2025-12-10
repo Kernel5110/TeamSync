@@ -23,7 +23,7 @@
                 <div style="margin-bottom: 20px;">
                     <h3 style="font-size: 1.1rem; font-weight: 600; color: #4b5563; margin-bottom: 5px;">Integrantes</h3>
                     <ul style="list-style: none; padding: 0;">
-                        @foreach($equipo->participantes as $participante)
+                        @foreach($equipo->participants as $participante)
                             <li style="margin-bottom: 5px; color: #374151;">
                                 <x-icon name="person" style="font-size: 16px; vertical-align: middle; color: #9ca3af;" />
                                 {{ $participante->user->name }}

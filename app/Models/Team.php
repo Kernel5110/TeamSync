@@ -5,9 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Equipo extends Model
+class Team extends Model
 {
     use HasFactory;
+
+    protected $table = 'equipos'; // Explicitly set table name if needed
 
     protected $fillable = [
         'nombre', 
@@ -22,19 +24,19 @@ class Equipo extends Model
         'evidence_path',
     ];
 
-    public function evento()
+    public function event()
     {
-        return $this->belongsTo(Evento::class);
+        return $this->belongsTo(Event::class, 'evento_id');
     }
 
-    public function participantes()
+    public function participants()
     {
-        return $this->hasMany(Participante::class);
+        return $this->hasMany(Participant::class, 'equipo_id');
     }
 
     public function evaluations()
     {
-        return $this->hasMany(Evaluation::class);
+        return $this->hasMany(Evaluation::class, 'equipo_id');
     }
 
     public function getProgressAttribute()

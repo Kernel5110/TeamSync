@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Equipo;
-use App\Models\Evento;
-use App\Models\User;
+use App\Models\Participant;
+use App\Models\Event;
+use App\Models\Team;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -14,17 +14,17 @@ class TeamController extends Controller
     {
         $user = Auth::user();
         $participante = $user->participant;
-        $equipo = $participante ? $participante->equipo : null;
+        $equipo = $participante ? $participante->team : null;
         // Only show upcoming events for team creation
-        $eventos = Evento::where('fecha_fin', '>=', now())->get();
+        $eventos = Event::where('fecha_fin', '>=', now())->get();
         
         $allTeams = null;
         if ($user->hasRole('admin')) {
-            $allTeams = Equipo::with(['participantes.user', 'evento'])->paginate(10, ['*'], 'all_teams_page');
+            $allTeams = Team::with(['participants.user', 'event'])->paginate(10, ['*'], 'all_teams_page');
         }
 
         // Fetch other teams (teams the user is NOT part of)
-        $otherTeamsQuery = Equipo::with(['evento', 'participantes.user']);
+        $otherTeamsQuery = Team::with(['event', 'participants.user']);
         if ($equipo) {
             $otherTeamsQuery->where('id', '!=', $equipo->id);
         }
@@ -56,8 +56,8 @@ class TeamController extends Controller
         $teams = [];
         
         if ($query) {
-            $teams = Equipo::where('nombre', 'LIKE', "%{$query}%")
-                ->with(['evento', 'participantes'])
+            $teams = Team::where('nombre', 'LIKE', "%{$query}%")
+                ->with(['event', 'participants'])
                 ->get();
         }
 
@@ -72,7 +72,7 @@ class TeamController extends Controller
 
     public function update(Request $request, int $id): \Illuminate\Http\RedirectResponse
     {
-        $equipo = Equipo::findOrFail($id);
+        $equipo = Team::findOrFail($id);
         $user = Auth::user();
 
         // Allow Admin OR Team Leader of this team
@@ -119,10 +119,10 @@ class TeamController extends Controller
             abort(403);
         }
 
-        $equipo = Equipo::findOrFail($id);
+        $equipo = Team::findOrFail($id);
         
         // Dissociate all members
-        foreach ($equipo->participantes as $participante) {
+        foreach ($equipo->participants as $participante) {
             $participante->update([
                 'equipo_id' => null,
                 'rol' => null
@@ -132,7 +132,7 @@ class TeamController extends Controller
         // Hard delete the team
         $equipo->delete();
 
-        \App\Services\AuditLogger::log('delete', Equipo::class, $id, "Equipo eliminado: {$equipo->nombre}");
+        \App\Services\AuditLogger::log('delete', Team::class, $id, "Equipo eliminado: {$equipo->nombre}");
 
         return redirect()->route('teams.index')->with('success', 'Equipo eliminado permanentemente.');
     }
@@ -157,7 +157,7 @@ class TeamController extends Controller
             return back()->with('error', 'Ya perteneces a un equipo.');
         }
 
-        $evento = Evento::findOrFail($request->evento_id);
+        $evento = Event::findOrFail($request->evento_id);
         
         // Validate Event Status
         // Validate Event Status - Only allow joining upcoming events
@@ -166,7 +166,7 @@ class TeamController extends Controller
         }
 
         // Check if user is already in an active event
-        $activeEvent = Evento::whereHas('equipos.participantes', function($q) use ($user) {
+        $activeEvent = Event::whereHas('equipos.participantes', function($q) use ($user) {
             $q->where('usuario_id', $user->id);
         })->where('status_manual', 'En Curso') // Check manual status
           ->orWhere(function($q) use ($user) {
@@ -184,17 +184,17 @@ class TeamController extends Controller
         // Logic: If user is in any team belonging to an event that is currently active.
         
         // Let's refine the query to be cleaner.
-        $userTeams = \App\Models\Equipo::whereHas('participantes', function($q) use ($user) {
+        $userTeams = \App\Models\Team::whereHas('participants', function($q) use ($user) {
             $q->where('usuario_id', $user->id);
-        })->with('evento')->get();
+        })->with('event')->get();
 
         foreach ($userTeams as $team) {
-            if ($team->evento && $team->evento->status === 'En Curso') {
-                return back()->with('error', 'Ya estás participando en un evento en curso (' . $team->evento->nombre . '). No puedes unirte a otro.');
+            if ($team->event && $team->event->status === 'En Curso') {
+                return back()->with('error', 'Ya estás participando en un evento en curso (' . $team->event->nombre . '). No puedes unirte a otro.');
             }
         }
 
-        if ($evento->equipos()->count() >= $evento->capacidad) {
+        if ($evento->teams()->count() >= $evento->capacidad) {
             return back()->with('error', 'El evento ha alcanzado su capacidad máxima de equipos.');
         }
 
@@ -208,7 +208,7 @@ class TeamController extends Controller
             $data['logo_path'] = $path;
         }
 
-        $equipo = Equipo::create($data);
+        $equipo = Team::create($data);
 
         // Assign creator to team with a default role
         $participante->update([
@@ -227,7 +227,7 @@ class TeamController extends Controller
 
         $user = Auth::user();
         $participante = $user->participant;
-        $equipo = $participante->equipo;
+        $equipo = $participante->team;
 
         if (!$equipo) {
             return back()->with('error', 'No tienes un equipo.');
@@ -255,7 +255,7 @@ class TeamController extends Controller
     public function removeMember(Request $request, int $team_id): \Illuminate\Http\RedirectResponse
     {
         $user = Auth::user();
-        $equipo = Equipo::findOrFail($team_id);
+        $equipo = Team::findOrFail($team_id);
 
         // Check permissions: Admin or Team Leader
         $isLeader = $user->participant && $user->participant->equipo_id == $equipo->id && $user->participant->rol == 'Líder';
@@ -284,7 +284,7 @@ class TeamController extends Controller
             'rol' => null,
         ]);
 
-        \App\Services\AuditLogger::log('remove_member', Equipo::class, $equipo->id, "Miembro eliminado del equipo {$equipo->nombre}: {$memberUser->email}");
+        \App\Services\AuditLogger::log('remove_member', Team::class, $equipo->id, "Miembro eliminado del equipo {$equipo->nombre}: {$memberUser->email}");
 
         return back()->with('success', 'Miembro eliminado del equipo.');
     }
@@ -307,13 +307,13 @@ class TeamController extends Controller
         }
 
         // Check active events
-        $userTeams = \App\Models\Equipo::whereHas('participantes', function($q) use ($user) {
+        $userTeams = \App\Models\Team::whereHas('participants', function($q) use ($user) {
             $q->where('usuario_id', $user->id);
-        })->with('evento')->get();
+        })->with('event')->get();
 
         foreach ($userTeams as $team) {
-            if ($team->evento && $team->evento->status === 'En Curso') {
-                return back()->with('error', 'Ya estás participando en un evento en curso (' . $team->evento->nombre . ').');
+            if ($team->event && $team->event->status === 'En Curso') {
+                return back()->with('error', 'Ya estás participando en un evento en curso (' . $team->event->nombre . ').');
             }
         }
 
@@ -338,7 +338,7 @@ class TeamController extends Controller
     public function acceptJoin(int $solicitud_id): \Illuminate\Http\RedirectResponse
     {
         $solicitud = \App\Models\Solicitud::findOrFail($solicitud_id);
-        $equipo = $solicitud->equipo;
+        $equipo = $solicitud->team;
         
         // Check if current user is leader of the team
         $user = Auth::user();
@@ -363,7 +363,7 @@ class TeamController extends Controller
     public function rejectJoin(int $solicitud_id): \Illuminate\Http\RedirectResponse
     {
         $solicitud = \App\Models\Solicitud::findOrFail($solicitud_id);
-        $equipo = $solicitud->equipo;
+        $equipo = $solicitud->team;
 
         // Check if current user is leader of the team
         $user = Auth::user();

@@ -3,12 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Models\Evento;
+use App\Models\Event;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
-use App\Models\Institucion;
-use App\Models\Carrera;
+use App\Models\Institution;
+use App\Models\Career;
 
 use App\Services\AuditLogger;
 
@@ -22,8 +22,8 @@ class AdminController extends Controller
             abort(403);
         }
 
-        $instituciones = Institucion::all();
-        $carreras = Carrera::all();
+        $instituciones = Institution::all();
+        $carreras = Career::all();
 
         return view('admin.settings', compact('instituciones', 'carreras'));
     }
@@ -36,9 +36,9 @@ class AdminController extends Controller
 
         $request->validate(['nombre' => 'required|string|unique:instituciones,nombre']);
 
-        $institucion = Institucion::create(['nombre' => $request->nombre]);
+        $institucion = Institution::create(['nombre' => $request->nombre]);
 
-        AuditLogger::log('create', Institucion::class, $institucion->id, "Institución creada: {$institucion->nombre}");
+        AuditLogger::log('create', Institution::class, $institucion->id, "Institución creada: {$institucion->nombre}");
 
         return back()->with('success', 'Institución agregada correctamente.');
     }
@@ -49,10 +49,10 @@ class AdminController extends Controller
             abort(403);
         }
 
-        $institucion = Institucion::findOrFail($id);
+        $institucion = Institution::findOrFail($id);
         $institucion->delete();
 
-        AuditLogger::log('delete', Institucion::class, $id, "Institución eliminada: {$institucion->nombre}");
+        AuditLogger::log('delete', Institution::class, $id, "Institución eliminada: {$institucion->nombre}");
 
         return back()->with('success', 'Institución eliminada correctamente.');
     }
@@ -65,9 +65,9 @@ class AdminController extends Controller
 
         $request->validate(['nombre' => 'required|string|unique:carreras,nombre']);
 
-        $carrera = Carrera::create(['nombre' => $request->nombre]);
+        $carrera = Career::create(['nombre' => $request->nombre]);
 
-        AuditLogger::log('create', Carrera::class, $carrera->id, "Carrera creada: {$carrera->nombre}");
+        AuditLogger::log('create', Career::class, $carrera->id, "Carrera creada: {$carrera->nombre}");
 
         return back()->with('success', 'Carrera agregada correctamente.');
     }
@@ -78,10 +78,10 @@ class AdminController extends Controller
             abort(403);
         }
 
-        $carrera = Carrera::findOrFail($id);
+        $carrera = Career::findOrFail($id);
         $carrera->delete();
 
-        AuditLogger::log('delete', Carrera::class, $id, "Carrera eliminada: {$carrera->nombre}");
+        AuditLogger::log('delete', Career::class, $id, "Carrera eliminada: {$carrera->nombre}");
 
         return back()->with('success', 'Carrera eliminada correctamente.');
     }
@@ -118,14 +118,14 @@ class AdminController extends Controller
             'user_id' => 'required|exists:users,id',
         ]);
 
-        $evento = Evento::findOrFail($evento_id);
+        $evento = Event::findOrFail($evento_id);
         $user = User::findOrFail($request->user_id);
 
         // 🚨 CAMBIO CLAVE: Se eliminó la validación que requería el rol 'juez'.
         // Ahora, cualquier usuario (participante) puede ser asignado como juez al evento.
 
         // Check if already assigned
-        // Asume que Evento::jueces() es la relación Many-to-Many
+        // Asume que Event::jueces() es la relación Many-to-Many
         if (!$evento->jueces()->where('user_id', $user->id)->exists()) {
             $evento->jueces()->attach($user->id);
             return back()->with('success', 'Juez asignado correctamente.');

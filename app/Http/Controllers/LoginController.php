@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Services\AuditLogger;
+use App\Models\User;
 
 class LoginController extends Controller
 {
@@ -22,13 +24,13 @@ class LoginController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
-            \App\Services\AuditLogger::log('login', \App\Models\User::class, Auth::id(), 'Inicio de sesión exitoso');
+            AuditLogger::log('login', User::class, Auth::id(), 'Inicio de sesión exitoso');
 
             return redirect()->route('index');
         }
 
         return back()->withErrors([
-            'email' => 'Las credenciales proporcionadas no coinciden con nuestros registros.',
+            'email' => __('auth.failed'),
         ])->onlyInput('email');
     }
 
@@ -38,7 +40,7 @@ class LoginController extends Controller
         Auth::logout();
 
         if ($userId) {
-            \App\Services\AuditLogger::log('logout', \App\Models\User::class, $userId, 'Cierre de sesión');
+            AuditLogger::log('logout', User::class, $userId, 'Cierre de sesión');
         }
 
         $request->session()->invalidate();

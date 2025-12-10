@@ -28,12 +28,12 @@
         <div class="teams-section">
             <h2 style="margin-bottom: 1.5rem; font-size: 1.5rem; font-weight: 600;">Equipos Participantes</h2>
             <div class="teams-list">
-                @forelse($evento->equipos as $equipo)
+                @forelse($evento->teams as $equipo)
                     <a href="{{ route('events.evaluate.team', ['eventId' => $evento->id, 'teamId' => $equipo->id]) }}" style="text-decoration: none; color: inherit;">
                         <div class="team-card" style="cursor: pointer; transition: transform 0.2s; border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; margin-bottom: 10px; background: white;">
                             <div class="team-name" style="font-weight: 600; font-size: 1.1rem; color: #1f2937; margin-bottom: 5px;">{{ $equipo->nombre }}</div>
                             <div class="team-members" style="font-size: 0.9rem; color: #6b7280; margin-bottom: 10px;">
-                                {{ $equipo->participantes->map(fn($p) => $p->user->name ?? 'Participante')->join(', ') }}
+                                {{ $equipo->participants->map(fn($p) => $p->user->name ?? 'Participante')->join(', ') }}
                             </div>
                             @if(in_array($equipo->id, $evaluatedTeams))
                                 <span class="status-badge status-completed" style="background-color: #d1fae5; color: #065f46; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600;">Evaluado</span>
