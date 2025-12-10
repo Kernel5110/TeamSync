@@ -21,7 +21,33 @@ class PageController extends Controller
      */
     public function start()
     {
-        return back()->with('success', 'Juez asignado correctamente.');
+        if (auth()->user()->hasRole('admin')) {
+            $stats = [
+                'eventos' => \App\Models\Evento::count(),
+                'usuarios' => \App\Models\User::count(),
+                'equipos' => \App\Models\Equipo::count(),
+                'jueces' => \App\Models\User::role('juez')->count(),
+            ];
+            return view('start', compact('stats'));
+        }
+        
+        if (auth()->user()->hasRole('juez')) {
+            $judgeEvents = auth()->user()->judgeEvents()->with(['equipos' => function($q) {
+                $q->withCount(['evaluations' => function($query) {
+                    $query->where('user_id', auth()->id());
+                }]);
+            }])->get();
+            
+            return view('start', compact('judgeEvents'));
+        }
+        
+        // Participant Logic
+        $user = auth()->user();
+        $participante = $user->participant;
+        $equipo = $participante ? $participante->equipo : null;
+        $evento = $equipo ? $equipo->evento : null;
+        
+        return view('start', compact('equipo', 'evento'));
     }
 
     public function adminTeams(Request $request)
@@ -36,7 +62,7 @@ class PageController extends Controller
                   });
         }
 
-        $teams = $teams->get();
+        $teams = $teams->paginate(10);
 
         return view('admin.teams', compact('teams', 'query'));
     }

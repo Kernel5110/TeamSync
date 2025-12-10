@@ -91,40 +91,91 @@
                     Formulario de Evaluación
                 </h2>
 
+                @php
+                    $isFinalized = $evaluation && $evaluation->finalized_at;
+                @endphp
+
+                @if($isFinalized)
+                    <div style="background-color: #ecfdf5; color: #065f46; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #a7f3d0;">
+                        <x-icon name="check_circle" style="vertical-align: middle;" /> <strong>Evaluación Finalizada</strong>
+                        <p style="margin: 5px 0 0; font-size: 0.9rem;">Esta evaluación ha sido enviada y ya no puede ser modificada.</p>
+                    </div>
+                @endif
+
                 <form action="{{ route('events.evaluate.store', $evento->id) }}" method="POST">
                     @csrf
                     <input type="hidden" name="equipo_id" value="{{ $equipo->id }}">
 
-                    <div class="criteria-group" style="margin-bottom: 25px;">
-                        <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 10px;">Innovación (0-10)</label>
-                        <input type="range" name="score_innovation" min="0" max="10" value="{{ $evaluation->score_innovation ?? 5 }}" style="width: 100%; margin-bottom: 10px;" oninput="document.getElementById('score-1').textContent = this.value">
-                        <div style="text-align: right; font-weight: 600; color: #4f46e5;">Puntaje: <span id="score-1">{{ $evaluation->score_innovation ?? 5 }}</span>/10</div>
-                    </div>
+                    @if($evento->criteria->count() > 0)
+                        @foreach($evento->criteria as $criterion)
+                            @php
+                                $currentScore = $evaluation ? $evaluation->scores->where('criterion_id', $criterion->id)->first() : null;
+                                $scoreValue = $currentScore ? $currentScore->score : ceil($criterion->max_score / 2);
+                            @endphp
+                            <div class="criteria-group" style="margin-bottom: 25px;">
+                                <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 5px;">
+                                    {{ $criterion->name }} (0-{{ $criterion->max_score }})
+                                </label>
+                                @if($criterion->description)
+                                    <p style="font-size: 0.85rem; color: #6b7280; margin-bottom: 10px;">{{ $criterion->description }}</p>
+                                @endif
+                                <input type="range" name="scores[{{ $criterion->id }}]" min="0" max="{{ $criterion->max_score }}" value="{{ $scoreValue }}" style="width: 100%; margin-bottom: 10px;" oninput="document.getElementById('score-{{ $criterion->id }}').textContent = this.value" {{ $isFinalized ? 'disabled' : '' }}>
+                                <div style="text-align: right; font-weight: 600; color: #4f46e5;">Puntaje: <span id="score-{{ $criterion->id }}">{{ $scoreValue }}</span>/{{ $criterion->max_score }}</div>
+                            </div>
+                        @endforeach
+                    @else
+                        <div style="background-color: #fee2e2; color: #991b1b; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                            <p><strong>Atención:</strong> Este evento no tiene criterios de evaluación definidos. Por favor, contacte al administrador para configurar la rúbrica.</p>
+                        </div>
+                    @endif
 
-                    <div class="criteria-group" style="margin-bottom: 25px;">
-                        <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 10px;">Impacto Social (0-10)</label>
-                        <input type="range" name="score_social_impact" min="0" max="10" value="{{ $evaluation->score_social_impact ?? 5 }}" style="width: 100%; margin-bottom: 10px;" oninput="document.getElementById('score-2').textContent = this.value">
-                        <div style="text-align: right; font-weight: 600; color: #4f46e5;">Puntaje: <span id="score-2">{{ $evaluation->score_social_impact ?? 5 }}</span>/10</div>
-                    </div>
-
-                    <div class="criteria-group" style="margin-bottom: 25px;">
-                        <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 10px;">Viabilidad Técnica (0-10)</label>
-                        <input type="range" name="score_technical_viability" min="0" max="10" value="{{ $evaluation->score_technical_viability ?? 5 }}" style="width: 100%; margin-bottom: 10px;" oninput="document.getElementById('score-3').textContent = this.value">
-                        <div style="text-align: right; font-weight: 600; color: #4f46e5;">Puntaje: <span id="score-3">{{ $evaluation->score_technical_viability ?? 5 }}</span>/10</div>
+                    <div class="criteria-group" style="margin-bottom: 30px;">
+                        <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 10px;">Comentarios para el Equipo</label>
+                        <textarea name="comments" rows="4" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-family: inherit;" placeholder="Escribe tus observaciones para el equipo aquí..." {{ $isFinalized ? 'disabled' : '' }}>{{ $evaluation->comments ?? '' }}</textarea>
                     </div>
 
                     <div class="criteria-group" style="margin-bottom: 30px;">
-                        <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 10px;">Comentarios</label>
-                        <textarea name="comments" rows="4" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-family: inherit;" placeholder="Escribe tus observaciones aquí...">{{ $evaluation->comments ?? '' }}</textarea>
+                        <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 10px;">Notas Privadas (Solo para ti)</label>
+                        <textarea name="private_notes" rows="3" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-family: inherit; background-color: #f9fafb;" placeholder="Notas personales sobre esta evaluación..." {{ $isFinalized ? 'disabled' : '' }}>{{ $evaluation->private_notes ?? '' }}</textarea>
                     </div>
 
-                    <div style="display: flex; gap: 15px;">
-                        <a href="{{ route('events.evaluate.show', $evento->id) }}" style="flex: 1; padding: 12px; text-align: center; border: 1px solid #d1d5db; border-radius: 8px; color: #374151; text-decoration: none; font-weight: 600;">Cancelar</a>
-                        <button type="submit" style="flex: 2; padding: 12px; background: linear-gradient(to right, #6a11cb 0%, #2575fc 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
-                            {{ isset($evaluation) ? 'Actualizar Evaluación' : 'Enviar Evaluación' }}
-                        </button>
-                    </div>
+                    @if(!$isFinalized)
+                        <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                            <a href="{{ route('events.evaluate.show', $evento->id) }}" style="flex: 1; padding: 12px; text-align: center; border: 1px solid #d1d5db; border-radius: 8px; color: #374151; text-decoration: none; font-weight: 600;">Cancelar</a>
+                            <button type="submit" style="flex: 2; padding: 12px; background: linear-gradient(to right, #6a11cb 0%, #2575fc 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                                {{ isset($evaluation) ? 'Guardar Borrador' : 'Guardar Borrador' }}
+                            </button>
+                        </div>
+                    @endif
                 </form>
+
+                @if(!$isFinalized)
+                    <div style="border-top: 2px solid #f3f4f6; padding-top: 20px; margin-top: 20px;">
+                        <h3 style="font-size: 1.1rem; font-weight: 600; color: #374151; margin-bottom: 15px;">Acciones Finales</h3>
+                        
+                        <div style="display: flex; gap: 15px; flex-direction: column;">
+                            <form action="{{ route('events.evaluate.finalize', ['id' => $evento->id, 'team' => $equipo->id]) }}" method="POST" onsubmit="return confirm('¿Estás seguro de finalizar la evaluación? No podrás editarla después.');">
+                                @csrf
+                                <button type="submit" style="width: 100%; padding: 12px; background-color: #059669; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                    <x-icon name="check_circle" /> Finalizar Evaluación
+                                </button>
+                            </form>
+
+                            <form action="{{ route('events.evaluate.conflict', ['id' => $evento->id, 'team' => $equipo->id]) }}" method="POST" onsubmit="return confirm('¿Declarar conflicto de interés? Esto anulará tu evaluación para este equipo.');">
+                                @csrf
+                                <button type="submit" style="width: 100%; padding: 12px; background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                    <x-icon name="warning" /> Declarar Conflicto de Interés
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                @else
+                    <div style="margin-top: 20px;">
+                        <a href="{{ route('events.evaluate.show', $evento->id) }}" style="display: block; width: 100%; padding: 12px; text-align: center; background-color: #f3f4f6; color: #374151; text-decoration: none; border-radius: 8px; font-weight: 600;">
+                            &larr; Volver a la lista
+                        </a>
+                    </div>
+                @endif
             </div>
         </div>
     </div>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Carrera;
+use App\Models\Institucion;
 use App\Models\Participante;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -14,7 +15,8 @@ class RegisterController extends Controller
     public function showRegistrationForm()
     {
         $carreras = Carrera::all();
-        return view('registrar', compact('carreras'));
+        $instituciones = Institucion::all();
+        return view('registrar', compact('carreras', 'instituciones'));
     }
 
     public function register(Request $request)

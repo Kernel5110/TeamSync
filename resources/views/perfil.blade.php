@@ -38,12 +38,16 @@
 
         <div class="profile-stats-nav">
             <a href="#" class="nav-item active" data-tab="resumen">Resumen</a>
-           @unlessrole('admin')
-        @unlessrole('juez')
-            <a href="#" class="nav-item" data-tab="equipos">Equipos</a>
-        @endunlessrole
-        <a href="#" class="nav-item" data-tab="logros">Logros</a>
-    @endunlessrole
+            @unlessrole('admin')
+                @unlessrole('juez')
+                    <a href="#" class="nav-item" data-tab="equipos">Equipos</a>
+                @endunlessrole
+                <a href="#" class="nav-item" data-tab="logros">Logros</a>
+            @endunlessrole
+            @role('admin')
+                <a href="#" class="nav-item" data-tab="usuarios">Usuarios</a>
+                <a href="#" class="nav-item" data-tab="datos">Datos</a>
+            @endrole
         </div>
 
         <!-- Tab Content: Resumen -->
@@ -62,14 +66,26 @@
             <div class="profile-details-grid">
                 <div class="details-card">
                     <h3><x-icon name="person" /> Información Personal</h3>
-                    <div class="details-list">
-                        <p><x-icon name="email" /> {{ $user->email }}</p>
-                        <p><x-icon name="date_range" /> Miembro desde {{ $user->created_at->format('M Y') }}</p>
-                        <p><x-icon name="school" /> {{ $user->participante->institucion ?? 'No especificada' }}</p>
-                        @if($user->participante && $user->participante->equipo)
-                            <p><x-icon name="groups" /> Equipo: {{ $user->participante->equipo->nombre }}</p>
-                        @endif
-                    </div>
+                    <p><strong>Nombre:</strong> {{ $user->name }}</p>
+                    <p><strong>Email:</strong> {{ $user->email }}</p>
+                    <p><strong>Rol:</strong> {{ implode(', ', $user->getRoleNames()->toArray()) }}</p>
+                    <p><x-icon name="date_range" /> Miembro desde {{ $user->created_at->format('M Y') }}</p>
+                    <p><x-icon name="school" /> {{ $user->participante->institucion ?? 'No especificada' }}</p>
+                    @if($user->participante && $user->participante->equipo)
+                        <p><x-icon name="groups" /> Equipo: {{ $user->participante->equipo->nombre }}</p>
+                    @endif
+                    @if($user->expertise)
+                        <p><x-icon name="star" /> <strong>Experiencia:</strong> {{ $user->expertise }}</p>
+                    @endif
+
+                    @role('admin')
+                        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+                            <a href="{{ route('start') }}" class="btn-confirmar" style="display: inline-flex; align-items: center; gap: 8px; width: auto;">
+                                <x-icon name="bar_chart" style="width: 20px; height: 20px;" />
+                                Ir al Dashboard Administrativo
+                            </a>
+                        </div>
+                    @endrole
                 </div>
 
                 <div class="details-card">
@@ -102,12 +118,166 @@
         </div>
 
         <!-- Tab Content: Logros -->
-        <div id="logros" class="tab-content" style="display: none;">
+        </div>
+
+        <!-- Tab Content: Usuarios (Admin Only) -->
+        @role('admin')
+        <div id="usuarios" class="tab-content" style="display: none;">
             <div class="details-card">
-                <h3>Mis Logros</h3>
-                <p style="margin-top: 1rem; color: #6b7280;">Aún no tienes logros registrados. ¡Participa en eventos para ganar insignias!</p>
+                <h3>Gestión de Usuarios</h3>
+                <p style="margin-bottom: 20px; color: #6b7280;">Administra todos los usuarios registrados en la plataforma.</p>
+                
+                @if(isset($users))
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; min-width: 600px;">
+                            <thead>
+                                <tr style="background-color: #f9fafb; text-align: left;">
+                                    <th style="padding: 12px; border-bottom: 2px solid #e5e7eb; color: #4b5563;">Nombre</th>
+                                    <th style="padding: 12px; border-bottom: 2px solid #e5e7eb; color: #4b5563;">Email</th>
+                                    <th style="padding: 12px; border-bottom: 2px solid #e5e7eb; color: #4b5563;">Rol</th>
+                                    <th style="padding: 12px; border-bottom: 2px solid #e5e7eb; color: #4b5563;">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($users as $u)
+                                    <tr>
+                                        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #1f2937;">{{ $u->name }}</td>
+                                        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; color: #4b5563;">{{ $u->email }}</td>
+                                        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; color: #4b5563;">
+                                            @foreach($u->roles as $role)
+                                                <span style="background-color: #e0e7ff; color: #4338ca; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">
+                                                    {{ ucfirst($role->name) }}
+                                                </span>
+                                            @endforeach
+                                        </td>
+                                        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
+                                            <button class="btn-editar-usuario-admin"
+                                                    data-id="{{ $u->id }}"
+                                                    data-name="{{ $u->name }}"
+                                                    data-email="{{ $u->email }}"
+                                                    data-role="{{ $u->roles->first() ? $u->roles->first()->name : 'participante' }}"
+                                                    style="background-color: #3b82f6; color: white; padding: 6px 12px; border: none; border-radius: 6px; font-size: 0.8rem; cursor: pointer; margin-right: 5px;">
+                                                <x-icon name="edit" style="font-size: 16px;" />
+                                            </button>
+                                            @if($u->id !== auth()->id())
+                                                <form action="{{ route('admin.users.destroy', $u->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('¿Eliminar usuario {{ $u->name }}?');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" style="background-color: #ef4444; color: white; padding: 6px 12px; border: none; border-radius: 6px; font-size: 0.8rem; cursor: pointer;">
+                                                        <x-icon name="delete" style="font-size: 16px;" />
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
             </div>
         </div>
+        @endrole
+
+        <!-- Tab Content: Datos (Admin Only) -->
+        @role('admin')
+        <div id="datos" class="tab-content" style="display: none;">
+            <div class="details-card">
+                <h3>Gestión de Datos</h3>
+                <p style="margin-bottom: 20px; color: #6b7280;">Administra las Instituciones y Carreras del sistema.</p>
+
+                <div style="margin-bottom: 20px;">
+                    <select id="data-selector" style="padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; background-color: #f9fafb; font-size: 1rem; cursor: pointer;">
+                        <option value="instituciones">Instituciones</option>
+                        <option value="carreras">Carreras</option>
+                    </select>
+                    <button id="btn-crear-dato" class="btn-confirmar" style="margin-left: 10px; width: auto; padding: 8px 15px;">
+                        <x-icon name="add" style="vertical-align: middle;" /> Agregar Nuevo
+                    </button>
+                </div>
+
+                <!-- Tabla Universidades -->
+                <div id="tabla-universidades" class="data-table-container">
+                    @if(isset($instituciones))
+                        <div style="overflow-x: auto;">
+                            <table style="width: 100%; border-collapse: collapse; min-width: 600px;">
+                                <thead>
+                                    <tr style="background-color: #f9fafb; text-align: left;">
+                                        <th style="padding: 12px; border-bottom: 2px solid #e5e7eb; color: #4b5563;">ID</th>
+                                        <th style="padding: 12px; border-bottom: 2px solid #e5e7eb; color: #4b5563;">Nombre</th>
+                                        <th style="padding: 12px; border-bottom: 2px solid #e5e7eb; color: #4b5563;">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($instituciones as $inst)
+                                        <tr>
+                                            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; color: #6b7280;">{{ $inst->id }}</td>
+                                            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #1f2937;">{{ $inst->nombre }}</td>
+                                            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
+                                                <button class="btn-editar-institucion" 
+                                                        data-id="{{ $inst->id }}" 
+                                                        data-nombre="{{ $inst->nombre }}"
+                                                        style="background-color: #3b82f6; color: white; padding: 6px 12px; border: none; border-radius: 6px; font-size: 0.8rem; cursor: pointer; margin-right: 5px;">
+                                                    <x-icon name="edit" style="font-size: 16px;" />
+                                                </button>
+                                                <form action="{{ route('admin.instituciones.destroy', $inst->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('¿Eliminar institución {{ $inst->nombre }}?');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" style="background-color: #ef4444; color: white; padding: 6px 12px; border: none; border-radius: 6px; font-size: 0.8rem; cursor: pointer;">
+                                                        <x-icon name="delete" style="font-size: 16px;" />
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Tabla Carreras -->
+                <div id="tabla-carreras" class="data-table-container" style="display: none;">
+                    @if(isset($carreras))
+                        <div style="overflow-x: auto;">
+                            <table style="width: 100%; border-collapse: collapse; min-width: 600px;">
+                                <thead>
+                                    <tr style="background-color: #f9fafb; text-align: left;">
+                                        <th style="padding: 12px; border-bottom: 2px solid #e5e7eb; color: #4b5563;">ID</th>
+                                        <th style="padding: 12px; border-bottom: 2px solid #e5e7eb; color: #4b5563;">Nombre</th>
+                                        <th style="padding: 12px; border-bottom: 2px solid #e5e7eb; color: #4b5563;">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($carreras as $carrera)
+                                        <tr>
+                                            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; color: #6b7280;">{{ $carrera->id }}</td>
+                                            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #1f2937;">{{ $carrera->nombre }}</td>
+                                            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
+                                                <button class="btn-editar-carrera" 
+                                                        data-id="{{ $carrera->id }}" 
+                                                        data-nombre="{{ $carrera->nombre }}"
+                                                        style="background-color: #3b82f6; color: white; padding: 6px 12px; border: none; border-radius: 6px; font-size: 0.8rem; cursor: pointer; margin-right: 5px;">
+                                                    <x-icon name="edit" style="font-size: 16px;" />
+                                                </button>
+                                                <form action="{{ route('admin.carreras.destroy', $carrera->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('¿Eliminar carrera {{ $carrera->nombre }}?');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" style="background-color: #ef4444; color: white; padding: 6px 12px; border: none; border-radius: 6px; font-size: 0.8rem; cursor: pointer;">
+                                                        <x-icon name="delete" style="font-size: 16px;" />
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+        @endrole
     </div>
 
     <!-- Edit Profile Modal -->
@@ -147,6 +317,13 @@
                         <input type="text" id="institucion" name="institucion" value="{{ $user->participante->institucion ?? '' }}">
                     </div>
                 </div>
+                <div class="form-group">
+                    <label for="expertise">Áreas de Experiencia (Separadas por comas)</label>
+                    <div class="input-with-icon">
+                        <x-icon name="star" />
+                        <input type="text" id="expertise" name="expertise" value="{{ $user->expertise }}" placeholder="Ej: IA, Finanzas, UX/UI">
+                    </div>
+                </div>
                 <button type="submit" class="btn-confirmar">Guardar Cambios</button>
             </form>
         </div>
@@ -183,6 +360,92 @@
                     </div>
                 </div>
                 <button type="submit" class="btn-confirmar">Crear Juez</button>
+            </form>
+        </div>
+    </div>
+
+    </div>
+
+    <!-- Modal Editar Usuario (Admin) -->
+    <div id="modal-editar-usuario-admin" class="modal">
+        <div class="modal-content profile-modal-content">
+            <div class="modal-header">
+                <h2>Editar Usuario</h2>
+                <span class="close-modal" id="close-editar-usuario-admin">&times;</span>
+            </div>
+            <form action="" method="POST" id="form-editar-usuario-admin" class="profile-form">
+                @csrf
+                @method('PUT')
+                <div class="form-group">
+                    <label for="edit-user-name">Nombre Completo</label>
+                    <div class="input-with-icon">
+                        <x-icon name="person" />
+                        <input type="text" id="edit-user-name" name="name" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="edit-user-email">Correo Electrónico</label>
+                    <div class="input-with-icon">
+                        <x-icon name="email" />
+                        <input type="email" id="edit-user-email" name="email" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="edit-user-role">Rol</label>
+                    <div class="input-with-icon">
+                        <x-icon name="badge" />
+                        <select id="edit-user-role" name="role" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px;">
+                            <option value="admin">Admin</option>
+                            <option value="juez">Juez</option>
+                            <option value="participante">Participante</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn-confirmar">Actualizar Usuario</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Crear/Editar Institucion -->
+    <div id="modal-institucion" class="modal">
+        <div class="modal-content profile-modal-content">
+            <div class="modal-header">
+                <h2 id="modal-institucion-title">Nueva Institución</h2>
+                <span class="close-modal" id="close-institucion">&times;</span>
+            </div>
+            <form action="{{ route('admin.instituciones.store') }}" method="POST" id="form-institucion" class="profile-form">
+                @csrf
+                <div id="method-institucion"></div>
+                <div class="form-group">
+                    <label for="institucion-nombre">Nombre de la Institución</label>
+                    <div class="input-with-icon">
+                        <x-icon name="school" />
+                        <input type="text" id="institucion-nombre" name="nombre" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn-confirmar">Guardar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Crear/Editar Carrera -->
+    <div id="modal-carrera" class="modal">
+        <div class="modal-content profile-modal-content">
+            <div class="modal-header">
+                <h2 id="modal-carrera-title">Nueva Carrera</h2>
+                <span class="close-modal" id="close-carrera">&times;</span>
+            </div>
+            <form action="{{ route('admin.carreras.store') }}" method="POST" id="form-carrera" class="profile-form">
+                @csrf
+                <div id="method-carrera"></div>
+                <div class="form-group">
+                    <label for="carrera-nombre">Nombre de la Carrera</label>
+                    <div class="input-with-icon">
+                        <x-icon name="badge" />
+                        <input type="text" id="carrera-nombre" name="nombre" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn-confirmar">Guardar</button>
             </form>
         </div>
     </div>
@@ -256,7 +519,134 @@
                 if (event.target == modalJuez) {
                     modalJuez.style.display = 'none';
                 }
+                const modalEditUser = document.getElementById('modal-editar-usuario-admin');
+                if (event.target == modalEditUser) {
+                    modalEditUser.style.display = 'none';
+                }
             });
+
+            // Admin Edit User Logic
+            const modalEditUser = document.getElementById('modal-editar-usuario-admin');
+            const btnsEditUser = document.querySelectorAll('.btn-editar-usuario-admin');
+            const closeEditUser = document.getElementById('close-editar-usuario-admin');
+            const formEditUser = document.getElementById('form-editar-usuario-admin');
+            const inputEditName = document.getElementById('edit-user-name');
+            const inputEditEmail = document.getElementById('edit-user-email');
+            const selectEditRole = document.getElementById('edit-user-role');
+
+            if (btnsEditUser.length > 0) {
+                btnsEditUser.forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const id = this.getAttribute('data-id');
+                        const name = this.getAttribute('data-name');
+                        const email = this.getAttribute('data-email');
+                        const role = this.getAttribute('data-role');
+
+                        formEditUser.action = "/admin/users/" + id;
+                        inputEditName.value = name;
+                        inputEditEmail.value = email;
+                        selectEditRole.value = role;
+
+                        modalEditUser.style.display = 'flex';
+                    });
+                });
+            }
+
+            if (closeEditUser) {
+                closeEditUser.addEventListener('click', function() {
+                    modalEditUser.style.display = 'none';
+                });
+            }
+
+            // Data Management Logic (Admin)
+            const dataSelector = document.getElementById('data-selector');
+            const tableUniversidades = document.getElementById('tabla-universidades');
+            const tableCarreras = document.getElementById('tabla-carreras');
+            const btnCrearDato = document.getElementById('btn-crear-dato');
+            
+            // Modals
+            const modalInstitucion = document.getElementById('modal-institucion');
+            const modalCarrera = document.getElementById('modal-carrera');
+            const closeInstitucion = document.getElementById('close-institucion');
+            const closeCarrera = document.getElementById('close-carrera');
+            
+            // Forms
+            const formInstitucion = document.getElementById('form-institucion');
+            const formCarrera = document.getElementById('form-carrera');
+            const titleInstitucion = document.getElementById('modal-institucion-title');
+            const titleCarrera = document.getElementById('modal-carrera-title');
+            const inputInstitucion = document.getElementById('institucion-nombre');
+            const inputCarrera = document.getElementById('carrera-nombre');
+            const methodInstitucion = document.getElementById('method-institucion');
+            const methodCarrera = document.getElementById('method-carrera');
+
+            if (dataSelector) {
+                dataSelector.addEventListener('change', function() {
+                    if (this.value === 'instituciones') {
+                        tableUniversidades.style.display = 'block';
+                        tableCarreras.style.display = 'none';
+                    } else {
+                        tableUniversidades.style.display = 'none';
+                        tableCarreras.style.display = 'block';
+                    }
+                });
+
+                btnCrearDato.addEventListener('click', function() {
+                    if (dataSelector.value === 'instituciones') {
+                        formInstitucion.action = "{{ route('admin.instituciones.store') }}";
+                        methodInstitucion.innerHTML = ''; // Remove PUT method
+                        titleInstitucion.textContent = 'Nueva Institución';
+                        inputInstitucion.value = '';
+                        modalInstitucion.style.display = 'flex';
+                    } else {
+                        formCarrera.action = "{{ route('admin.carreras.store') }}";
+                        methodCarrera.innerHTML = ''; // Remove PUT method
+                        titleCarrera.textContent = 'Nueva Carrera';
+                        inputCarrera.value = '';
+                        modalCarrera.style.display = 'flex';
+                    }
+                });
+
+                // Edit Buttons
+                document.querySelectorAll('.btn-editar-institucion').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const id = this.getAttribute('data-id');
+                        const nombre = this.getAttribute('data-nombre');
+                        
+                        formInstitucion.action = "/admin/instituciones/" + id;
+                        methodInstitucion.innerHTML = '@method("PUT")';
+                        titleInstitucion.textContent = 'Editar Institución';
+                        inputInstitucion.value = nombre;
+                        modalInstitucion.style.display = 'flex';
+                    });
+                });
+
+                document.querySelectorAll('.btn-editar-carrera').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const id = this.getAttribute('data-id');
+                        const nombre = this.getAttribute('data-nombre');
+                        
+                        formCarrera.action = "/admin/carreras/" + id;
+                        methodCarrera.innerHTML = '@method("PUT")';
+                        titleCarrera.textContent = 'Editar Carrera';
+                        inputCarrera.value = nombre;
+                        modalCarrera.style.display = 'flex';
+                    });
+                });
+
+                // Close Modals
+                if (closeInstitucion) {
+                    closeInstitucion.addEventListener('click', () => modalInstitucion.style.display = 'none');
+                }
+                if (closeCarrera) {
+                    closeCarrera.addEventListener('click', () => modalCarrera.style.display = 'none');
+                }
+                
+                window.addEventListener('click', function(event) {
+                    if (event.target == modalInstitucion) modalInstitucion.style.display = 'none';
+                    if (event.target == modalCarrera) modalCarrera.style.display = 'none';
+                });
+            }
         });
     </script>
 

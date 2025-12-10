@@ -52,6 +52,11 @@
                         </div>
                     @endif
                     Miembros del Equipo: {{ $equipo->nombre }}
+                    @if(auth()->user()->participant && auth()->user()->participant->rol == 'Líder' && auth()->user()->participant->equipo_id == $equipo->id)
+                        <a href="#modal-editar-mi-equipo" id="btn-editar-mi-equipo" style="color: #6b7280; text-decoration: none;" title="Editar Equipo">
+                            <x-icon name="edit" />
+                        </a>
+                    @endif
                 </div>
                 <table class="tabla-miembros">
                     <thead>
@@ -233,7 +238,7 @@
                                 <th>ID</th>
                                 <th>Nombre del Equipo</th>
                                 <th>Evento</th>
-                                <th>Miembros</th>
+                                <th>Participantes</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
@@ -255,6 +260,11 @@
                                                 data-id="{{ $t->id }}"
                                                 data-nombre="{{ $t->nombre }}"
                                                 data-evento-id="{{ $t->evento_id }}"
+                                                data-project-name="{{ $t->project_name }}"
+                                                data-project-description="{{ $t->project_description }}"
+                                                data-technologies="{{ $t->technologies }}"
+                                                data-github-repo="{{ $t->github_repo }}"
+                                                data-github-pages="{{ $t->github_pages }}"
                                                 data-members="{{ $t->participantes->map(function($p) { return ['id' => $p->user->id, 'name' => $p->user->name, 'rol' => $p->rol]; })->toJson() }}"
                                                 style="background: none; border: none; cursor: pointer; color: #4f46e5; margin-right: 10px;">
                                             <x-icon name="edit" />
@@ -282,7 +292,8 @@
     @endrole
 
     <!-- Modal Editar Equipo (Admin) -->
-    <div id="modal-editar-equipo" class="modal">
+    <!-- Modal Editar Equipo (Admin) -->
+    <div id="modal-editar-equipo" class="modal" style="z-index: 10000;">
         <div class="modal-content">
             <span class="close-modal" id="close-editar-equipo">&times;</span>
             <h2 style="margin-bottom: 1.5rem;">Editar Equipo</h2>
@@ -305,6 +316,35 @@
                         @endforeach
                     </select>
                 </div>
+
+                <div style="border-top: 1px solid #e5e7eb; margin: 1.5rem 0; padding-top: 1rem;">
+                    <h3 style="font-size: 1.1rem; color: #374151; margin-bottom: 1rem;">Información del Proyecto</h3>
+                    
+                    <div class="form-group">
+                        <label for="edit-project_name">Nombre del Proyecto</label>
+                        <input type="text" id="edit-project_name" name="project_name" placeholder="Nombre de su proyecto">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit-project_description">Descripción</label>
+                        <textarea id="edit-project_description" name="project_description" rows="3" placeholder="Breve descripción"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit-technologies">Tecnologías</label>
+                        <input type="text" id="edit-technologies" name="technologies" placeholder="Ej: Laravel, Vue">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit-github_repo">Repositorio Git</label>
+                        <input type="url" id="edit-github_repo" name="github_repo" placeholder="https://github.com/usuario/repo">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit-github_pages">GitHub Pages / Demo URL</label>
+                        <input type="url" id="edit-github_pages" name="github_pages" placeholder="https://usuario.github.io/repo">
+                    </div>
+                </div>
                 <div class="form-group">
                     <label>Miembros del Equipo</label>
                     <div id="edit-members-list" style="border: 1px solid #d1d5db; border-radius: 8px; padding: 10px; max-height: 150px; overflow-y: auto;">
@@ -324,67 +364,95 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Admin Edit Team Logic
             const modalEditar = document.getElementById('modal-editar-equipo');
             const btnsEditar = document.querySelectorAll('.btn-editar-equipo');
             const closeEditar = document.getElementById('close-editar-equipo');
             const formEditar = document.getElementById('form-editar-equipo');
             const inputNombre = document.getElementById('edit-nombre');
             const selectEvento = document.getElementById('edit-evento_id');
+            const inputProjectName = document.getElementById('edit-project_name');
+            const inputProjectDesc = document.getElementById('edit-project_description');
+            const inputTechnologies = document.getElementById('edit-technologies');
+            const inputGithubRepo = document.getElementById('edit-github_repo');
+            const inputGithubPages = document.getElementById('edit-github_pages');
 
-            btnsEditar.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const id = this.getAttribute('data-id');
-                    const nombre = this.getAttribute('data-nombre');
-                    const eventoId = this.getAttribute('data-evento-id');
-                    const members = JSON.parse(this.getAttribute('data-members'));
+            btnsEditar.forEach((btn) => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    try {
+                        const id = this.getAttribute('data-id');
+                        const nombre = this.getAttribute('data-nombre');
+                        const eventoId = this.getAttribute('data-evento-id');
+                        
+                        let members = [];
+                        const membersAttr = this.getAttribute('data-members');
+                        if (membersAttr) {
+                            try {
+                                members = JSON.parse(membersAttr);
+                            } catch(e) {
+                                // Silent fail or handle gracefully
+                            }
+                        }
 
-                    formEditar.action = "/teams/" + id;
-                    inputNombre.value = nombre;
-                    selectEvento.value = eventoId;
+                        if (!modalEditar) return;
 
-                    // Populate members list
-                    const membersList = document.getElementById('edit-members-list');
-                    membersList.innerHTML = '';
-                    if (members.length > 0) {
-                        members.forEach(member => {
-                            const div = document.createElement('div');
-                            div.style.display = 'flex';
-                            div.style.justifyContent = 'space-between';
-                            div.style.alignItems = 'center';
-                            div.style.marginBottom = '5px';
-                            div.style.padding = '5px';
-                            div.style.borderBottom = '1px solid #f3f4f6';
+                        formEditar.action = "/teams/" + id;
+                        inputNombre.value = nombre;
+                        selectEvento.value = eventoId;
+                        inputProjectName.value = this.getAttribute('data-project-name') || '';
+                        inputProjectDesc.value = this.getAttribute('data-project-description') || '';
+                        inputTechnologies.value = this.getAttribute('data-technologies') || '';
+                        inputGithubRepo.value = this.getAttribute('data-github-repo') || '';
+                        inputGithubPages.value = this.getAttribute('data-github-pages') || '';
 
-                            const nameSpan = document.createElement('span');
-                            nameSpan.textContent = member.name + (member.rol === 'Líder' ? ' (Líder)' : '');
+                        // Populate members list
+                        const membersList = document.getElementById('edit-members-list');
+                        membersList.innerHTML = '';
+                        if (members.length > 0) {
+                            members.forEach(member => {
+                                const div = document.createElement('div');
+                                div.style.display = 'flex';
+                                div.style.justifyContent = 'space-between';
+                                div.style.alignItems = 'center';
+                                div.style.marginBottom = '5px';
+                                div.style.padding = '5px';
+                                div.style.borderBottom = '1px solid #f3f4f6';
 
-                            const removeBtn = document.createElement('button');
-                            removeBtn.type = 'button';
-                            removeBtn.innerHTML = '<x-icon name="close" style="font-size: 16px;" />';
-                            removeBtn.style.background = 'none';
-                            removeBtn.style.border = 'none';
-                            removeBtn.style.color = '#ef4444';
-                            removeBtn.style.cursor = 'pointer';
-                            removeBtn.title = 'Eliminar miembro';
-                            removeBtn.onclick = function() {
-                                if(confirm('¿Eliminar a ' + member.name + ' del equipo?')) {
-                                    const removeForm = document.getElementById('form-remove-member');
-                                    document.getElementById('remove-user-id').value = member.id;
-                                    removeForm.action = "/teams/" + id + "/members/remove";
-                                    removeForm.submit();
-                                }
-                            };
+                                const nameSpan = document.createElement('span');
+                                nameSpan.textContent = member.name + (member.rol === 'Líder' ? ' (Líder)' : '');
 
-                            div.appendChild(nameSpan);
-                            div.appendChild(removeBtn);
-                            membersList.appendChild(div);
-                        });
-                    } else {
-                        membersList.innerHTML = '<p style="color: #9ca3af; text-align: center;">Sin miembros</p>';
+                                const removeBtn = document.createElement('button');
+                                removeBtn.type = 'button';
+                                removeBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>';
+                                removeBtn.style.background = 'none';
+                                removeBtn.style.border = 'none';
+                                removeBtn.style.color = '#ef4444';
+                                removeBtn.style.cursor = 'pointer';
+                                removeBtn.title = 'Eliminar miembro';
+                                removeBtn.onclick = function() {
+                                    if(confirm('¿Eliminar a ' + member.name + ' del equipo?')) {
+                                        const removeForm = document.getElementById('form-remove-member');
+                                        document.getElementById('remove-user-id').value = member.id;
+                                        removeForm.action = "/teams/" + id + "/members/remove";
+                                        removeForm.submit();
+                                    }
+                                };
+
+                                div.appendChild(nameSpan);
+                                div.appendChild(removeBtn);
+                                membersList.appendChild(div);
+                            });
+                        } else {
+                            membersList.innerHTML = '<p style="color: #9ca3af; text-align: center;">Sin miembros</p>';
+                        }
+
+                        // Force display
+                        modalEditar.style.display = 'flex';
+
+                    } catch (error) {
+                        alert('Error al abrir el modal de edición.');
                     }
-
-                    modalEditar.style.display = 'flex';
                 });
             });
 
@@ -429,6 +497,60 @@
             </form>
         </div>
     </div>
+
+    <!-- Modal Editar Mi Equipo (Leader) -->
+    @if($equipo)
+    <div id="modal-editar-mi-equipo" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" id="close-editar-mi-equipo">&times;</span>
+            <h2 style="margin-bottom: 1.5rem;">Editar Mi Equipo</h2>
+            <form action="{{ route('teams.update', $equipo->id) }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                @method('PUT')
+                <input type="hidden" name="evento_id" value="{{ $equipo->evento_id }}">
+                <div class="form-group">
+                    <label for="mi-equipo-nombre">Nombre del Equipo</label>
+                    <input type="text" id="mi-equipo-nombre" name="nombre" value="{{ $equipo->nombre }}" required>
+                </div>
+                
+                <div style="border-top: 1px solid #e5e7eb; margin: 1.5rem 0; padding-top: 1rem;">
+                    <h3 style="font-size: 1.1rem; color: #374151; margin-bottom: 1rem;">Información del Proyecto</h3>
+                    
+                    <div class="form-group">
+                        <label for="project_name">Nombre del Proyecto</label>
+                        <input type="text" id="project_name" name="project_name" value="{{ $equipo->project_name }}" placeholder="Nombre de su proyecto">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="project_description">Descripción</label>
+                        <textarea id="project_description" name="project_description" rows="3" placeholder="Breve descripción de lo que hace su proyecto">{{ $equipo->project_description }}</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="technologies">Tecnologías (separadas por coma)</label>
+                        <input type="text" id="technologies" name="technologies" value="{{ $equipo->technologies }}" placeholder="Ej: Laravel, Vue, MySQL">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="github_repo">Repositorio Git</label>
+                        <input type="url" id="github_repo" name="github_repo" value="{{ $equipo->github_repo }}" placeholder="https://github.com/usuario/repo">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="github_pages">GitHub Pages / Demo URL</label>
+                        <input type="url" id="github_pages" name="github_pages" value="{{ $equipo->github_pages }}" placeholder="https://usuario.github.io/repo">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="mi-equipo-logo">Logo del Equipo (Opcional)</label>
+                    <input type="file" id="mi-equipo-logo" name="logo" accept="image/*">
+                </div>
+                <button type="submit" class="btn-submit">Guardar Cambios</button>
+            </form>
+        </div>
+    </div>
+    @endif
 
     <!-- Modal Agregar Miembro -->
     <div id="modal-agregar-miembro" class="modal">
@@ -521,7 +643,97 @@
                 if (event.target == modalAgregar) {
                     modalAgregar.style.display = 'none';
                 }
+                const modalEditarMiEquipo = document.getElementById('modal-editar-mi-equipo');
+                if (event.target == modalEditarMiEquipo) {
+                    modalEditarMiEquipo.style.display = 'none';
+                }
+            }
+
+            // Leader Edit Team Logic
+            const btnEditarMiEquipo = document.getElementById('btn-editar-mi-equipo');
+            const modalEditarMiEquipo = document.getElementById('modal-editar-mi-equipo');
+            const closeEditarMiEquipo = document.getElementById('close-editar-mi-equipo');
+
+            if (btnEditarMiEquipo) {
+                btnEditarMiEquipo.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    modalEditarMiEquipo.style.display = 'flex';
+                });
+            }
+
+            if (closeEditarMiEquipo) {
+                closeEditarMiEquipo.addEventListener('click', function() {
+                    modalEditarMiEquipo.style.display = 'none';
+                });
             }
         });
     </script>
 @endsection
+
+<!-- Move Modal Outside Main Content to avoid overflow/z-index issues -->
+<!-- Modal Editar Equipo (Admin) -->
+<div id="modal-editar-equipo" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 10000; justify-content: center; align-items: center;">
+    <div class="modal-content" style="background: white; padding: 2rem; border-radius: 16px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto;">
+        <span class="close-modal" id="close-editar-equipo" style="position: absolute; top: 1rem; right: 1rem; cursor: pointer; font-size: 1.5rem;">&times;</span>
+        <h2 style="margin-bottom: 1.5rem;">Editar Equipo</h2>
+        <form id="form-editar-equipo" method="POST" enctype="multipart/form-data">
+            @csrf
+            @method('PUT')
+            <div class="form-group">
+                <label for="edit-nombre">Nombre del Equipo</label>
+                <input type="text" id="edit-nombre" name="nombre" required>
+            </div>
+            <div class="form-group">
+                <label for="edit-evento_id">Evento</label>
+                <select id="edit-evento_id" name="evento_id" required>
+                    @foreach($eventos as $evento)
+                        <option value="{{ $evento->id }}">{{ $evento->nombre }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <!-- Project Info Fields -->
+            <div style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
+                <h3 style="font-size: 1.1em; margin-bottom: 10px; color: #4b5563;">Información del Proyecto</h3>
+                
+                <div class="form-group">
+                    <label for="edit-project_name">Nombre del Proyecto</label>
+                    <input type="text" id="edit-project_name" name="project_name" placeholder="Nombre del proyecto">
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-project_description">Descripción</label>
+                    <textarea id="edit-project_description" name="project_description" rows="3" style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 8px;" placeholder="Descripción breve..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-technologies">Tecnologías</label>
+                    <input type="text" id="edit-technologies" name="technologies" placeholder="Ej: Laravel, Vue">
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-github_repo">Repositorio Git</label>
+                    <input type="url" id="edit-github_repo" name="github_repo" placeholder="https://github.com/usuario/repo">
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-github_pages">GitHub Pages / Demo URL</label>
+                    <input type="url" id="edit-github_pages" name="github_pages" placeholder="https://usuario.github.io/repo">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Participantes del Equipo</label>
+                <div id="edit-members-list" style="border: 1px solid #d1d5db; border-radius: 8px; padding: 10px; max-height: 150px; overflow-y: auto;">
+                    <!-- Members populated by JS -->
+                </div>
+            </div>
+            <button type="submit" class="btn-submit">Actualizar Equipo</button>
+        </form>
+
+        <!-- Hidden form for removing members -->
+        <form id="form-remove-member" method="POST" style="display: none;">
+            @csrf
+            <input type="hidden" name="user_id" id="remove-user-id">
+        </form>
+    </div>
+</div>

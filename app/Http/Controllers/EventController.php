@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\EventReportMail;
 use Illuminate\Support\Facades\Response;
 
+
+use App\Services\AuditLogger;
+
 class EventController extends Controller
 {
     public function generatePdfReport(int $id): \Illuminate\Http\Response
@@ -131,10 +134,39 @@ class EventController extends Controller
             'start_time' => 'required',
             'ubicacion' => 'required|string|max:255',
             'capacidad' => 'required|integer|min:1',
-            'categoria' => 'nullable|string|max:255',
+            'categorias' => 'nullable|array', // Changed to array
+            'categorias.*' => 'nullable|string', // Allow nulls (empty input)
+            'status_manual' => 'nullable|string|in:Próximo,En Curso,Finalizado',
         ]);
 
-        Evento::create($request->all());
+        $evento = Evento::create($request->except('categorias'));
+
+        if ($request->has('categorias')) {
+            $categoryIds = [];
+            foreach ($request->categorias as $catName) {
+                if ($catName) {
+                    $category = \App\Models\Categoria::firstOrCreate(['nombre' => trim($catName)]);
+                    $categoryIds[] = $category->id;
+                }
+            }
+            $evento->categorias()->sync($categoryIds);
+        }
+
+        if ($request->has('criteria')) {
+            foreach ($request->criteria as $criterion) {
+                if (!empty($criterion['name'])) {
+                    $evento->criteria()->create([
+                        'name' => $criterion['name'],
+                        'max_score' => $criterion['max_score'] ?? 10,
+                        'description' => $criterion['description'] ?? null,
+                    ]);
+                }
+            }
+        }
+
+
+
+        AuditLogger::log('create', Evento::class, $evento->id, "Evento creado: {$evento->nombre}");
 
         return redirect()->route('events.index')->with('success', 'Evento creado correctamente.');
     }
@@ -152,12 +184,79 @@ class EventController extends Controller
             'descripcion' => 'required|string',
             'fecha_inicio' => 'required|date',
             'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
+            'start_time' => 'required', // Added start_time
             'ubicacion' => 'required|string|max:255',
             'capacidad' => 'required|integer|min:1',
-            'categoria' => 'nullable|string|max:255',
+            'categorias' => 'nullable|array',
+            'categorias.*' => 'nullable|string', // Allow nulls
+            'status_manual' => 'nullable|string|in:Próximo,En Curso,Finalizado',
         ]);
 
-        $evento->update($request->all());
+        $evento->update($request->except('categorias'));
+
+        if ($request->has('categorias')) {
+            $categoryIds = [];
+            foreach ($request->categorias as $catName) {
+                if ($catName) {
+                    $category = \App\Models\Categoria::firstOrCreate(['nombre' => trim($catName)]);
+                    $categoryIds[] = $category->id;
+                }
+            }
+            $evento->categorias()->sync($categoryIds);
+        } else {
+             // If no categories sent (e.g. all unchecked), detach all? 
+             // Or maybe the UI sends empty array. 
+             // If field is missing from request, it might mean "don't update" or "empty".
+             // Usually checkboxes send nothing if unchecked. 
+             // Let's assume if 'categorias' key exists (even empty), we sync.
+             // But if it's missing, maybe we shouldn't touch it? 
+             // Actually, for "edit", if we uncheck all, we want to clear.
+             // So we should handle the case where it's not present if we use checkboxes.
+             // But if we use a multi-select, it sends empty array or nothing.
+             // Let's assume we always send 'categorias' if we want to update them.
+             if ($request->has('categorias')) {
+                 $evento->categorias()->detach(); // Clear if empty array passed
+             }
+        }
+
+        // Sync Criteria
+        // This is tricky because we might want to update existing ones or delete removed ones.
+        // Simplest approach: Delete all and recreate? Or update existing if ID provided?
+        // Let's go with: Delete all and recreate for simplicity in this MVP, 
+        // BUT this would lose old scores if we delete criteria IDs that are linked to scores.
+        // Better: Update existing, create new, delete missing.
+        
+        if ($request->has('criteria')) {
+            $sentIds = [];
+            foreach ($request->criteria as $criterion) {
+                if (!empty($criterion['name'])) {
+                    if (isset($criterion['id'])) {
+                        $crit = \App\Models\Criterion::find($criterion['id']);
+                        if ($crit && $crit->evento_id == $evento->id) {
+                            $crit->update([
+                                'name' => $criterion['name'],
+                                'max_score' => $criterion['max_score'] ?? 10,
+                                'description' => $criterion['description'] ?? null,
+                            ]);
+                            $sentIds[] = $crit->id;
+                        }
+                    } else {
+                        $newCrit = $evento->criteria()->create([
+                            'name' => $criterion['name'],
+                            'max_score' => $criterion['max_score'] ?? 10,
+                            'description' => $criterion['description'] ?? null,
+                        ]);
+                        $sentIds[] = $newCrit->id;
+                    }
+                }
+            }
+            // Delete criteria not in request
+            $evento->criteria()->whereNotIn('id', $sentIds)->delete();
+        }
+
+
+
+        AuditLogger::log('update', Evento::class, $evento->id, "Evento actualizado: {$evento->nombre}");
 
         return redirect()->route('events.index')->with('success', 'Evento actualizado correctamente.');
     }
@@ -171,6 +270,68 @@ class EventController extends Controller
         $evento = Evento::findOrFail($id);
         $evento->delete();
 
+
+
+        AuditLogger::log('delete', Evento::class, $id, "Evento eliminado: {$evento->nombre}");
+
         return redirect()->route('events.index')->with('success', 'Evento eliminado correctamente.');
+    }
+
+    public function sendAnnouncement(Request $request, int $id): \Illuminate\Http\RedirectResponse
+    {
+        if (!auth()->user()->hasRole('admin')) {
+            abort(403);
+        }
+
+        $evento = Evento::with('equipos.participantes.user')->findOrFail($id);
+
+        $request->validate([
+            'subject' => 'required|string|max:255',
+            'message' => 'required|string',
+        ]);
+
+        // Collect all participant emails
+        $emails = collect();
+        foreach ($evento->equipos as $equipo) {
+            foreach ($equipo->participantes as $participante) {
+                if ($participante->user && $participante->user->email) {
+                    $emails->push($participante->user->email);
+                }
+            }
+        }
+
+        $emails = $emails->unique();
+
+        if ($emails->isEmpty()) {
+            return back()->with('error', 'No hay participantes con correo electrónico en este evento.');
+        }
+
+        // Send emails (queued ideally, but direct for now)
+        foreach ($emails as $email) {
+            Mail::to($email)->queue(new \App\Mail\EventAnnouncement($request->subject, $request->message, $evento->nombre));
+        }
+
+        AuditLogger::log('announcement', Evento::class, $evento->id, "Anuncio enviado a {$emails->count()} participantes. Asunto: {$request->subject}");
+
+        return back()->with('success', "Anuncio enviado correctamente a {$emails->count()} participantes.");
+    }
+
+    public function changeStatus(Request $request, int $id): \Illuminate\Http\RedirectResponse
+    {
+        if (!auth()->user()->hasRole('admin')) {
+            abort(403);
+        }
+
+        $evento = Evento::findOrFail($id);
+
+        $request->validate([
+            'status_manual' => 'required|string|in:Próximo,En Curso,Finalizado',
+        ]);
+
+        $evento->update(['status_manual' => $request->status_manual]);
+
+        AuditLogger::log('status_change', Evento::class, $evento->id, "Estado cambiado a: {$request->status_manual}");
+
+        return back()->with('success', 'Estado del evento actualizado correctamente.');
     }
 }

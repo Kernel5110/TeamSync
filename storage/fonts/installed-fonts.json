@@ -1,0 +1,13 @@
+{
+    "cinzel": {
+        "normal": "\/home\/kernel\/Univercity\/Programacion_Web\/proyecto_final\/storage\/fonts\/cinzel_normal_922bee97a539029b4cbec537a00d95cf",
+        "bold": "cinzel_bold_d5377968b25ddabd586ab36644f51521"
+    },
+    "great vibes": {
+        "normal": "great_vibes_normal_d54fc81cfe6f239f2c93a85bbd558e11"
+    },
+    "open sans": {
+        "normal": "\/home\/kernel\/Univercity\/Programacion_Web\/proyecto_final\/storage\/fonts\/open_sans_normal_c781039602e3ec06493780efa2a0f6a1",
+        "600": "open_sans_600_e7e3e16258c560f8ea6e38077ebc7d93"
+    }
+}

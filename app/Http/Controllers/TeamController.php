@@ -16,7 +16,7 @@ class TeamController extends Controller
         $participante = $user->participant;
         $equipo = $participante ? $participante->equipo : null;
         // Only show upcoming events for team creation
-        $eventos = Evento::where('fecha_inicio', '>', now())->get();
+        $eventos = Evento::where('fecha_fin', '>=', now())->get();
         
         $allTeams = null;
         if ($user->hasRole('admin')) {
@@ -72,21 +72,35 @@ class TeamController extends Controller
 
     public function update(Request $request, int $id): \Illuminate\Http\RedirectResponse
     {
-        if (!Auth::user()->can('edit teams')) {
+        $equipo = Equipo::findOrFail($id);
+        $user = Auth::user();
+
+        // Allow Admin OR Team Leader of this team
+        $isLeader = $user->participant && $user->participant->equipo_id == $equipo->id && $user->participant->rol == 'Líder';
+        
+        if (!$user->hasRole('admin') && !$isLeader) {
             abort(403);
         }
-
-        $equipo = Equipo::findOrFail($id);
 
         $request->validate([
             'nombre' => 'required|string|max:255',
             'evento_id' => 'required|exists:eventos,id',
             'logo' => 'nullable|image|max:2048',
+            'project_name' => 'nullable|string|max:255',
+            'project_description' => 'nullable|string',
+            'technologies' => 'nullable|string',
+            'github_repo' => 'nullable|url',
+            'github_pages' => 'nullable|url',
         ]);
 
         $data = [
             'nombre' => $request->nombre,
             'evento_id' => $request->evento_id,
+            'project_name' => $request->project_name,
+            'project_description' => $request->project_description,
+            'technologies' => $request->technologies,
+            'github_repo' => $request->github_repo,
+            'github_pages' => $request->github_pages,
         ];
 
         if ($request->hasFile('logo')) {
@@ -107,18 +121,25 @@ class TeamController extends Controller
 
         $equipo = Equipo::findOrFail($id);
         
-        // Optional: Handle participants before deleting (e.g., set team_id to null)
+        // Dissociate all members
         foreach ($equipo->participantes as $participante) {
-            $participante->update(['equipo_id' => null, 'rol' => null]);
+            $participante->update([
+                'equipo_id' => null,
+                'rol' => null
+            ]);
         }
 
+        // Hard delete the team
         $equipo->delete();
 
-        return redirect()->route('teams.index')->with('success', 'Equipo eliminado correctamente.');
+        \App\Services\AuditLogger::log('delete', Equipo::class, $id, "Equipo eliminado: {$equipo->nombre}");
+
+        return redirect()->route('teams.index')->with('success', 'Equipo eliminado permanentemente.');
     }
 
     public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
+        \Illuminate\Support\Facades\Log::info('TeamController::store called', $request->all());
         $request->validate([
             'nombre' => 'required|string|max:255',
             'evento_id' => 'required|exists:eventos,id',
@@ -140,8 +161,37 @@ class TeamController extends Controller
         
         // Validate Event Status
         // Validate Event Status - Only allow joining upcoming events
-        if ($evento->fecha_inicio <= now()) {
-             return back()->with('error', 'No puedes unirte a un evento que ya ha iniciado o finalizado.');
+        if ($evento->fecha_fin < now()) {
+             return back()->with('error', 'No puedes unirte a un evento que ya ha finalizado.');
+        }
+
+        // Check if user is already in an active event
+        $activeEvent = Evento::whereHas('equipos.participantes', function($q) use ($user) {
+            $q->where('usuario_id', $user->id);
+        })->where('status_manual', 'En Curso') // Check manual status
+          ->orWhere(function($q) use ($user) {
+              // Also check date-based status if manual is not set (or just check date range)
+              // To be safe and consistent with getStatusAttribute, we should check if any event the user is in is currently "En Curso"
+              $q->whereHas('equipos.participantes', function($sq) use ($user) {
+                  $sq->where('usuario_id', $user->id);
+              })->whereNull('status_manual')
+                ->where('fecha_inicio', '<=', now())
+                ->where('fecha_fin', '>=', now());
+          })->first();
+
+        // Simplified check using the model's accessor logic would be inefficient in query, 
+        // so we stick to DB query. 
+        // Logic: If user is in any team belonging to an event that is currently active.
+        
+        // Let's refine the query to be cleaner.
+        $userTeams = \App\Models\Equipo::whereHas('participantes', function($q) use ($user) {
+            $q->where('usuario_id', $user->id);
+        })->with('evento')->get();
+
+        foreach ($userTeams as $team) {
+            if ($team->evento && $team->evento->status === 'En Curso') {
+                return back()->with('error', 'Ya estás participando en un evento en curso (' . $team->evento->nombre . '). No puedes unirte a otro.');
+            }
         }
 
         if ($evento->equipos()->count() >= $evento->capacidad) {
@@ -234,6 +284,8 @@ class TeamController extends Controller
             'rol' => null,
         ]);
 
+        \App\Services\AuditLogger::log('remove_member', Equipo::class, $equipo->id, "Miembro eliminado del equipo {$equipo->nombre}: {$memberUser->email}");
+
         return back()->with('success', 'Miembro eliminado del equipo.');
     }
 
@@ -252,6 +304,17 @@ class TeamController extends Controller
 
         if ($participante->equipo_id) {
             return back()->with('error', 'Ya perteneces a un equipo.');
+        }
+
+        // Check active events
+        $userTeams = \App\Models\Equipo::whereHas('participantes', function($q) use ($user) {
+            $q->where('usuario_id', $user->id);
+        })->with('evento')->get();
+
+        foreach ($userTeams as $team) {
+            if ($team->evento && $team->evento->status === 'En Curso') {
+                return back()->with('error', 'Ya estás participando en un evento en curso (' . $team->evento->nombre . ').');
+            }
         }
 
         // Check if request already exists

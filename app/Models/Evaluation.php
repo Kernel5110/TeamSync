@@ -14,6 +14,14 @@ class Evaluation extends Model
         'score_social_impact',
         'score_technical_viability',
         'comments',
+        'is_conflict',
+        'finalized_at',
+        'private_notes',
+    ];
+
+    protected $casts = [
+        'finalized_at' => 'datetime',
+        'is_conflict' => 'boolean',
     ];
 
     public function user()
@@ -29,5 +37,10 @@ class Evaluation extends Model
     public function evento()
     {
         return $this->belongsTo(Evento::class);
+    }
+
+    public function scores()
+    {
+        return $this->hasMany(EvaluationScore::class);
     }
 }

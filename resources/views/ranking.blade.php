@@ -122,6 +122,13 @@
                                 </button>
                             </td>
                             @endif
+                            @role('admin')
+                            <td style="padding: 16px 24px; text-align: center;">
+                                <button onclick='openAdminModal(@json($item["equipo"]), @json($item["equipo"]->evaluations))' style="background-color: #f59e0b; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85rem;">
+                                    <x-icon name="settings" style="width: 16px; height: 16px; vertical-align: middle;" /> Admin
+                                </button>
+                            </td>
+                            @endrole
                         </tr>
                     @endforeach
                 </tbody>
@@ -129,6 +136,23 @@
         </div>
     @endif
 </div>
+
+<!-- Admin Modal -->
+@role('admin')
+<div id="adminModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000;">
+    <div style="background: white; padding: 24px; border-radius: 12px; width: 600px; max-width: 95%; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); max-height: 80vh; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0; color: #1f2937;" id="adminModalTitle">Administrar Equipo</h3>
+            <button onclick="closeAdminModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280;">&times;</button>
+        </div>
+        
+        <h4 style="color: #4b5563; margin-bottom: 10px;">Evaluaciones</h4>
+        <div id="adminEvaluationsList">
+            <!-- Populated by JS -->
+        </div>
+    </div>
+</div>
+@endrole
 
 <!-- Email Modal -->
 <div id="emailModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000;">
@@ -161,11 +185,83 @@
         document.getElementById('emailModal').style.display = 'none';
     }
 
+    // Admin Modal Functions
+    function openAdminModal(equipo, evaluations) {
+        document.getElementById('adminModalTitle').textContent = 'Administrar: ' + equipo.nombre;
+        const list = document.getElementById('adminEvaluationsList');
+        list.innerHTML = '';
+
+        if (evaluations.length === 0) {
+            list.innerHTML = '<p style="color: #6b7280; font-style: italic;">No hay evaluaciones registradas.</p>';
+        } else {
+            const table = document.createElement('table');
+            table.style.width = '100%';
+            table.style.borderCollapse = 'collapse';
+            
+            let html = `
+                <thead>
+                    <tr style="background-color: #f3f4f6; text-align: left;">
+                        <th style="padding: 8px; border-bottom: 1px solid #e5e7eb;">Juez</th>
+                        <th style="padding: 8px; border-bottom: 1px solid #e5e7eb;">Estado</th>
+                        <th style="padding: 8px; border-bottom: 1px solid #e5e7eb;">Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `;
+
+            evaluations.forEach(eval => {
+                const isFinalized = eval.finalized_at !== null;
+                const status = isFinalized 
+                    ? '<span style="color: #059669; font-weight: 600;">Finalizada</span>' 
+                    : '<span style="color: #d97706;">En Progreso</span>';
+                
+                let actionBtn = '-';
+                if (isFinalized) {
+                    actionBtn = `
+                        <form action="/admin/evaluations/${eval.id}/unlock" method="POST" onsubmit="return confirm('¿Desbloquear esta evaluación?');">
+                            @csrf
+                            <button type="submit" style="background-color: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
+                                Desbloquear
+                            </button>
+                        </form>
+                    `;
+                }
+
+                html += `
+                    <tr>
+                        <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${eval.user ? eval.user.name : 'Desconocido'}</td>
+                        <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${status}</td>
+                        <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${actionBtn}</td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody>';
+            table.innerHTML = html;
+            list.appendChild(table);
+        }
+
+        document.getElementById('adminModal').style.display = 'flex';
+    }
+
+    function closeAdminModal() {
+        document.getElementById('adminModal').style.display = 'none';
+    }
+
     // Close modal when clicking outside
     document.getElementById('emailModal').addEventListener('click', function(e) {
         if (e.target === this) {
             closeEmailModal();
         }
     });
+
+    const adminModal = document.getElementById('adminModal');
+    if (adminModal) {
+        adminModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeAdminModal();
+            }
+        });
+    }
 </script>
 @endsection

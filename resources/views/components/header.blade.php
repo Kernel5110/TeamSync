@@ -8,6 +8,9 @@
             <ul id="main-nav-ul">
                 <li><a href="{{ route('index') }}">Inicio</a></li>
                 <li><a href="{{ route('events.index') }}">Eventos</a></li>
+                @auth
+                    <li><a href="{{ route('start') }}">Dashboard</a></li>
+                @endauth
                 @unlessrole('juez')
                     <li><a href="{{ route('teams.index') }}">Equipo</a></li>
                 @endunlessrole

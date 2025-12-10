@@ -6,6 +6,37 @@
     <title>Certificado de Reconocimiento - {{ $equipo->nombre }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Great+Vibes&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
     <style>
+        @font-face {
+            font-family: 'Cinzel';
+            src: url('{{ public_path('fonts/Cinzel-Regular.ttf') }}') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Cinzel';
+            src: url('{{ public_path('fonts/Cinzel-Bold.ttf') }}') format('truetype');
+            font-weight: 700;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Great Vibes';
+            src: url('{{ public_path('fonts/GreatVibes-Regular.ttf') }}') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Open Sans';
+            src: url('{{ public_path('fonts/OpenSans-Regular.ttf') }}') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Open Sans';
+            src: url('{{ public_path('fonts/OpenSans-SemiBold.ttf') }}') format('truetype');
+            font-weight: 600;
+            font-style: normal;
+        }
+
         @page {
             size: letter landscape;
             margin: 0;
@@ -24,11 +55,12 @@
             position: relative;
             background-color: #fff;
             @if($isPdf ?? false)
-            background-image: url('{{ public_path('certificate_bg-1.png') }}');
+            background-image: url('{{ public_path('star.svg') }}');
             @else
-            background-image: url('/certificate_bg-1.png');
+            background-image: url('/star.svg');
             @endif
-            background-size: 100% 100%; /* Force stretch */
+            background-size: cover;
+            background-position: center;
             background-repeat: no-repeat;
             box-shadow: 0 0 20px rgba(0,0,0,0.1);
             overflow: hidden;

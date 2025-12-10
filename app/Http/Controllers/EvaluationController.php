@@ -159,7 +159,7 @@ class EvaluationController extends Controller
             return redirect()->route('events.evaluate.show', $evento_id)->with('error', 'El equipo aún no ha subido la información de su proyecto.');
         }
 
-        $evaluation = \App\Models\Evaluation::where('user_id', auth()->id())
+        $evaluation = \App\Models\Evaluation::with('scores')->where('user_id', auth()->id())
             ->where('equipo_id', $equipo_id)
             ->where('evento_id', $evento_id)
             ->first();
@@ -171,10 +171,10 @@ class EvaluationController extends Controller
     {
         $request->validate([
             'equipo_id' => 'required|exists:equipos,id',
-            'score_innovation' => 'required|integer|min:0|max:10',
-            'score_social_impact' => 'required|integer|min:0|max:10',
-            'score_technical_viability' => 'required|integer|min:0|max:10',
+            'scores' => 'required|array',
+            'scores.*' => 'required|integer|min:0|max:10',
             'comments' => 'nullable|string',
+            'private_notes' => 'nullable|string',
         ]);
 
         $evento = Evento::findOrFail($evento_id);
@@ -183,30 +183,51 @@ class EvaluationController extends Controller
             abort(403, 'No tienes permiso para evaluar este evento.');
         }
 
-        // Check if already evaluated? Optional.
-        // For now, allow multiple or update existing? Let's assume create new.
+        $evaluation = \App\Models\Evaluation::where('user_id', auth()->id())
+            ->where('evento_id', $evento_id)
+            ->where('equipo_id', $request->equipo_id)
+            ->first();
 
-        \App\Models\Evaluation::updateOrCreate(
+        if ($evaluation && $evaluation->finalized_at) {
+            return back()->with('error', 'Esta evaluación ya ha sido finalizada y no se puede editar.');
+        }
+
+        $evaluation = \App\Models\Evaluation::updateOrCreate(
             [
                 'user_id' => auth()->id(),
                 'evento_id' => $evento_id,
                 'equipo_id' => $request->equipo_id,
             ],
             [
-                'score_innovation' => $request->score_innovation,
-                'score_social_impact' => $request->score_social_impact,
-                'score_technical_viability' => $request->score_technical_viability,
                 'comments' => $request->comments,
+                'private_notes' => $request->private_notes,
+                // Legacy columns can be null or 0 if we are fully switching
+                'score_innovation' => 0,
+                'score_social_impact' => 0,
+                'score_technical_viability' => 0,
+                'is_conflict' => false, // Reset conflict if they are evaluating
             ]
         );
 
+        // Save dynamic scores
+        foreach ($request->scores as $criterionId => $score) {
+            \App\Models\EvaluationScore::updateOrCreate(
+                [
+                    'evaluation_id' => $evaluation->id,
+                    'criterion_id' => $criterionId,
+                ],
+                ['score' => $score]
+            );
+        }
+
+        \App\Services\AuditLogger::log('evaluate', \App\Models\Evaluation::class, $evaluation->id, "Evaluación guardada para equipo ID: {$request->equipo_id} en evento ID: {$evento_id}");
 
         return redirect()->route('events.evaluate.show', $evento_id)->with('success', 'Evaluación guardada correctamente.');
     }
 
     public function ranking($id)
     {
-        $evento = Evento::with(['equipos.evaluations', 'equipos.participantes.user'])->findOrFail($id);
+        $evento = Evento::with(['equipos.evaluations.user', 'equipos.participantes.user'])->findOrFail($id);
 
         $ranking = $evento->equipos->map(function ($equipo) {
             $evaluations = $equipo->evaluations;
@@ -220,13 +241,11 @@ class EvaluationController extends Controller
             }
 
             $totalScore = $evaluations->sum(function ($eval) {
-                return $eval->score_innovation + $eval->score_social_impact + $eval->score_technical_viability;
+                return $eval->scores->sum('score');
             });
 
-            // Max score per judge is 30.
-            // We can calculate average score out of 30, or normalized to 100, or just average points.
-            // Let's use average total points per judge (0-30).
-            $averageScore = $totalScore / $evaluations->count();
+            // Average score per judge
+            $averageScore = $evaluations->count() > 0 ? $totalScore / $evaluations->count() : 0;
 
             return [
                 'equipo' => $equipo,
@@ -240,4 +259,75 @@ class EvaluationController extends Controller
         return view('ranking', compact('evento', 'ranking', 'isJudge'));
     }
 
+    public function declareConflict($evento_id, $equipo_id)
+    {
+        $evento = Evento::findOrFail($evento_id);
+        
+        if (!$evento->jueces->contains(auth()->user()->id)) {
+            abort(403, 'No tienes permiso para evaluar este evento.');
+        }
+
+        \App\Models\Evaluation::updateOrCreate(
+            [
+                'user_id' => auth()->id(),
+                'evento_id' => $evento_id,
+                'equipo_id' => $equipo_id,
+            ],
+            [
+                'is_conflict' => true,
+                'comments' => 'Conflicto de interés declarado.',
+            ]
+        );
+
+        return redirect()->route('events.evaluate.show', $evento_id)->with('success', 'Conflicto de interés declarado correctamente.');
+    }
+
+    public function finalize($evento_id, $equipo_id)
+    {
+        $evaluation = \App\Models\Evaluation::where('user_id', auth()->id())
+            ->where('evento_id', $evento_id)
+            ->where('equipo_id', $equipo_id)
+            ->firstOrFail();
+
+        $evaluation->update(['finalized_at' => now()]);
+
+        return redirect()->route('events.evaluate.show', $evento_id)->with('success', 'Evaluación finalizada correctamente.');
+    }
+
+    public function unlock($id)
+    {
+        if (!auth()->user()->hasRole('admin')) {
+            abort(403, 'Solo los administradores pueden desbloquear evaluaciones.');
+        }
+
+        $evaluation = \App\Models\Evaluation::findOrFail($id);
+        $evaluation->update(['finalized_at' => null]);
+
+        \App\Services\AuditLogger::log('unlock', \App\Models\Evaluation::class, $evaluation->id, "Evaluación desbloqueada por admin.");
+
+        return back()->with('success', 'Evaluación desbloqueada correctamente.');
+    }
+
+    public function myFeedback()
+    {
+        $user = auth()->user();
+        $participante = $user->participant;
+
+        if (!$participante || !$participante->equipo) {
+            return redirect()->route('start')->with('error', 'No tienes un equipo asignado.');
+        }
+
+        $equipo = $participante->equipo;
+        $evento = $equipo->evento;
+
+        // Only show feedback if event is finalized or evaluations are done (logic depends on requirements, assuming finalized evaluations are visible)
+        // Or maybe only if event status is 'Finalizado'
+        
+        $evaluations = \App\Models\Evaluation::where('equipo_id', $equipo->id)
+            ->whereNotNull('finalized_at')
+            ->with(['scores.criterion'])
+            ->get();
+
+        return view('feedback', compact('equipo', 'evento', 'evaluations'));
+    }
 }

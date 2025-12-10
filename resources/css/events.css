@@ -315,29 +315,66 @@
 }
 
 .btn-admin-action {
-    background: none;
-    border: none;
+    background: rgba(255, 255, 255, 0.5);
+    /* Semi-transparent background */
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border: 1px solid rgba(229, 231, 235, 0.5);
     cursor: pointer;
+    color: #6b7280;
+    transition: all 0.2s ease;
     padding: 8px;
     border-radius: 50%;
-    transition: background-color 0.2s;
+    /* Circular */
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 40px;
+    /* Fixed width */
+    height: 40px;
+    /* Fixed height */
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .btn-admin-action:hover {
-    background-color: #f3f4f6;
+    background-color: rgba(255, 255, 255, 0.9);
+    color: #1f2937;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .btn-admin-action.edit {
     color: #4f46e5;
+    background: rgba(79, 70, 229, 0.1);
+}
+
+.btn-admin-action.edit:hover {
+    background: rgba(79, 70, 229, 0.2);
 }
 
 .btn-admin-action.delete {
     color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.btn-admin-action.delete:hover {
+    background: rgba(239, 68, 68, 0.2);
 }
 
 .btn-admin-action.judge {
     color: #8b5cf6;
+    background: rgba(139, 92, 246, 0.1);
+}
+
+.btn-admin-action.judge:hover {
+    background: rgba(139, 92, 246, 0.2);
+}
+
+.btn-admin-action.view-teams {
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.btn-admin-action.view-teams:hover {
+    background: rgba(16, 185, 129, 0.2);
 }

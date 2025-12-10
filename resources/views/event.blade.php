@@ -5,12 +5,23 @@
 
 
 @section('content')
+    @if(session('success'))
+        <div style="width: 100%; max-width: 1200px; margin: 0 auto 1rem auto; background-color: #d1fae5; color: #065f46; padding: 1rem; border-radius: 0.5rem; border: 1px solid #a7f3d0;">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    @if ($errors->any())
+        <div style="width: 100%; max-width: 1200px; margin: 0 auto 1rem auto; background-color: #fee2e2; color: #991b1b; padding: 1rem; border-radius: 0.5rem; border: 1px solid #fecaca;">
+            <ul style="list-style: disc; padding-left: 20px;">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     <div class="contenedor-eventos">
-        @if(session('success'))
-            <div style="width: 100%; background-color: #d1fae5; color: #065f46; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; border: 1px solid #a7f3d0;">
-                {{ session('success') }}
-            </div>
-        @endif
 
 
 
@@ -68,11 +79,13 @@
                     <span class="badge-proximo" style="background-color: {{ $badgeColor }};">{{ $status }}</span>
                 </div>
 
-                @if($evento->categoria)
-                    <div style="margin-bottom: 10px;">
-                        <span style="background-color: #e0e7ff; color: #4338ca; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600;">
-                            {{ $evento->categoria }}
-                        </span>
+                @if($evento->categorias->count() > 0)
+                    <div style="margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 5px;">
+                        @foreach($evento->categorias as $cat)
+                            <span style="background-color: #e0e7ff; color: #4338ca; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600;">
+                                {{ $cat->nombre }}
+                            </span>
+                        @endforeach
                     </div>
                 @endif
 
@@ -91,7 +104,7 @@
                     </div>
                     <div class="detalle-item">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-    <span>{{ $evento->equipos->count() }}/{{ $evento->capacidad }} </span>
+    <span>Equipos: {{ $evento->equipos->count() }} / {{ (int)$evento->capacidad }}</span>
 </div>
                 </div>
 
@@ -199,7 +212,10 @@
                                 data-fecha-fin="{{ $evento->fecha_fin->format('Y-m-d') }}"
                                 data-ubicacion="{{ $evento->ubicacion }}"
                                 data-capacidad="{{ $evento->capacidad }}"
-                                data-categoria="{{ $evento->categoria }}"
+                                data-capacidad="{{ $evento->capacidad }}"
+                                data-categorias="{{ $evento->categorias->pluck('nombre')->toJson() }}"
+                                data-criteria="{{ $evento->criteria->toJson() }}"
+                                data-status-manual="{{ $evento->status_manual }}"
                                 title="Editar Evento">
                             <x-icon name="edit" />
                         </button>
@@ -218,20 +234,35 @@
                             </button>
                         </form>
 
-                        <div style="display: inline-block; margin-left: 10px; border-left: 1px solid #e5e7eb; padding-left: 10px;">
-                            <a href="{{ route('events.reports.pdf', $evento->id) }}" class="btn-admin-action" title="Descargar Reporte PDF" style="color: #dc2626;">
-                                <x-icon name="picture_as_pdf" />
+                        <div style="display: inline-flex; margin-left: 10px; border-left: 1px solid #e5e7eb; padding-left: 10px; gap: 5px;">
+                            <a href="{{ route('events.reports.pdf', $evento->id) }}" class="btn-admin-action" title="Descargar Reporte PDF" style="color: #dc2626; background: rgba(220, 38, 38, 0.1); display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%;">
+                                <x-icon name="picture_as_pdf" style="width: 20px; height: 20px; color: #dc2626;" />
                             </a>
-                            <a href="{{ route('events.reports.csv', $evento->id) }}" class="btn-admin-action" title="Descargar CSV (Excel)" style="color: #16a34a;">
-                                <x-icon name="table_view" />
+                            <a href="{{ route('events.reports.csv', $evento->id) }}" class="btn-admin-action" title="Descargar CSV (Excel)" style="color: #16a34a; background: rgba(22, 163, 74, 0.1); display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%;">
+                                <x-icon name="table_view" style="width: 20px; height: 20px; color: #16a34a;" />
                             </a>
                             <form action="{{ route('events.reports.email', $evento->id) }}" method="POST" style="display: inline;">
                                 @csrf
-                                <button type="submit" class="btn-admin-action" title="Enviar Reporte por Correo" style="color: #2563eb;">
-                                    <x-icon name="send" />
+                                <button type="submit" class="btn-admin-action" title="Enviar Reporte por Correo" style="color: #2563eb; background: rgba(37, 99, 235, 0.1); display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; border: none; cursor: pointer;">
+                                    <x-icon name="send" style="width: 20px; height: 20px; color: #2563eb;" />
                                 </button>
                             </form>
+                            <button class="btn-admin-action btn-announcement" data-id="{{ $evento->id }}" data-nombre="{{ $evento->nombre }}" title="Enviar Anuncio Masivo" style="color: #9333ea; background: rgba(147, 51, 234, 0.1); display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; border: none; cursor: pointer;">
+                                <x-icon name="campaign" style="width: 20px; height: 20px; color: #9333ea;" />
+                            </button>
                         </div>
+
+                        <!-- Manual Status Control -->
+                        @if($evento->status !== 'Finalizado')
+                            <form action="{{ route('events.status.update', $evento->id) }}" method="POST" style="display: inline; margin-left: 10px;">
+                                @csrf
+                                @method('PUT')
+                                <input type="hidden" name="status_manual" value="Finalizado">
+                                <button type="submit" class="btn-admin-action" title="Finalizar Evento Manualmente" style="color: #ffffff; background: #6b7280; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; border: none; cursor: pointer;" onsubmit="return confirm('¿Estás seguro de finalizar este evento? Ya no se permitirán más registros.');">
+                                    <x-icon name="flag" style="width: 20px; height: 20px; color: #ffffff;" />
+                                </button>
+                            </form>
+                        @endif
                     </div>
 
                     <!-- Admin Team List Section -->
@@ -393,29 +424,53 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="evento-categoria">Categoría</label>
+                    <label for="evento-status-manual">Estado Manual (Opcional)</label>
                     <div class="input-with-icon">
-                        <x-icon name="category" />
-                        <select id="evento-categoria-select" name="categoria_select" style="width: 100%; padding: 12px 12px 12px 40px; border: 1px solid #e5e7eb; background-color: #f9fafb; border-radius: 8px; font-size: 15px; outline: none; color: #1f2937;">
-                            <option value="">Seleccionar Categoría</option>
-                            <option value="Fintech">Fintech</option>
-                            <option value="Healthtech">Healthtech</option>
-                            <option value="Edtech">Edtech</option>
-                            <option value="Agrotech">Agrotech</option>
-                            <option value="Cybersecurity">Cybersecurity</option>
-                            <option value="AI & Machine Learning">AI & Machine Learning</option>
-                            <option value="Blockchain">Blockchain</option>
-                            <option value="IoT">IoT</option>
-                            <option value="Otro">Otro (Crear nueva)</option>
+                        <x-icon name="toggle_on" />
+                        <select id="evento-status-manual" name="status_manual" style="width: 100%; padding: 12px 12px 12px 40px; border: 1px solid #e5e7eb; background-color: #f9fafb; border-radius: 8px; font-size: 15px; outline: none; color: #1f2937;">
+                            <option value="">Automático (Basado en fechas)</option>
+                            <option value="Próximo">Próximo</option>
+                            <option value="En Curso">En Curso</option>
+                            <option value="Finalizado">Finalizado</option>
                         </select>
                     </div>
-                    <div class="input-with-icon" id="container-nueva-categoria" style="display: none; margin-top: 10px;">
-                        <x-icon name="add_circle" />
-                        <input type="text" id="evento-categoria-input" name="categoria_input" placeholder="Escribe la nueva categoría" disabled>
-                    </div>
-                    <!-- Hidden input to store the final value sent to backend -->
-                    <input type="hidden" id="evento-categoria-final" name="categoria">
                 </div>
+
+                <div class="form-group">
+                    <label>Categorías</label>
+                    <div style="max-height: 150px; overflow-y: auto; border: 1px solid #e5e7eb; padding: 10px; border-radius: 8px; background-color: #f9fafb;">
+                        @php
+                            $allCategories = \App\Models\Categoria::all();
+                        @endphp
+                        @if($allCategories->count() > 0)
+                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px;">
+                                @foreach($allCategories as $cat)
+                                    <div style="display: flex; align-items: center; gap: 6px;">
+                                        <input type="checkbox" id="cat-{{ $cat->id }}" name="categorias[]" value="{{ $cat->nombre }}" style="width: 14px; height: 14px; cursor: pointer;">
+                                        <label for="cat-{{ $cat->id }}" style="font-size: 0.85rem; font-weight: normal; cursor: pointer; margin: 0; line-height: 1.2;">{{ $cat->nombre }}</label>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <p style="color: #6b7280; font-size: 0.9rem; font-style: italic;">No hay categorías registradas. Agrega una abajo.</p>
+                        @endif
+                    </div>
+                    <div class="input-with-icon" style="margin-top: 10px;">
+                        <x-icon name="add_circle" />
+                        <input type="text" name="categorias[]" placeholder="Escribe para agregar nueva categoría...">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Rúbrica de Evaluación (Criterios)</label>
+                    <div id="criteria-container" style="border: 1px solid #e5e7eb; padding: 10px; border-radius: 8px; background-color: #f9fafb;">
+                        <!-- Criteria rows will be added here -->
+                    </div>
+                    <button type="button" id="btn-add-criterion" style="margin-top: 10px; background-color: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85rem;">
+                        + Agregar Criterio
+                    </button>
+                </div>
+
                 <button type="submit" class="btn-confirmar">Guardar Evento</button>
             </form>
         </div>
@@ -533,6 +588,46 @@
             const inputEventoFin = document.getElementById('evento-fecha-fin');
             const inputEventoUbicacion = document.getElementById('evento-ubicacion');
             const inputEventoCapacidad = document.getElementById('evento-capacidad');
+            const criteriaContainer = document.getElementById('criteria-container');
+            const btnAddCriterion = document.getElementById('btn-add-criterion');
+
+            function addCriterionRow(id = null, name = '', maxScore = 10, description = '') {
+                const index = criteriaContainer.children.length;
+                const div = document.createElement('div');
+                div.style.display = 'flex';
+                div.style.gap = '10px';
+                div.style.marginBottom = '10px';
+                div.style.alignItems = 'start';
+                
+                let html = `
+                    <div style="flex: 2;">
+                        <input type="text" name="criteria[${index}][name]" value="${name}" placeholder="Nombre Criterio" required style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                        <input type="text" name="criteria[${index}][description]" value="${description}" placeholder="Descripción (opcional)" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; margin-top: 4px; font-size: 0.8rem;">
+                    </div>
+                    <div style="flex: 1;">
+                        <input type="number" name="criteria[${index}][max_score]" value="${maxScore}" placeholder="Max" required style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                    </div>
+                `;
+
+                if (id) {
+                    html += `<input type="hidden" name="criteria[${index}][id]" value="${id}">`;
+                }
+
+                html += `
+                    <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: #ef4444; cursor: pointer; padding-top: 10px;">
+                        <span class="material-icons">delete</span>
+                    </button>
+                `;
+
+                div.innerHTML = html;
+                criteriaContainer.appendChild(div);
+            }
+
+            if (btnAddCriterion) {
+                btnAddCriterion.addEventListener('click', function() {
+                    addCriterionRow();
+                });
+            }
 
             if(btnCrearEvento) {
                 btnCrearEvento.addEventListener('click', function() {
@@ -540,6 +635,11 @@
                     formEvento.action = "{{ route('events.store') }}";
                     methodSpoofing.innerHTML = ''; // Clear PUT method
                     formEvento.reset();
+                    criteriaContainer.innerHTML = '';
+                    // Add default criteria
+                    addCriterionRow(null, 'Innovación', 10, 'Originalidad y creatividad');
+                    addCriterionRow(null, 'Impacto Social', 10, 'Beneficio a la comunidad');
+                    addCriterionRow(null, 'Viabilidad Técnica', 10, 'Factibilidad de implementación');
                     modalEvento.style.display = 'flex';
                 });
             }
@@ -560,75 +660,53 @@
                     inputEventoUbicacion.value = this.getAttribute('data-ubicacion');
                     inputEventoCapacidad.value = this.getAttribute('data-capacidad');
 
-                    const categoria = this.getAttribute('data-categoria');
-                    const selectCategoria = document.getElementById('evento-categoria-select');
-                    const inputCategoria = document.getElementById('evento-categoria-input');
-                    const containerNueva = document.getElementById('container-nueva-categoria');
-                    const finalCategoria = document.getElementById('evento-categoria-final');
+                    // Status Manual
+                    const statusManual = this.getAttribute('data-status-manual');
+                    const selectStatus = document.getElementById('evento-status-manual');
+                    selectStatus.value = statusManual || "";
 
-                    // Check if category is in the list
-                    let found = false;
-                    for (let i = 0; i < selectCategoria.options.length; i++) {
-                        if (selectCategoria.options[i].value === categoria) {
-                            selectCategoria.value = categoria;
-                            found = true;
-                            break;
+                    // Categories
+                    const categoriasJson = this.getAttribute('data-categorias');
+                    
+                    // Criteria
+                    const criteriaJson = this.getAttribute('data-criteria');
+                    criteriaContainer.innerHTML = '';
+                    try {
+                        const criteria = JSON.parse(criteriaJson);
+                        if (Array.isArray(criteria)) {
+                            criteria.forEach(c => {
+                                addCriterionRow(c.id, c.name, c.max_score, c.description);
+                            });
                         }
+                    } catch(e) {
+                        console.error("Error parsing criteria", e);
                     }
 
-                    if (!found && categoria) {
-                        selectCategoria.value = 'Otro';
-                        containerNueva.style.display = 'block';
-                        inputCategoria.disabled = false;
-                        inputCategoria.value = categoria;
-                    } else {
-                        selectCategoria.value = categoria || "";
-                        containerNueva.style.display = 'none';
-                        inputCategoria.disabled = true;
-                        inputCategoria.value = '';
+                    let categorias = [];
+                    try {
+                        categorias = JSON.parse(categoriasJson);
+                    } catch(e) {
+                        console.error("Error parsing categories", e);
                     }
 
-                    // Update hidden input
-                    finalCategoria.value = categoria || "";
+                    // Uncheck all first
+                    document.querySelectorAll('input[name="categorias[]"]').forEach(cb => {
+                        if(cb.type === 'checkbox') cb.checked = false;
+                        if(cb.type === 'text') cb.value = '';
+                    });
+
+                    // Check existing
+                    if (Array.isArray(categorias)) {
+                        categorias.forEach(catName => {
+                            // Find checkbox with value == catName
+                            const cb = document.querySelector(`input[name="categorias[]"][value="${catName}"]`);
+                            if(cb) cb.checked = true;
+                        });
+                    }
 
                     modalEvento.style.display = 'flex';
                 });
             });
-
-            // Category logic for Create/Edit
-            const selectCategoria = document.getElementById('evento-categoria-select');
-            const inputCategoria = document.getElementById('evento-categoria-input');
-            const containerNueva = document.getElementById('container-nueva-categoria');
-            const finalCategoria = document.getElementById('evento-categoria-final');
-
-            if(selectCategoria) {
-                selectCategoria.addEventListener('change', function() {
-                    if(this.value === 'Otro') {
-                        containerNueva.style.display = 'block';
-                        inputCategoria.disabled = false;
-                        inputCategoria.focus();
-                        finalCategoria.value = inputCategoria.value;
-                    } else {
-                        containerNueva.style.display = 'none';
-                        inputCategoria.disabled = true;
-                        finalCategoria.value = this.value;
-                    }
-                });
-
-                inputCategoria.addEventListener('input', function() {
-                    finalCategoria.value = this.value;
-                });
-
-                // Also handle form submit to ensure value is set
-                const formEvento = document.getElementById('form-evento');
-                formEvento.addEventListener('submit', function() {
-                    if(selectCategoria.value === 'Otro') {
-                        finalCategoria.value = inputCategoria.value;
-                    } else {
-                        finalCategoria.value = selectCategoria.value;
-                    }
-                });
-            }
 
             if(closeEvento) {
                 closeEvento.addEventListener('click', function() {
@@ -650,9 +728,28 @@
                 });
             });
 
-            if(closeAssignJudge) {
-                closeAssignJudge.addEventListener('click', function() {
-                    modalAssignJudge.style.display = 'none';
+
+
+            // Announcement Modal Logic
+            const modalAnnouncement = document.getElementById('modal-announcement');
+            const btnsAnnouncement = document.querySelectorAll('.btn-announcement');
+            const closeAnnouncement = document.getElementById('close-announcement');
+            const formAnnouncement = document.getElementById('form-announcement');
+            const announcementEventName = document.getElementById('announcement-event-name');
+
+            btnsAnnouncement.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const eventId = this.getAttribute('data-id');
+                    const eventName = this.getAttribute('data-nombre');
+                    formAnnouncement.action = "/events/" + eventId + "/announcement";
+                    announcementEventName.textContent = 'Evento: ' + eventName;
+                    modalAnnouncement.style.display = 'flex';
+                });
+            });
+
+            if(closeAnnouncement) {
+                closeAnnouncement.addEventListener('click', function() {
+                    modalAnnouncement.style.display = 'none';
                 });
             }
 
@@ -670,7 +767,12 @@
                 if (event.target == modalAssignJudge) {
                     modalAssignJudge.style.display = 'none';
                 }
+                if (event.target == modalAnnouncement) {
+                    modalAnnouncement.style.display = 'none';
+                }
             }
+
+
 
             // Handle dropdown change (Existing)
             if(selectEquipo) {

@@ -39,6 +39,8 @@ class DatabaseSeeder extends Seeder
         $judge->assignRole('juez');
 
         $this->call(CarreraSeeder::class);
+        $this->call(CategoriaSeeder::class);
+        $this->call(InstitucionSeeder::class); // Added CategoriaSeeder
         $this->call(EventoSeeder::class);
         $this->call(RealisticDataSeeder::class);
     }

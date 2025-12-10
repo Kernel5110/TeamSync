@@ -11,6 +11,8 @@ use App\Http\Controllers\EvaluationController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AdminDataController;
+use App\Http\Controllers\AuditLogController;
 
 /*
 |--------------------------------------------------------------------------
@@ -65,6 +67,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/teams', [TeamController::class, 'store'])->name('teams.store');
     Route::put('/teams/{id}', [TeamController::class, 'update'])->name('teams.update');
     Route::delete('/teams/{id}', [TeamController::class, 'destroy'])->name('teams.destroy');
+    Route::put('/teams/{id}/leader', [TeamController::class, 'changeLeader'])->name('teams.leader.change');
     
     // Team Members
     Route::post('/teams/members', [TeamController::class, 'addMember'])->name('teams.members.add');
@@ -84,7 +87,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/events/{id}/ranking', [EvaluationController::class, 'ranking'])->name('events.ranking');
     Route::get('/events/{eventId}/certificates/{teamId}', [EvaluationController::class, 'certificate'])->name('events.certificate');
     Route::get('/events/{eventId}/certificates/{teamId}/download', [EvaluationController::class, 'downloadCertificate'])->name('events.certificate.download');
+    Route::get('/events/{eventId}/certificates/{teamId}/download', [EvaluationController::class, 'downloadCertificate'])->name('events.certificate.download');
     Route::post('/events/{eventId}/certificates/{teamId}/email', [EvaluationController::class, 'emailCertificate'])->name('events.certificate.email');
+    
+    // Participant Feedback
+    Route::get('/my-feedback', [EvaluationController::class, 'myFeedback'])->name('my.feedback');
 });
 
 // Role-based Routes (Judge)
@@ -92,16 +99,40 @@ Route::middleware(['auth', 'role:juez'])->group(function () {
     Route::get('/events/{id}/evaluate', [EvaluationController::class, 'show'])->name('events.evaluate.show');
     Route::get('/events/{eventId}/evaluate/{teamId}', [EvaluationController::class, 'evaluateTeam'])->name('events.evaluate.team');
     Route::post('/events/{id}/evaluate', [EvaluationController::class, 'store'])->name('events.evaluate.store');
+    Route::post('/events/{id}/evaluate/{team}/conflict', [EvaluationController::class, 'declareConflict'])->name('events.evaluate.conflict');
+    Route::post('/events/{id}/evaluate/{team}/finalize', [EvaluationController::class, 'finalize'])->name('events.evaluate.finalize');
 });
 
 // Role-based Routes (Admin)
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/admin/judges', [AdminController::class, 'createJudge'])->name('admin.judges.create');
     Route::post('/events/{id}/judges', [AdminController::class, 'assignJudge'])->name('events.judges.assign');
+    Route::put('/events/{id}/status', [EventController::class, 'changeStatus'])->name('events.status.update');
     Route::get('/admin/teams', [PageController::class, 'adminTeams'])->name('admin.teams');
     
     // Reports
     Route::get('/events/{id}/reports/pdf', [EventController::class, 'generatePdfReport'])->name('events.reports.pdf');
     Route::get('/events/{id}/reports/csv', [EventController::class, 'generateCsvReport'])->name('events.reports.csv');
+    Route::post('/events/{id}/announcement', [EventController::class, 'sendAnnouncement'])->name('events.announcement.send');
     Route::post('/events/{id}/reports/email', [EventController::class, 'emailReport'])->name('events.reports.email');
+
+    // User Management
+    Route::get('/admin/users', [AdminController::class, 'users'])->name('admin.users');
+    Route::post('/admin/users', [AdminController::class, 'storeUser'])->name('admin.users.store');
+    Route::put('/admin/users/{id}', [AdminController::class, 'updateUser'])->name('admin.users.update');
+    Route::delete('/admin/users/{user}', [AdminController::class, 'destroyUser'])->name('admin.users.destroy');
+
+    // Admin Settings (Instituciones & Carreras)
+    Route::get('/admin/settings', [AdminController::class, 'settings'])->name('admin.settings');
+    Route::post('/admin/settings', [AdminController::class, 'updateSettings'])->name('admin.settings.update');
+    Route::get('/admin/logs', [AuditLogController::class, 'index'])->name('admin.logs');
+    Route::post('/admin/instituciones', [AdminDataController::class, 'storeInstitucion'])->name('admin.instituciones.store');
+    Route::put('/admin/instituciones/{id}', [AdminDataController::class, 'updateInstitucion'])->name('admin.instituciones.update');
+    Route::delete('/admin/instituciones/{id}', [AdminDataController::class, 'destroyInstitucion'])->name('admin.instituciones.destroy');
+    
+    Route::post('/admin/carreras', [AdminDataController::class, 'storeCarrera'])->name('admin.carreras.store');
+    Route::put('/admin/carreras/{id}', [AdminDataController::class, 'updateCarrera'])->name('admin.carreras.update');
+    Route::delete('/admin/carreras/{id}', [AdminDataController::class, 'destroyCarrera'])->name('admin.carreras.destroy');
+    
+    Route::post('/admin/evaluations/{id}/unlock', [EvaluationController::class, 'unlock'])->name('admin.evaluations.unlock');
 });

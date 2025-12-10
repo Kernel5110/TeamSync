@@ -10,7 +10,16 @@ class ProfileController extends Controller
     public function show(): \Illuminate\View\View
     {
         $user = auth()->user();
-        return view('perfil', compact('user'));
+        $users = null;
+        $instituciones = null;
+        $carreras = null;
+        
+        if ($user->hasRole('admin')) {
+            $users = \App\Models\User::with('roles')->get();
+            $instituciones = \App\Models\Institucion::all();
+            $carreras = \App\Models\Carrera::all();
+        }
+        return view('perfil', compact('user', 'users', 'instituciones', 'carreras'));
     }
 
     public function update(Request $request): \Illuminate\Http\RedirectResponse
@@ -22,6 +31,7 @@ class ProfileController extends Controller
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'institucion' => 'nullable|string|max:255',
             'profile_photo' => 'nullable|image|max:2048', // 2MB Max
+            'expertise' => 'nullable|string|max:1000',
         ]);
 
         if ($request->hasFile('profile_photo')) {
@@ -32,6 +42,7 @@ class ProfileController extends Controller
         $user->update([
             'name' => $request->name,
             'email' => $request->email,
+            'expertise' => $request->expertise,
         ]);
 
         if ($user->participant) {
@@ -39,12 +50,14 @@ class ProfileController extends Controller
                 'institucion' => $request->institucion,
             ]);
         } else {
-            // Create participant record if it doesn't exist
-            Participante::create([
-                'usuario_id' => $user->id,
-                'institucion' => $request->institucion ?? 'No especificada',
-                'carrera_id' => 1, // Default or handle appropriately
-            ]);
+            // Create participant record if it doesn't exist (only if not admin/judge purely)
+             if (!$user->hasRole('admin') && !$user->hasRole('juez')) {
+                Participante::create([
+                    'usuario_id' => $user->id,
+                    'institucion' => $request->institucion ?? 'No especificada',
+                    'carrera_id' => 1, // Default or handle appropriately
+                ]);
+            }
         }
 
         return redirect()->route('profile.show')->with('success', 'Perfil actualizado correctamente.');

@@ -22,6 +22,8 @@ class LoginController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
+            \App\Services\AuditLogger::log('login', \App\Models\User::class, Auth::id(), 'Inicio de sesión exitoso');
+
             return redirect()->route('index');
         }
 
@@ -32,7 +34,12 @@ class LoginController extends Controller
 
     public function logout(Request $request)
     {
+        $userId = Auth::id();
         Auth::logout();
+
+        if ($userId) {
+            \App\Services\AuditLogger::log('logout', \App\Models\User::class, $userId, 'Cierre de sesión');
+        }
 
         $request->session()->invalidate();
 
