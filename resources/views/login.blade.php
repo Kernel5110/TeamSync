@@ -28,7 +28,6 @@
                     </span>
                     <input type="password" id="password" name="password" placeholder="••••••••" required>
                     <span class="input-icon right toggle-password">
-                        <x-icon-outline name="eye" />
                     </span>
                 </div>
             </div>

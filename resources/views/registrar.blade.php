@@ -51,7 +51,7 @@
                                 <option value="" disabled selected>Selecciona tu institución</option>
                                 @if(isset($instituciones))
                                     @foreach($instituciones as $inst)
-                                        <option value="{{ $inst->nombre }}" {{ old('institucion') == $inst->nombre ? 'selected' : '' }}>{{ $inst->nombre }}</option>
+                                        <option value="{{ $inst->name }}" {{ old('institucion') == $inst->name ? 'selected' : '' }}>{{ $inst->name }}</option>
                                     @endforeach
                                 @endif
                             </select>
@@ -70,7 +70,7 @@
                             <select id="carrera" name="carrera" class="@error('carrera') is-invalid @enderror">
                                 <option value="" disabled selected>Selecciona tu carrera</option>
                                 @foreach($carreras as $carrera)
-                                    <option value="{{ $carrera->id }}" {{ old('carrera') == $carrera->id ? 'selected' : '' }}>{{ $carrera->nombre }}</option>
+                                    <option value="{{ $carrera->id }}" {{ old('carrera') == $carrera->id ? 'selected' : '' }}>{{ $carrera->name }}</option>
                                 @endforeach
                             </select>
                         </div>

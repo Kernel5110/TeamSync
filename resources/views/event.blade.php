@@ -57,16 +57,29 @@
         @foreach($eventos as $evento)
             <div class="tarjeta-evento">
                 <div class="evento-header">
-                    <div class="evento-titulo">
-                        <div class="icono-evento {{ $loop->even ? 'icono-innovatec' : 'icono-hackatec' }}">
-                            @if($loop->even)
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10 10 10 0 0 0-10-10zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"></path><path d="M12 6v6l4 2"></path></svg>
-                            @else
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
-                            @endif
+                    @if($evento->image_path)
+                        <div style="width: 100%; height: 180px; overflow: hidden; border-radius: 8px 8px 0 0; margin-bottom: 10px;">
+                            <img src="{{ asset('storage/' . $evento->image_path) }}" alt="{{ $evento->name }}" style="width: 100%; height: 100%; object-fit: cover;">
                         </div>
-                        <h2>{{ $evento->name }}</h2>
-                    </div>
+                    @else
+                        <div class="evento-titulo">
+                            <div class="icono-evento {{ $loop->even ? 'icono-innovatec' : 'icono-hackatec' }}">
+                                @if($loop->even)
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10 10 10 0 0 0-10-10zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"></path><path d="M12 6v6l4 2"></path></svg>
+                                @else
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
+                                @endif
+                            </div>
+                            <h2>{{ $evento->name }}</h2>
+                        </div>
+                    @endif
+
+                    @if($evento->image_path)
+                         {{-- If having image, title is not inside 'evento-titulo' so render it here or structure differently. 
+                              Let's keep the structure clean. If image, showing title below image. --}}
+                         <h2 style="font-size: 1.5rem; font-weight: 700; color: #1f2937; margin: 10px 0;">{{ $evento->name }}</h2>
+                    @endif
+
                     @php
                         $status = $evento->status;
                         $badgeColor = match($status) {
@@ -76,7 +89,7 @@
                             default => '#3b82f6'
                         };
                     @endphp
-                    <span class="badge-proximo" style="background-color: {{ $badgeColor }};">{{ $status }}</span>
+                    <span class="badge-proximo" style="background-color: {{ $badgeColor }}; position: absolute; top: 20px; right: 20px;">{{ $status }}</span>
                 </div>
 
                 @if($evento->categories->count() > 0)
@@ -136,9 +149,16 @@
     @if ($is_judge_or_assigned)
 
         {{-- BLOQUE JUEZ: Muestra el botón EVALUAR --}}
-        <a href="{{ route('events.evaluate.show', $evento->id) }}" class="btn-participar" style="background-color: #8b5cf6; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: background-color 0.2s;">
-            Evaluar
-        </a>
+        {{-- BLOQUE JUEZ: Muestra el botón EVALUAR --}}
+        @if($evento->status !== 'Finalizado')
+            <a href="{{ route('events.evaluate.show', $evento->id) }}" class="btn-participar" style="background-color: #8b5cf6; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: background-color 0.2s;">
+                Evaluar
+            </a>
+        @else
+            <button disabled class="btn-participar" style="background-color: #9ca3af; color: white; padding: 8px 16px; border-radius: 6px; font-weight: 500; font-size: 0.9rem; cursor: not-allowed; border: none; opacity: 0.7;">
+                Evaluar (Finalizado)
+            </button>
+        @endif
 
     {{-- 3. SI NO ES JUEZ, ENTRA AQUÍ (@else es el alternativo del @if anterior) --}}
     @else
@@ -197,9 +217,15 @@
 
                 @role('admin')
                     <div class="admin-actions">
-                        <button class="btn-admin-action judge btn-assign-judge" data-id="{{ $evento->id }}" title="Asignar Juez">
-                            <x-icon name="gavel" />
-                        </button>
+                        @if($evento->status !== 'Finalizado')
+                            <button class="btn-admin-action judge btn-assign-judge" data-id="{{ $evento->id }}" title="Asignar Juez">
+                                <x-icon name="gavel" />
+                            </button>
+                        @else
+                            <button class="btn-admin-action judge" disabled style="opacity: 0.5; cursor: not-allowed; background-color: #9ca3af !important;" title="Evento Finalizado">
+                                <x-icon name="gavel" />
+                            </button>
+                        @endif
 
                         <button class="btn-admin-action edit btn-editar-evento"
                                 data-id="{{ $evento->id }}"
@@ -302,7 +328,7 @@
     </div>
 
     <div style="margin-top: 20px; display: flex; justify-content: center;">
-        {{ $eventos->links('pagination::simple-tailwind') }}
+        {{ $eventos->links() }}
     </div>
 
     <div class="contacto-seccion">
@@ -320,7 +346,7 @@
 
             <form action="{{ route('teams.store') }}" method="POST" id="form-registro-equipo">
                 @csrf
-                <input type="hidden" name="event_id" id="modal-event-id">
+                <input type="hidden" name="event_id" id="modal-evento-id">
 
                 <div class="form-group">
                     <label for="seleccion-equipo">Seleccionar Equipo</label>
@@ -370,7 +396,7 @@
                 <h2 id="modal-evento-titulo">Crear Evento</h2>
                 <span class="close-modal" id="close-evento">&times;</span>
             </div>
-            <form action="{{ route('events.store') }}" method="POST" id="form-evento" class="profile-form">
+            <form action="{{ route('events.store') }}" method="POST" id="form-evento" class="profile-form" enctype="multipart/form-data">
                 @csrf
                 <div id="method-spoofing"></div> <!-- For PUT method -->
 
@@ -379,6 +405,14 @@
                     <div class="input-with-icon">
                         <x-icon name="label" />
                         <input type="text" id="evento-nombre" name="nombre" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="evento-image">Imagen de Portada (Opcional)</label>
+                    <div class="input-with-icon">
+                        <x-icon name="image" />
+                        <input type="file" id="evento-image" name="image" accept="image/*" style="padding: 8px;">
                     </div>
                 </div>
                 <div class="form-group">
@@ -723,6 +757,12 @@
                     modalAssignJudge.style.display = 'flex';
                 });
             });
+
+            if(closeAssignJudge) {
+                closeAssignJudge.addEventListener('click', function() {
+                    modalAssignJudge.style.display = 'none';
+                });
+            }
 
 
 

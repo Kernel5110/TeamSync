@@ -90,6 +90,11 @@ class AdminController extends Controller
              return back()->with('error', 'El usuario no tiene el rol de juez.');
         }
 
+        // Check if event is finished
+        if ($event->status_manual === 'Finalizado' || $event->status === 'Finalizado') {
+             return back()->with('error', 'No se puede asignar jueces a un evento finalizado.');
+        }
+
         if (!$event->judges()->where('user_id', $user->id)->exists()) {
             $event->judges()->attach($user->id);
             return back()->with('success', 'Juez asignado correctamente.');

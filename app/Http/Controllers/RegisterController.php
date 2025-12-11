@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Carrera;
-use App\Models\Institucion;
+use App\Models\Career;
+use App\Models\Institution;
 use App\Models\Participant;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -24,8 +24,8 @@ class RegisterController extends Controller
         $request->validate([
             'nombre' => 'required|string|max:255',
             'apellido' => 'required|string|max:255',
-            'institution' => 'required|string|max:255',
-            'career' => 'required|exists:carreras,id',
+            'institucion' => 'required|string|max:255',
+            'carrera' => 'required|exists:careers,id',
             'correo' => 'required|string|email|max:255|unique:users,email',
             'contraseña' => 'required|string|min:8',
         ], [
@@ -49,11 +49,12 @@ class RegisterController extends Controller
 
         Participant::create([
             'user_id' => $user->id,
-            'carrera_id' => $request->career,
+            'career_id' => $request->carrera,
             'institution' => $request->institucion,
+            'control_number' => 'N/A', // Assuming default or nullable if not in form
         ]);
 
-        $user->assignRole('competidor');
+        $user->assignRole('competidor'); // Should rely on Spatie Permission
 
         Auth::login($user);
 

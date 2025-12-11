@@ -12,6 +12,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\EventReportMail;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Storage;
 
 
 use App\Services\AuditLogger;
@@ -49,7 +50,13 @@ class EventController extends Controller
             'categorias' => 'nullable|array',
             'categorias.*' => 'nullable|string',
             'status_manual' => 'nullable|string|in:Próximo,En Curso,Finalizado',
+            'image' => 'nullable|image|max:2048', // 2MB Max
         ]);
+
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('events', 'public');
+        }
 
         $data = [
             'name' => $request->nombre,
@@ -60,6 +67,7 @@ class EventController extends Controller
             'status_manual' => $request->status_manual,
             'starts_at' => \Carbon\Carbon::parse($request->fecha_inicio . ' ' . $request->start_time),
             'ends_at' => \Carbon\Carbon::parse($request->fecha_fin)->endOfDay(),
+            'image_path' => $imagePath,
         ];
 
         $event = Event::create($data);
@@ -103,6 +111,7 @@ class EventController extends Controller
             'categorias' => 'nullable|array',
             'categorias.*' => 'nullable|string',
             'status_manual' => 'nullable|string|in:Próximo,En Curso,Finalizado',
+            'image' => 'nullable|image|max:2048',
         ]);
 
         $data = [
@@ -115,6 +124,14 @@ class EventController extends Controller
             'starts_at' => \Carbon\Carbon::parse($request->fecha_inicio . ' ' . $request->start_time),
             'ends_at' => \Carbon\Carbon::parse($request->fecha_fin)->endOfDay(),
         ];
+
+        if ($request->hasFile('image')) {
+            // Delete old image
+            if ($event->image_path) {
+                Storage::disk('public')->delete($event->image_path);
+            }
+            $data['image_path'] = $request->file('image')->store('events', 'public');
+        }
 
         $event->update($data);
 
@@ -153,6 +170,11 @@ class EventController extends Controller
         }
 
         $event = Event::findOrFail($id);
+        
+        if ($event->image_path) {
+            Storage::disk('public')->delete($event->image_path);
+        }
+
         $event->delete();
 
         AuditLogger::log('delete', Event::class, $id, "Evento eliminado: {$event->name}");

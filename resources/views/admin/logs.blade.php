@@ -57,7 +57,7 @@
         </div>
         
         <div style="margin-top: 20px; display: flex; justify-content: center;">
-            {{ $logs->links('pagination::simple-tailwind') }}
+            {{ $logs->links() }}
         </div>
     </div>
 </div>

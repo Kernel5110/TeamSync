@@ -70,6 +70,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/teams/{teamId}/members/remove', [TeamController::class, 'removeMember'])->name('teams.members.remove');
     Route::get('/teams/search', [TeamController::class, 'search'])->name('teams.search');
     Route::post('/teams/{teamId}/join', [TeamController::class, 'requestJoin'])->name('teams.join');
+    Route::post('/teams/{teamId}/leave', [TeamController::class, 'leave'])->name('teams.leave');
     
     // Requests (Solicitudes)
     Route::post('/requests/{id}/accept', [TeamController::class, 'acceptJoin'])->name('requests.accept');

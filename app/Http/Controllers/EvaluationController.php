@@ -113,6 +113,10 @@ class EvaluationController extends Controller
             abort(403, 'No tienes permiso para evaluar este evento.');
         }
 
+        if ($evento->status === 'Finalizado') {
+             return redirect()->route('events.show', $eventId)->with('error', 'El evento ha finalizado y ya no se puede evaluar.');
+        }
+
         // Get IDs of teams already evaluated by this user
         $evaluatedTeams = \App\Models\Evaluation::where('user_id', auth()->id())
             ->where('event_id', $eventId)
@@ -129,6 +133,10 @@ class EvaluationController extends Controller
 
         if (!$evento->judges->contains(auth()->user()->id)) {
             abort(403, 'No tienes permiso para evaluar este evento.');
+        }
+
+        if ($evento->status === 'Finalizado') {
+            return redirect()->route('events.show', $eventId)->with('error', 'El evento ha finalizado.');
         }
 
         if ($equipo->event_id !== $evento->id) {
@@ -162,6 +170,10 @@ class EvaluationController extends Controller
 
         if (!$evento->judges->contains(auth()->user()->id)) {
             abort(403, 'No tienes permiso para evaluar este evento.');
+        }
+
+        if ($evento->status === 'Finalizado') {
+            abort(403, 'No se pueden guardar evaluaciones de un evento finalizado.');
         }
 
         $evaluation = \App\Models\Evaluation::where('user_id', auth()->id())

@@ -57,7 +57,12 @@ class User extends Authenticatable
 
     public function participant(): HasOne
     {
-        return $this->hasOne(Participant::class, 'user_id');
+        return $this->hasOne(Participant::class, 'user_id')->latest('created_at');
+    }
+
+    public function participants(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Participant::class, 'user_id');
     }
 
     /**
@@ -65,17 +70,15 @@ class User extends Authenticatable
      */
     public function getActiveEventAttribute(): ?Event
     {
-        // Assuming a user has one participant record, which belongs to one team.
-        $participant = $this->participant;
-        
-        if (!$participant || !$participant->team) {
-            return null;
-        }
+        $participants = $this->participants; // Use the collection
 
-        $event = $participant->team->event;
-
-        if ($event && ($event->status === 'En Curso' || $event->status === 'Próximo')) {
-            return $event;
+        foreach ($participants as $participant) {
+            if ($participant->team && $participant->team->event) {
+                $event = $participant->team->event;
+                if ($event->status === 'En Curso' || $event->status === 'Próximo') {
+                    return $event;
+                }
+            }
         }
 
         return null;

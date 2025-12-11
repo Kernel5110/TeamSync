@@ -62,14 +62,14 @@
             
             <form action="{{ route('admin.instituciones.store') }}" method="POST" style="margin-bottom: 1.5rem; display: flex; gap: 10px;">
                 @csrf
-                <input type="text" name="nombre" placeholder="Nueva Institución" required style="flex: 1; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
+                <input type="text" name="name" placeholder="Nueva Institución" required style="flex: 1; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
                 <button type="submit" class="btn-confirmar" style="width: auto; padding: 8px 16px; font-size: 0.9rem;">Agregar</button>
             </form>
 
             <ul style="list-style: none; padding: 0; max-height: 300px; overflow-y: auto;">
                 @foreach($instituciones as $inst)
                     <li style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f3f4f6;">
-                        <span style="color: #4b5563;">{{ $inst->nombre }}</span>
+                        <span style="color: #4b5563;">{{ $inst->name }}</span>
                         <form action="{{ route('admin.instituciones.destroy', $inst->id) }}" method="POST" onsubmit="return confirm('¿Eliminar institución?');">
                             @csrf
                             @method('DELETE')
@@ -90,14 +90,14 @@
 
             <form action="{{ route('admin.carreras.store') }}" method="POST" style="margin-bottom: 1.5rem; display: flex; gap: 10px;">
                 @csrf
-                <input type="text" name="nombre" placeholder="Nueva Carrera" required style="flex: 1; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
+                <input type="text" name="name" placeholder="Nueva Carrera" required style="flex: 1; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
                 <button type="submit" class="btn-confirmar" style="width: auto; padding: 8px 16px; font-size: 0.9rem; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">Agregar</button>
             </form>
 
             <ul style="list-style: none; padding: 0; max-height: 300px; overflow-y: auto;">
                 @foreach($carreras as $carrera)
                     <li style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f3f4f6;">
-                        <span style="color: #4b5563;">{{ $carrera->nombre }}</span>
+                        <span style="color: #4b5563;">{{ $carrera->name }}</span>
                         <form action="{{ route('admin.carreras.destroy', $carrera->id) }}" method="POST" onsubmit="return confirm('¿Eliminar carrera?');">
                             @csrf
                             @method('DELETE')

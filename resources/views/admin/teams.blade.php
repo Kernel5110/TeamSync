@@ -79,7 +79,7 @@
         </div>
         
         <div style="margin-top: 20px; display: flex; justify-content: center;">
-            {{ $teams->links('pagination::simple-tailwind') }}
+            {{ $teams->links() }}
         </div>
     </div>
 

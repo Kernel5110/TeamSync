@@ -12,7 +12,7 @@ class Event extends Model
 
     protected $table = 'events';
 
-    protected $fillable = ['name', 'description', 'starts_at', 'ends_at', 'location', 'capacity', 'problem_statement', 'status_manual'];
+    protected $fillable = ['name', 'description', 'image_path', 'starts_at', 'ends_at', 'location', 'capacity', 'problem_statement', 'status_manual'];
 
     protected $casts = [
         'starts_at' => 'datetime',

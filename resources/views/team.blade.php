@@ -24,90 +24,155 @@
                 <h1>Equipos</h1>
                 <p>Gestion de equipos de desarrollo y colaboradores</p>
             </div>
-            <div class="acciones-equipo" style="display: flex; gap: 10px; align-items: center;">
-                <div class="search-container" style="position: relative;">
-                    <x-icon name="search" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #6b7280;" />
-                    <input type="text" id="search-team-input" placeholder="Buscar equipo..." style="padding: 8px 10px 8px 35px; border: 1px solid #d1d5db; border-radius: 20px; font-size: 0.9rem; width: 200px; transition: width 0.3s;">
+                <div class="search-container" style="display: flex; gap: 5px; align-items: center;">
+                    <input type="text" id="search-team-input" placeholder="Buscar equipo..." style="padding: 8px 15px; border: 1px solid #d1d5db; border-radius: 20px 0 0 20px; font-size: 0.9rem; width: 200px; outline: none;">
+                    <button id="btn-search-team" style="padding: 8px 15px; background: #6366f1; border: none; border-radius: 0 20px 20px 0; cursor: pointer; color: white;" title="Buscar">
+                        <x-icon name="search" style="font-size: 1.2rem;" />
+                    </button>
                 </div>
-                @if(!$equipo)
-                    <a href="#modal-crear-equipo" class="btn-nuevo">
-                        <x-icon name="add" /> Nuevo
-                    </a>
-                @else
-                    <a href="#modal-agregar-miembro" class="btn-nuevo">
-                        <x-icon name="person_add" /> Agregar Miembro
-                    </a>
-                @endif
+                <a href="#modal-crear-equipo" class="btn-nuevo">
+                    <x-icon name="add" /> Nuevo Equipo
+                </a>
             </div>
         </div>
 
-        @if($equipo)
-            <div class="tarjeta-miembros">
-                <div class="titulo-seccion" style="display: flex; align-items: center; gap: 15px;">
-                    @if($equipo->logo_path)
-                        <img src="{{ asset('storage/' . $equipo->logo_path) }}" alt="Logo {{ $equipo->nombre }}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #e5e7eb;">
-                    @else
-                        <div style="width: 50px; height: 50px; border-radius: 50%; background-color: #e0e7ff; color: #4f46e5; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem;">
-                            {{ strtoupper(substr($equipo->name, 0, 2)) }}
-                        </div>
-                    @endif
-                    Miembros del Equipo: {{ $equipo->name }}
-                    @if(auth()->user()->participant && auth()->user()->participant->rol == 'Líder' && auth()->user()->participant->team_id == $equipo->id)
-                        <a href="#modal-editar-mi-equipo" id="btn-editar-mi-equipo" style="color: #6b7280; text-decoration: none;" title="Editar Equipo">
-                            <x-icon name="edit" />
-                        </a>
-                    @endif
-                </div>
-                <table class="tabla-miembros">
-                    <thead>
-                        <tr>
-                            <th>Nombre</th>
-                            <th>Institución</th>
-                            <th>Carrera</th>
-                            <th>Rol</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($equipo->participants as $participante)
-                            <tr>
-                                <td>{{ $participante->user->name }}</td>
-                                <td>{{ $participante->institution }}</td>
-                                <td>{{ $participante->career->name }}</td>
-                                <td>
-                                    @php
-                                        $rolClass = 'rol-analista';
-                                        if (stripos($participante->rol, 'programador') !== false) $rolClass = 'rol-programador';
-                                        if (stripos($participante->rol, 'diseñador') !== false) $rolClass = 'rol-disenador';
-                                    @endphp
-                                    <span class="badge-rol {{ $rolClass }}">
-                                        @if($rolClass == 'rol-programador') <x-icon name="code" style="font-size: 14px;" /> @endif
-                                        @if($rolClass == 'rol-disenador') <x-icon name="palette" style="font-size: 14px;" /> @endif
-                                        {{ $participante->rol ?? 'Miembro' }}
+        @if($myTeams && $myTeams->count() > 0)
+            <div class="mis-equipos-list">
+                @foreach($myTeams as $equipo)
+                    @php
+                        // Find the participant record for THIS team to check role
+                        $myParticipant = $equipo->participants->where('user_id', auth()->id())->first();
+                        $isLeader = $myParticipant && $myParticipant->rol == 'Líder';
+                    @endphp
+                    
+                    <div class="equipo-detailed-card" style="background: white; border-radius: 16px; padding: 25px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin-bottom: 40px; border: 1px solid #f3f4f6;">
+                        <div class="titulo-seccion" style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #f3f4f6;">
+                            @if($equipo->logo_path)
+                                <img src="{{ asset('storage/' . $equipo->logo_path) }}" alt="Logo {{ $equipo->nombre }}" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #e5e7eb;">
+                            @else
+                                <div style="width: 60px; height: 60px; border-radius: 50%; background-color: #e0e7ff; color: #4f46e5; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.5rem;">
+                                    {{ strtoupper(substr($equipo->name, 0, 2)) }}
+                                </div>
+                            @endif
+                            <div style="flex-grow: 1;">
+                                <h2 style="margin: 0; font-size: 1.5rem; color: #1f2937;">{{ $equipo->name }}</h2>
+                                @if($equipo->event)
+                                    <span style="font-size: 0.9rem; background: #e0e7ff; color: #4338ca; padding: 4px 8px; border-radius: 6px; display: inline-block; margin-top: 5px;">
+                                        Event: {{ $equipo->event->name }}
                                     </span>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
+                                @endif
+                            </div>
 
-            <div class="stats-grid">
-                <div class="stat-card blue">
-                    <div class="stat-number">{{ $equipo->participants->count() }}</div>
-                    <div class="stat-label">Total Miembros</div>
-                </div>
-                <div class="stat-card cyan">
-                    <div class="stat-number">1</div>
-                    <div class="stat-label">Eventos Activos</div>
-                </div>
-                <div class="stat-card green">
-                    <div class="stat-number">1</div>
-                    <div class="stat-label">Proyectos</div>
-                </div>
-                <div class="stat-card orange">
-                    <div class="stat-number">{{ $equipo->progress }}%</div>
-                    <div class="stat-label">Progreso</div>
-                </div>
+                            @if($isLeader)
+                                <div style="display: flex; gap: 10px;">
+                                    <button type="button" class="btn-nuevo btn-agregar-miembro" data-id="{{ $equipo->id }}" style="padding: 8px 16px; font-size: 0.9rem;">
+                                        <x-icon name="person_add" style="font-size: 18px;" /> Agregar
+                                    </button>
+                                    <button type="button" class="btn-editar-mi-equipo" data-id="{{ $equipo->id }}" 
+                                            data-name="{{ $equipo->name }}"
+                                            data-project-name="{{ $equipo->project_name }}"
+                                            data-project-desc="{{ $equipo->project_description }}"
+                                            data-repo="{{ $equipo->github_repo }}"
+                                            data-pages="{{ $equipo->github_pages }}"
+                                            data-technologies="{{ $equipo->technologies }}"
+                                            style="padding: 8px; border-radius: 8px; border: 1px solid #d1d5db; background: white; cursor: pointer; color: #6b7280; transition: all 0.2s;" 
+                                            title="Editar Equipo"
+                                            onmouseover="this.style.borderColor='#4f46e5'; this.style.color='#4f46e5';"
+                                            onmouseout="this.style.borderColor='#d1d5db'; this.style.color='#6b7280';">
+                                        <x-icon name="edit" />
+                                    </button>
+                                </div>
+                            @endif
+                            
+                            {{-- Leave Button for everyone (including leader) --}}
+                            <form action="{{ route('teams.leave', $equipo->id) }}" method="POST" 
+                                  onsubmit="return confirm('{{ $isLeader ? "Al salir, el liderazgo se transferirá al siguiente miembro más antiguo. Si no hay nadie más, el equipo se eliminará. ¿Continuar?" : "¿Estás seguro de que deseas salir de este equipo?" }}');" 
+                                  style="margin-left: {{ $isLeader ? '10px' : 'auto' }};">
+                                @csrf
+                                <button type="submit" style="padding: 8px 16px; background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; border-radius: 8px; cursor: pointer; font-size: 0.9rem; transition: all 0.2s;"
+                                        onmouseover="this.style.background='#fecaca';"
+                                        onmouseout="this.style.background='#fee2e2';">
+                                    <x-icon name="logout" style="font-size: 18px; vertical-align: middle;" /> Salir
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="miembros-section" style="margin-bottom: 25px;">
+                            <h3 style="font-size: 1.1rem; color: #4b5563; margin-bottom: 15px;">Integrantes</h3>
+                            <table class="tabla-miembros" style="width: 100%;">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Institución</th>
+                                        <th>Carrera</th>
+                                        <th>Rol</th>
+                                        @if($isLeader) <th>Acciones</th> @endif
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($equipo->participants as $participante)
+                                        <tr>
+                                            <td>
+                                                <div style="display: flex; align-items: center; gap: 10px;">
+                                                    <div style="width: 32px; height: 32px; background: #f3f4f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 600; color: #6b7280;">
+                                                        {{ strtoupper(substr($participante->user->name, 0, 1)) }}
+                                                    </div>
+                                                    {{ $participante->user->name }}
+                                                </div>
+                                            </td>
+                                            <td>{{ $participante->institution }}</td>
+                                            <td>{{ $participante->career->name }}</td>
+                                            <td>
+                                                @php
+                                                    $rolClass = 'rol-analista';
+                                                    if (stripos($participante->rol, 'programador') !== false) $rolClass = 'rol-programador';
+                                                    if (stripos($participante->rol, 'diseñador') !== false) $rolClass = 'rol-disenador';
+                                                @endphp
+                                                <span class="badge-rol {{ $rolClass }}">
+                                                    @if($rolClass == 'rol-programador') <x-icon name="code" style="font-size: 14px;" /> @endif
+                                                    @if($rolClass == 'rol-disenador') <x-icon name="palette" style="font-size: 14px;" /> @endif
+                                                    {{ $participante->rol ?? 'Miembro' }}
+                                                </span>
+                                            </td>
+                                            @if($isLeader)
+                                                <td>
+                                                    @if($participante->user_id !== auth()->id())
+                                                        <form action="{{ route('teams.remove_member', $equipo->id) }}" method="POST" onsubmit="return confirm('¿Eliminar a {{ $participante->user->name }}?');" style="display:inline;">
+                                                            @csrf
+                                                            <input type="hidden" name="user_id" value="{{ $participante->user_id }}">
+                                                            <button type="submit" style="border: none; background: none; color: #ef4444; cursor: pointer; padding: 4px; border-radius: 4px;" title="Eliminar">
+                                                                <x-icon name="person_remove" />
+                                                            </button>
+                                                        </form>
+                                                    @endif
+                                                </td>
+                                            @endif
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="stats-grid">
+                            <div class="stat-card blue">
+                                <div class="stat-number">{{ $equipo->participants->count() }}</div>
+                                <div class="stat-label">Total Miembros</div>
+                            </div>
+                            <div class="stat-card cyan">
+                                <div class="stat-number">{{ $equipo->evaluations->count() }}</div>
+                                <div class="stat-label">Evaluaciones</div>
+                            </div>
+                            <div class="stat-card green">
+                                <div class="stat-number">{{ $equipo->project_name ? '1' : '0' }}</div>
+                                <div class="stat-label">Proyectos Info</div>
+                            </div>
+                             <div class="stat-card orange">
+                                <div class="stat-number">{{ (int)$equipo->total_score }}</div>
+                                <div class="stat-label">Puntaje Total</div>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
             </div>
         @else
             @unlessrole('admin')
@@ -177,8 +242,9 @@
 
         {{-- Other Teams Section --}}
         @if(isset($otherTeams) && $otherTeams->count() > 0)
-            <div class="contenedor-equipo" style="margin-top: 40px;">
-                <div class="titulo-seccion">Otros Equipos Disponibles</div>
+            <div class="section-divider" style="margin-top: 60px; margin-bottom: 20px; border-top: 1px solid #e5e7eb;"></div>
+            <div class="otros-equipos-container">
+                <div class="titulo-seccion" style="font-size: 1.5rem; color: #111827; margin-bottom: 20px;">Otros Equipos Disponibles</div>
                 <div class="grid-equipos" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
                     @foreach($otherTeams as $team)
                         <div class="card-equipo" style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid #e5e7eb;">
@@ -217,13 +283,13 @@
                     @endforeach
                 </div>
                 <div style="margin-top: 20px; display: flex; justify-content: center;">
-                    {{ $otherTeams->appends(['all_teams_page' => $allTeams ? $allTeams->currentPage() : 1])->links('pagination::simple-tailwind') }}
+                    {{ $otherTeams->appends(['all_teams_page' => $allTeams ? $allTeams->currentPage() : 1])->links() }}
                 </div>
             </div>
         @endif
 
     @role('admin')
-        <div class="contenedor-equipo" style="margin-top: 40px;">
+        <div class="admin-teams-section" style="margin-top: 60px;">
             <div class="team-header">
             <h1>Administracion de equipos y miembros</h1>
         </div>
@@ -282,7 +348,7 @@
                         </tbody>
                     </table>
                     <div style="margin-top: 20px; display: flex; justify-content: center;">
-                        {{ $allTeams->appends(['other_teams_page' => $otherTeams ? $otherTeams->currentPage() : 1])->links('pagination::simple-tailwind') }}
+                        {{ $allTeams->appends(['other_teams_page' => $otherTeams ? $otherTeams->currentPage() : 1])->links() }}
                     </div>
                 </div>
             @else
@@ -290,6 +356,7 @@
             @endif
         </div>
     @endrole
+    </div> {{-- Close contenedor-equipo --}}
 
     <!-- Modal Editar Equipo (Admin) -->
     <!-- Modal Editar Equipo (Admin) -->
@@ -504,7 +571,7 @@
         <div class="modal-content">
             <span class="close-modal" id="close-editar-mi-equipo">&times;</span>
             <h2 style="margin-bottom: 1.5rem;">Editar Mi Equipo</h2>
-            <form action="{{ route('teams.update', $equipo->id) }}" method="POST" enctype="multipart/form-data">
+            <form id="form-editar-mi-equipo" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="event_id" value="{{ $equipo->event_id }}">
@@ -557,8 +624,9 @@
         <div class="modal-content">
             <a href="#" class="close-modal">&times;</a>
             <h2 style="margin-bottom: 1.5rem;">Agregar Miembro</h2>
-            <form action="{{ route('teams.members.add') }}" method="POST">
+            <form id="form-agregar-miembro" action="{{ route('teams.members.add') }}" method="POST">
                 @csrf
+                <input type="hidden" name="team_id" id="add-member-team-id">
                 <div class="form-group">
                     <label for="email">Correo Electrónico del Usuario</label>
                     <input type="email" id="email" name="email" required placeholder="usuario@ejemplo.com">
@@ -583,38 +651,46 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Search Logic
             const searchInput = document.getElementById('search-team-input');
+            const searchBtn = document.getElementById('btn-search-team');
             const modalBuscar = document.getElementById('modal-buscar-equipo');
             const closeBuscar = document.getElementById('close-buscar-equipo');
             const resultsContainer = document.getElementById('search-results-container');
-            let timeout = null;
 
-            if (searchInput) {
-                searchInput.addEventListener('input', function() {
-                    const query = this.value;
+            function performSearch() {
+                const query = searchInput.value.trim();
 
-                    clearTimeout(timeout);
+                if (query.length > 0) {
+                    modalBuscar.style.display = 'flex';
+                    resultsContainer.innerHTML = '<p style="text-align: center; padding: 20px;">Buscando...</p>';
 
-                    if (query.length > 0) {
-                        modalBuscar.style.display = 'flex';
-                        resultsContainer.innerHTML = '<p style="text-align: center; padding: 20px;">Buscando...</p>';
+                    fetch(`{{ route('teams.search') }}?query=${encodeURIComponent(query)}`, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        resultsContainer.innerHTML = data.html;
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        resultsContainer.innerHTML = '<p style="text-align: center; color: red;">Error al buscar equipos.</p>';
+                    });
+                }
+            }
 
-                        timeout = setTimeout(() => {
-                            fetch(`{{ route('teams.search') }}?query=${encodeURIComponent(query)}`, {
-                                headers: {
-                                    'X-Requested-With': 'XMLHttpRequest'
-                                }
-                            })
-                            .then(response => response.json())
-                            .then(data => {
-                                resultsContainer.innerHTML = data.html;
-                            })
-                            .catch(error => {
-                                console.error('Error:', error);
-                                resultsContainer.innerHTML = '<p style="text-align: center; color: red;">Error al buscar equipos.</p>';
-                            });
-                        }, 500); // Debounce
-                    } else {
-                        modalBuscar.style.display = 'none';
+            if (searchBtn && searchInput) {
+                // Button Click
+                searchBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    performSearch();
+                });
+
+                // Enter Key
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        performSearch();
                     }
                 });
             }
@@ -650,20 +726,74 @@
             }
 
             // Leader Edit Team Logic
-            const btnEditarMiEquipo = document.getElementById('btn-editar-mi-equipo');
+            const btnsEditarMiEquipo = document.querySelectorAll('.btn-editar-mi-equipo');
             const modalEditarMiEquipo = document.getElementById('modal-editar-mi-equipo');
             const closeEditarMiEquipo = document.getElementById('close-editar-mi-equipo');
-
-            if (btnEditarMiEquipo) {
-                btnEditarMiEquipo.addEventListener('click', function(e) {
+            const formEditarMiEquipo = document.getElementById('form-editar-mi-equipo');
+            // Fields
+            const inputMiNombre = document.getElementById('mi-equipo-nombre');
+            const inputMiEventId = document.getElementsByName('event_id')[0]; // Assuming name is unique in this form context or use ID
+            // Note: The edit modal for leader currently relies on fields. 
+            // We need to populate them.
+            
+            btnsEditarMiEquipo.forEach(btn => {
+                btn.addEventListener('click', function(e) {
                     e.preventDefault();
+                    const id = this.dataset.id;
+                    const name = this.dataset.name;
+                    const project = this.dataset.projectName || '';
+                    const desc = this.dataset.projectDesc || '';
+                    const repo = this.dataset.repo || '';
+                    const pages = this.dataset.pages || '';
+                    const tech = this.dataset.technologies || '';
+
+                    // Update Form Action
+                    formEditarMiEquipo.action = `/teams/${id}`;
+                    
+                    // Populate Fields
+                    if(inputMiNombre) inputMiNombre.value = name;
+                    
+                    // Populate Project Fields if they exist in the modal
+                    const pName = document.getElementById('edit-project_name');
+                    if(pName) pName.value = project;
+                    const pDesc = document.getElementById('edit-project_description');
+                    if(pDesc) pDesc.value = desc;
+                    const pRepo = document.getElementById('edit-github_repo');
+                    if(pRepo) pRepo.value = repo;
+                    const pTech = document.getElementById('edit-technologies');
+                    if(pTech) pTech.value = tech;
+
+
                     modalEditarMiEquipo.style.display = 'flex';
                 });
-            }
+            });
 
             if (closeEditarMiEquipo) {
                 closeEditarMiEquipo.addEventListener('click', function() {
                     modalEditarMiEquipo.style.display = 'none';
+                });
+            }
+
+            // Add Member Logic
+            const btnsAgregar = document.querySelectorAll('.btn-agregar-miembro');
+            const modalAgregar = document.getElementById('modal-agregar-miembro');
+            const inputTeamId = document.getElementById('add-member-team-id');
+
+            btnsAgregar.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const id = this.dataset.id;
+                    inputTeamId.value = id;
+                    modalAgregar.style.display = 'flex';
+                });
+            });
+
+            // Close logic for add member
+            const closeAgregar = modalAgregar.querySelector('.close-modal');
+            if(closeAgregar) {
+                closeAgregar.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    modalAgregar.style.display = 'none';
                 });
             }
         });

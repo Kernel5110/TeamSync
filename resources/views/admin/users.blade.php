@@ -110,7 +110,7 @@
         </div>
         
         <div style="margin-top: 20px; display: flex; justify-content: center;">
-            {{ $users->links('pagination::simple-tailwind') }}
+            {{ $users->links() }}
         </div>
     </div>
 

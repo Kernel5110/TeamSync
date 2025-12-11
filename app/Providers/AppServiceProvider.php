@@ -22,5 +22,8 @@ class AppServiceProvider extends ServiceProvider
         if($this->app->environment('production') || !empty(env('NGROK_URL'))) {
             \Illuminate\Support\Facades\URL::forceScheme('https');
         }
+
+        \Illuminate\Pagination\Paginator::defaultView('vendor.pagination.custom');
+        \Illuminate\Pagination\Paginator::defaultSimpleView('vendor.pagination.custom');
     }
 }

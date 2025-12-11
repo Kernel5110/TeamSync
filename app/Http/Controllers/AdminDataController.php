@@ -15,9 +15,9 @@ class AdminDataController extends Controller
             abort(403);
         }
 
-        $request->validate(['nombre' => 'required|string|unique:institutions,name']);
+        $request->validate(['name' => 'required|string|unique:institutions,name']);
 
-        $institution = Institution::create(['name' => $request->nombre]);
+        $institution = Institution::create(['name' => $request->name]);
 
         AuditLogger::log('create', Institution::class, $institution->id, "Institución creada: {$institution->name}");
 
@@ -32,9 +32,9 @@ class AdminDataController extends Controller
 
         $institution = Institution::findOrFail($id);
         
-        $request->validate(['nombre' => 'required|string|unique:institutions,name,' . $id]);
+        $request->validate(['name' => 'required|string|unique:institutions,name,' . $id]);
 
-        $institution->update(['name' => $request->nombre]);
+        $institution->update(['name' => $request->name]);
 
         AuditLogger::log('update', Institution::class, $institution->id, "Institución actualizada: {$institution->name}");
 
@@ -61,9 +61,9 @@ class AdminDataController extends Controller
             abort(403);
         }
 
-        $request->validate(['nombre' => 'required|string|unique:careers,name']);
+        $request->validate(['name' => 'required|string|unique:careers,name']);
 
-        $career = Career::create(['name' => $request->nombre]);
+        $career = Career::create(['name' => $request->name]);
 
         AuditLogger::log('create', Career::class, $career->id, "Carrera creada: {$career->name}");
 
@@ -78,9 +78,9 @@ class AdminDataController extends Controller
 
         $career = Career::findOrFail($id);
 
-        $request->validate(['nombre' => 'required|string|unique:careers,name,' . $id]);
+        $request->validate(['name' => 'required|string|unique:careers,name,' . $id]);
 
-        $career->update(['name' => $request->nombre]);
+        $career->update(['name' => $request->name]);
 
         AuditLogger::log('update', Career::class, $career->id, "Carrera actualizada: {$career->name}");
 
