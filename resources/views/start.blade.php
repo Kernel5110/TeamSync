@@ -115,9 +115,9 @@
                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px;">
                     @foreach($judgeEvents as $evento)
                         <div class="card" style="background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); overflow: hidden; transition: transform 0.2s;">
-                            <div style="background: linear-gradient(to right, #4f46e5, #3b82f6); padding: 15px 20px; color: white;">
+                            <div style="background: linear-gradient(90deg, #b478e5ff 0%, #97d7ff 100%); padding: 15px 20px; color: white;">
                                 <h3 style="margin: 0; font-size: 1.2rem; font-weight: 600;">{{ $evento->name }}</h3>
-                                <p style="margin: 5px 0 0; font-size: 0.9rem; opacity: 0.9;">{{ $evento->starts_at->format('d/m/Y') }}</p>
+                                <p style="margin: 5px 0 0; font-size: 0.9rem; color: white !important; opacity: 1;">{{ $evento->starts_at->format('d/m/Y') }}</p>
                             </div>
                             <div style="padding: 20px;">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
@@ -142,7 +142,7 @@
                                     </div>
                                 </div>
 
-                                <a href="{{ route('events.evaluate.show', $evento->id) }}" style="display: block; width: 100%; padding: 10px; text-align: center; background-color: #f3f4f6; color: #374151; text-decoration: none; border-radius: 8px; font-weight: 600; transition: background 0.2s;">
+                                <a href="{{ route('events.evaluate.show', $evento->id) }}" style="display: block; width: 100%; padding: 10px; text-align: center; background: linear-gradient(90deg, #b766f4ff 0%, #97d7ff 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
                                     Continuar Evaluando &rarr;
                                 </a>
                             </div>
@@ -217,14 +217,16 @@
                                     <a href="{{ route('my.feedback') }}" style="display: flex; align-items: center; justify-content: center; padding: 12px; background-color: #eff6ff; color: #2563eb; text-decoration: none; border-radius: 8px; font-weight: 600;">
                                         <x-icon name="visibility" style="margin-right: 8px;" /> Ver Resultados
                                     </a>
-                                    
-                                    <a href="{{ route('events.certificate.download', ['eventId' => $evento->id, 'teamId' => $equipo->id]) }}" style="display: flex; align-items: center; justify-content: center; padding: 12px; background-color: #fffbeb; color: #d97706; text-decoration: none; border-radius: 8px; font-weight: 600;">
-                                        <x-icon name="card_membership" style="margin-right: 8px;" /> Descargar Certificado
-                                    </a>
                                 @else
                                     <div style="padding: 15px; background-color: #f3f4f6; border-radius: 8px; text-align: center; color: #6b7280; font-size: 0.9rem;">
                                         Los resultados estarán disponibles cuando finalice el evento.
                                     </div>
+                                @endif
+
+                                @if($evento->status_manual == 'Finalizado')
+                                    <a href="{{ route('events.certificate.download', ['eventId' => $evento->id, 'teamId' => $equipo->id]) }}" style="display: flex; align-items: center; justify-content: center; padding: 12px; background-color: #fffbeb; color: #d97706; text-decoration: none; border-radius: 8px; font-weight: 600;">
+                                        <x-icon name="card_membership" style="margin-right: 8px;" /> Descargar Certificado
+                                    </a>
                                 @endif
                             </div>
                         </div>

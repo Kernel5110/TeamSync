@@ -8,6 +8,12 @@
         <h1 class="auth-title">Crear Cuenta</h1>
         <p class="auth-subtitle">Ingresa tus credenciales para acceder a TeamSync</p>
 
+        @if ($errors->any())
+            <div style="background-color: #fee2e2; color: #991b1b; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; border: 1px solid #fecaca;">
+                {{ $errors->first() }}
+            </div>
+        @endif
+
         <form action="{{ route('login.store') }}" method="POST" class="auth-form">
             @csrf
             <div class="input-group">
@@ -33,7 +39,6 @@
             </div>
 
             <div class="auth-links">
-                <a href="#" class="forgot-password">Olvide mi contraseña</a>
                 <a href="{{ route('register') }}" class="register-link">Registrarme</a>
             </div>
 

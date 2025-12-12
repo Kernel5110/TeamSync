@@ -14,7 +14,6 @@ use App\Services\AuditLogger;
 
 class AdminController extends Controller
 {
-    // ... existing methods ...
 
     public function settings()
     {
@@ -25,7 +24,6 @@ class AdminController extends Controller
         $institutions = Institution::all();
         $careers = Career::all();
 
-        // Passing as 'instituciones' and 'carreras' to match existing blade view expectations
         return view('admin.settings', ['instituciones' => $institutions, 'carreras' => $careers]);
     }
 
@@ -39,9 +37,9 @@ class AdminController extends Controller
         $teams = \App\Models\Team::with(['event', 'participants.user']);
 
         if ($query) {
-            $teams->where('name', 'LIKE', "%{$query}%") // Changed 'nombre' to 'name'
+            $teams->where('name', 'LIKE', "%{$query}%") 
                   ->orWhereHas('event', function($q) use ($query) {
-                      $q->where('name', 'LIKE', "%{$query}%"); // Changed 'nombre' to 'name'
+                      $q->where('name', 'LIKE', "%{$query}%"); 
                   });
         }
 
@@ -57,7 +55,7 @@ class AdminController extends Controller
         }
 
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255|regex:/^[\pL\s]+$/u',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
         ]);
@@ -90,7 +88,6 @@ class AdminController extends Controller
              return back()->with('error', 'El usuario no tiene el rol de juez.');
         }
 
-        // Check if event is finished
         if ($event->status_manual === 'Finalizado' || $event->status === 'Finalizado') {
              return back()->with('error', 'No se puede asignar jueces a un evento finalizado.');
         }
@@ -101,6 +98,27 @@ class AdminController extends Controller
         }
 
         return back()->with('info', 'El juez ya está asignado a este evento.');
+    }
+
+    public function removeJudge(Request $request, $eventId, $userId)
+    {
+        if (!auth()->user()->hasRole('admin')) {
+            abort(403);
+        }
+
+        $event = Event::findOrFail($eventId);
+        $user = User::findOrFail($userId);
+
+        if (!$event->judges()->where('user_id', $user->id)->exists()) {
+             return back()->with('error', 'El juez no está asignado a este evento.');
+        }
+
+
+        $event->judges()->detach($user->id);
+        
+        AuditLogger::log('remove_judge', Event::class, $event->id, "Juez removido: {$user->email} del evento {$event->name}");
+
+        return back()->with('success', 'Juez removido del evento correctamente.');
     }
 
     public function users(Request $request)
@@ -131,7 +149,7 @@ class AdminController extends Controller
         }
 
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255|regex:/^[\pL\s]+$/u',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
             'role' => 'required|in:admin,juez',
@@ -177,9 +195,9 @@ class AdminController extends Controller
         $user = User::findOrFail($id);
 
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255|regex:/^[\pL\s]+$/u',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'role' => 'required|in:admin,juez,participante',
+            'role' => 'required|in:admin,juez,participante,competidor',
         ]);
 
         $user->update([

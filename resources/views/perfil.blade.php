@@ -30,9 +30,6 @@
                     <button id="btn-crear-juez" style="background-color: #8b5cf6; color: white;"><x-icon name="gavel" /> Crear Juez</button>
                 @endrole
                 <button id="btn-editar-perfil"><x-icon name="edit" /> Editar</button>
-                <div class="settings-icon">
-                    <x-icon name="settings" />
-                </div>
             </div>
         </div>
 
@@ -45,7 +42,6 @@
                 <a href="#" class="nav-item" data-tab="logros">Logros</a>
             @endunlessrole
             @role('admin')
-                <a href="#" class="nav-item" data-tab="usuarios">Usuarios</a>
                 <a href="#" class="nav-item" data-tab="datos">Datos</a>
             @endrole
         </div>

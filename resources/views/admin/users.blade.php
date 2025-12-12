@@ -83,7 +83,7 @@
                                             data-id="{{ $user->id }}"
                                             data-name="{{ $user->name }}"
                                             data-email="{{ $user->email }}"
-                                            data-role="{{ $user->roles->first() ? $user->roles->first()->name : 'participante' }}"
+                                            data-role="{{ $user->roles->contains('name', 'admin') ? 'admin' : ($user->roles->contains('name', 'juez') ? 'juez' : 'competidor') }}"
                                             title="Editar Usuario"
                                             style="background-color: #3b82f6; color: white; width: 32px; height: 32px; border: none; border-radius: 6px; cursor: pointer; margin-right: 5px; display: inline-flex; align-items: center; justify-content: center;">
                                         <x-icon name="edit" style="width: 18px; height: 18px;" />
@@ -133,10 +133,14 @@
                 <div class="form-group" style="margin-bottom: 15px;">
                     <label for="edit-role" style="display: block; margin-bottom: 5px; font-weight: 600;">Rol</label>
                     <select id="edit-role" name="role" required style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
-                        <option value="participante">Participante</option>
+                        <option value="competidor">Competidor</option>
                         <option value="juez">Juez</option>
                         <option value="admin">Administrador</option>
                     </select>
+                </div>
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label for="edit-password" style="display: block; margin-bottom: 5px; font-weight: 600;">Nueva Contraseña <span style="font-weight: normal; color: #6b7280; font-size: 0.8em;">(Opcional)</span></label>
+                    <input type="password" id="edit-password" name="password" placeholder="Dejar en blanco para mantener la actual" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
                 </div>
                 <button type="submit" style="background-color: #4f46e5; color: white; padding: 10px 20px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; width: 100%;">Guardar Cambios</button>
             </form>

@@ -30,7 +30,7 @@ class LoginController extends Controller
         }
 
         return back()->withErrors([
-            'email' => __('auth.failed'),
+            'email' => 'Estas credenciales no coinciden con nuestros registros.',
         ])->onlyInput('email');
     }
 

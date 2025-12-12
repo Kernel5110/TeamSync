@@ -44,6 +44,58 @@
             .profile-form select:focus {
                 background-color: #ffffff !important;
             }
+
+            /* Admin Actions Grid */
+            .admin-actions-container {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+                gap: 15px;
+                margin-top: 15px;
+                padding-top: 15px;
+                border-top: 1px dashed #e5e7eb;
+            }
+
+            .action-item {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 5px;
+                text-align: center;
+            }
+
+            .action-label {
+                font-size: 0.7rem;
+                color: #6b7280;
+                font-weight: 500;
+            }
+            
+            .btn-admin-action {
+                width: 40px !important;
+                height: 40px !important;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: transform 0.2s;
+            }
+
+            .btn-admin-action:hover {
+                transform: scale(1.1);
+            }
+
+            @media (max-width: 640px) {
+                .admin-actions-container {
+                     grid-template-columns: repeat(5, 1fr); /* 5 cols on mobile */
+                     gap: 10px;
+                }
+                .action-label {
+                    font-size: 0.65rem;
+                }
+                .btn-admin-action {
+                    width: 36px !important;
+                    height: 36px !important;
+                }
+            }
         </style>
 
         @can('create events')
@@ -216,75 +268,95 @@
 </div>
 
                 @role('admin')
-                    <div class="admin-actions">
-                        @if($evento->status !== 'Finalizado')
-                            <button class="btn-admin-action judge btn-assign-judge" data-id="{{ $evento->id }}" title="Asignar Juez">
-                                <x-icon name="gavel" />
+                    <div class="admin-actions-container">
+                        <div class="action-item">
+                            <button class="btn-admin-action view-judges btn-view-judges" 
+                                    data-id="{{ $evento->id }}" 
+                                    data-judges="{{ $evento->judges->toJson() }}"
+                                    title="Gestionar Jueces"
+                                    style="background: linear-gradient(90deg, #8F00FF 0%, #97d7ff 100%); border: none;">
+                                <x-icon name="gavel" style="color: white;" />
                             </button>
-                        @else
-                            <button class="btn-admin-action judge" disabled style="opacity: 0.5; cursor: not-allowed; background-color: #9ca3af !important;" title="Evento Finalizado">
-                                <x-icon name="gavel" />
+                            <span class="action-label">Jueces</span>
+                        </div>
+
+                        <div class="action-item">
+                            <button class="btn-admin-action edit btn-editar-evento"
+                                    data-id="{{ $evento->id }}"
+                                    data-name="{{ $evento->name }}"
+                                    data-description="{{ $evento->description }}"
+                                    data-starts-at="{{ $evento->starts_at->format('Y-m-d') }}"
+                                    data-start-time="{{ $evento->starts_at->format('H:i') }}"
+                                    data-ends-at="{{ $evento->ends_at->format('Y-m-d') }}"
+                                    data-location="{{ $evento->location }}"
+                                    data-capacity="{{ $evento->capacity }}"
+                                    data-categories="{{ $evento->categories->pluck('name')->toJson() }}"
+                                    data-criteria="{{ $evento->criteria->toJson() }}"
+                                    data-status-manual="{{ $evento->status_manual }}"
+                                    title="Editar Evento">
+                                <x-icon name="edit" />
                             </button>
-                        @endif
+                            <span class="action-label">Editar</span>
+                        </div>
 
-                        <button class="btn-admin-action edit btn-editar-evento"
-                                data-id="{{ $evento->id }}"
-                                data-name="{{ $evento->name }}"
-                                data-description="{{ $evento->description }}"
-                                data-starts-at="{{ $evento->starts_at->format('Y-m-d') }}"
-                                data-start-time="{{ $evento->starts_at->format('H:i') }}"
-                                data-ends-at="{{ $evento->ends_at->format('Y-m-d') }}"
-                                data-location="{{ $evento->location }}"
-                                data-capacity="{{ $evento->capacity }}"
-                                data-categories="{{ $evento->categories->pluck('name')->toJson() }}"
-                                data-criteria="{{ $evento->criteria->toJson() }}"
-                                data-status-manual="{{ $evento->status_manual }}"
-                                title="Editar Evento">
-                            <x-icon name="edit" />
-                        </button>
-
-                        <button class="btn-admin-action view-teams btn-ver-equipos"
-                                onclick="toggleTeams('teams-{{ $evento->id }}')"
-                                title="Ver Equipos Registrados">
-                            <x-icon name="groups" />
-                        </button>
-
-                        <form action="{{ route('events.destroy', $evento->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('¿Estás seguro de eliminar este evento?');">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn-admin-action delete" title="Eliminar Evento">
-                                <x-icon name="delete" />
+                        <div class="action-item">
+                            <button class="btn-admin-action view-teams btn-ver-equipos"
+                                    onclick="toggleTeams('teams-{{ $evento->id }}')"
+                                    title="Ver Equipos">
+                                <x-icon name="groups" />
                             </button>
-                        </form>
+                            <span class="action-label">Equipos</span>
+                        </div>
 
-                        <div style="display: inline-flex; margin-left: 10px; border-left: 1px solid #e5e7eb; padding-left: 10px; gap: 5px;">
-                            <a href="{{ route('events.reports.pdf', $evento->id) }}" class="btn-admin-action" title="Descargar Reporte PDF" style="color: #dc2626; background: rgba(220, 38, 38, 0.1); display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%;">
+                        <div class="action-item">
+                            <form action="{{ route('events.destroy', $evento->id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de eliminar este evento?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn-admin-action delete" title="Eliminar">
+                                    <x-icon name="delete" />
+                                </button>
+                            </form>
+                            <span class="action-label">Eliminar</span>
+                        </div>
+
+                        <div class="action-item">
+                            <a href="{{ route('events.reports.pdf', $evento->id) }}" class="btn-admin-action" title="PDF" style="color: #dc2626; background: rgba(220, 38, 38, 0.1);">
                                 <x-icon name="picture_as_pdf" style="width: 20px; height: 20px; color: #dc2626;" />
                             </a>
-                            <a href="{{ route('events.reports.csv', $evento->id) }}" class="btn-admin-action" title="Descargar CSV (Excel)" style="color: #16a34a; background: rgba(22, 163, 74, 0.1); display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%;">
+                            <span class="action-label">PDF</span>
+                        </div>
+
+                        <div class="action-item">
+                            <a href="{{ route('events.reports.csv', $evento->id) }}" class="btn-admin-action" title="CSV" style="color: #16a34a; background: rgba(22, 163, 74, 0.1);">
                                 <x-icon name="table_view" style="width: 20px; height: 20px; color: #16a34a;" />
                             </a>
-                            <form action="{{ route('events.reports.email', $evento->id) }}" method="POST" style="display: inline;">
+                            <span class="action-label">Excel</span>
+                        </div>
+
+                        <div class="action-item">
+                            <form action="{{ route('events.reports.email', $evento->id) }}" method="POST">
                                 @csrf
-                                <button type="submit" class="btn-admin-action" title="Enviar Reporte por Correo" style="color: #2563eb; background: rgba(37, 99, 235, 0.1); display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; border: none; cursor: pointer;">
+                                <button type="submit" class="btn-admin-action" title="Enviar" style="color: #2563eb; background: rgba(37, 99, 235, 0.1); border: none; cursor: pointer;">
                                     <x-icon name="send" style="width: 20px; height: 20px; color: #2563eb;" />
                                 </button>
                             </form>
-                            <button class="btn-admin-action btn-announcement" data-id="{{ $evento->id }}" data-name="{{ $evento->name }}" title="Enviar Anuncio Masivo" style="color: #9333ea; background: rgba(147, 51, 234, 0.1); display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; border: none; cursor: pointer;">
-                                <x-icon name="campaign" style="width: 20px; height: 20px; color: #9333ea;" />
-                            </button>
+                            <span class="action-label">Enviar</span>
                         </div>
 
-                        <!-- Manual Status Control -->
+
+
                         @if($evento->status !== 'Finalizado')
-                            <form action="{{ route('events.status.update', $evento->id) }}" method="POST" style="display: inline; margin-left: 10px;">
-                                @csrf
-                                @method('PUT')
-                                <input type="hidden" name="status_manual" value="Finalizado">
-                                <button type="submit" class="btn-admin-action" title="Finalizar Evento Manualmente" style="color: #ffffff; background: #6b7280; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; border: none; cursor: pointer;" onsubmit="return confirm('¿Estás seguro de finalizar este evento? Ya no se permitirán más registros.');">
-                                    <x-icon name="flag" style="width: 20px; height: 20px; color: #ffffff;" />
-                                </button>
-                            </form>
+                            <div class="action-item">
+                                <form action="{{ route('events.status.update', $evento->id) }}" method="POST">
+                                    @csrf
+                                    @method('PUT')
+                                    <input type="hidden" name="status_manual" value="Finalizado">
+                                    <button type="submit" class="btn-admin-action" title="Finalizar" style="color: #ffffff; background: #6b7280; border: none; cursor: pointer;" onsubmit="return confirm('¿Estás seguro de finalizar este evento? Ya no se permitirán más registros.');">
+                                        <x-icon name="flag" style="width: 20px; height: 20px; color: #ffffff;" />
+                                    </button>
+                                </form>
+                                <span class="action-label">Fin</span>
+                            </div>
                         @endif
                     </div>
 
@@ -507,29 +579,40 @@
         </div>
     </div>
 
-    <!-- Modal Asignar Juez -->
-    <div id="modal-assign-judge" class="modal">
-        <div class="modal-content profile-modal-content" style="max-width: 500px !important;">
+    <!-- Modal Gestionar Jueces -->
+    <div id="modal-view-judges" class="modal">
+        <div class="modal-content profile-modal-content" style="max-width: 600px !important;">
             <div class="modal-header">
-                <h2>Asignar Juez</h2>
-                <span class="close-modal" id="close-assign-judge">&times;</span>
+                <h2>Gestionar Jueces</h2>
+                <span class="close-modal" id="close-view-judges">&times;</span>
             </div>
-            <form id="form-assign-judge" method="POST" class="profile-form">
-                @csrf
-                <div class="form-group">
-                    <label for="judge-select">Seleccionar Juez</label>
-                    <div class="input-with-icon">
-                        <x-icon name="hammer" />
-                        <select id="judge-select" name="user_id" style="width: 100%; padding: 12px 12px 12px 40px; border: 1px solid #e5e7eb; background-color: #f9fafb; border-radius: 8px; font-size: 15px; outline: none; color: #1f2937;" required>
-                            <option value="">Seleccione un juez...</option>
-                            @foreach(\App\Models\User::role('juez')->get() as $juez)
-                                <option value="{{ $juez->id }}">{{ $juez->name }} ({{ $juez->email }})</option>
-                            @endforeach
-                        </select>
+            
+            <!-- Asignar Nuevo Juez -->
+            <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <h3 style="font-size: 1rem; margin-bottom: 10px; color: #374151;">Asignar Nuevo Juez</h3>
+                <form id="form-assign-judge-internal" method="POST" class="profile-form">
+                    @csrf
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <div style="flex: 1; position: relative;">
+                            <x-icon name="hammer" style="position: absolute; left: 10px; top: 10px; color: #6b7280;" />
+                            <select id="judge-select-internal" name="user_id" style="width: 100%; padding: 10px 10px 10px 35px; border: 1px solid #d1d5db; background-color: white; border-radius: 6px; outline: none;" required>
+                                <option value="">Seleccione un juez...</option>
+                                @foreach(\App\Models\User::role('juez')->get() as $juez)
+                                    <option value="{{ $juez->id }}">{{ $juez->name }} ({{ $juez->email }})</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <button type="submit" style="background-color: #10b981; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: 500;">
+                            Asignar
+                        </button>
                     </div>
-                </div>
-                <button type="submit" class="btn-confirmar">Asignar Juez</button>
-            </form>
+                </form>
+            </div>
+
+            <h3 style="font-size: 1rem; margin-bottom: 10px; color: #374151; border-top: 1px solid #e5e7eb; padding-top: 15px;">Jueces Asignados</h3>
+            <div id="judges-list-container" style="max-height: 300px; overflow-y: auto;">
+                <!-- Judges will be loaded here -->
+            </div>
         </div>
     </div>
 
@@ -744,50 +827,86 @@
                 });
             }
 
-            // Assign Judge Modal Logic
-            const modalAssignJudge = document.getElementById('modal-assign-judge');
-            const btnsAssignJudge = document.querySelectorAll('.btn-assign-judge');
-            const closeAssignJudge = document.getElementById('close-assign-judge');
-            const formAssignJudge = document.getElementById('form-assign-judge');
+            // View Judges Modal Logic (Consolidated)
+            const modalViewJudges = document.getElementById('modal-view-judges');
+            const btnsViewJudges = document.querySelectorAll('.btn-view-judges');
+            const closeViewJudges = document.getElementById('close-view-judges');
+            const judgesListContainer = document.getElementById('judges-list-container');
+            const formAssignJudgeInternal = document.getElementById('form-assign-judge-internal');
 
-            btnsAssignJudge.forEach(btn => {
+            btnsViewJudges.forEach(btn => {
                 btn.addEventListener('click', function() {
                     const eventId = this.getAttribute('data-id');
-                    formAssignJudge.action = "/events/" + eventId + "/judges";
-                    modalAssignJudge.style.display = 'flex';
+                    const judgesJson = this.getAttribute('data-judges');
+                    
+                    // Set form action for assigning new judge
+                    formAssignJudgeInternal.action = "/events/" + eventId + "/judges";
+
+                    let judges = [];
+                    try {
+                        judges = JSON.parse(judgesJson);
+                    } catch(e) {
+                        console.error("Error parsing judges", e);
+                    }
+
+                    renderJudgesList(judges, eventId);
+                    modalViewJudges.style.display = 'flex';
                 });
             });
 
-            if(closeAssignJudge) {
-                closeAssignJudge.addEventListener('click', function() {
-                    modalAssignJudge.style.display = 'none';
+            function renderJudgesList(judges, eventId) {
+                judgesListContainer.innerHTML = '';
+                if (judges.length === 0) {
+                    judgesListContainer.innerHTML = '<p style="text-align: center; color: #6b7280; font-style: italic; padding: 20px;">No hay jueces asignados a este evento.</p>';
+                } else {
+                    const ul = document.createElement('ul');
+                    ul.style.listStyle = 'none';
+                    ul.style.padding = '0';
+                    ul.style.margin = '0';
+
+                    judges.forEach(juez => {
+                        const li = document.createElement('li');
+                        li.style.display = 'flex';
+                        li.style.justifyContent = 'space-between';
+                        li.style.alignItems = 'center';
+                        li.style.padding = '10px';
+                        li.style.borderBottom = '1px solid #f3f4f6';
+
+                        li.innerHTML = `
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 30px; height: 30px; background-color: #e0e7ff; color: #4338ca; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8rem;">
+                                    ${juez.name.charAt(0).toUpperCase()}
+                                </div>
+                                <div>
+                                    <span style="font-weight: 600; display: block; color: #1f2937; font-size: 0.9rem;">${juez.name}</span>
+                                    <span style="font-size: 0.75rem; color: #6b7280;">${juez.email}</span>
+                                </div>
+                            </div>
+                            <form action="/events/${eventId}/judges/${juez.id}" method="POST" onsubmit="return confirm('¿Quitar a este juez del evento?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" title="Quitar Juez" style="background: none; border: none; cursor: pointer; color: #ef4444; padding: 5px; opacity: 0.7; transition: opacity 0.2s;">
+                                    <x-icon name="delete" />
+                                </button>
+                            </form>
+                        `;
+                        ul.appendChild(li);
+                    });
+                    judgesListContainer.appendChild(ul);
+                }
+            }
+
+            if (closeViewJudges) {
+                closeViewJudges.addEventListener('click', function() {
+                    modalViewJudges.style.display = 'none';
                 });
             }
 
-
-
-            // Announcement Modal Logic
-            const modalAnnouncement = document.getElementById('modal-announcement');
-            const btnsAnnouncement = document.querySelectorAll('.btn-announcement');
-            const closeAnnouncement = document.getElementById('close-announcement');
-            const formAnnouncement = document.getElementById('form-announcement');
-            const announcementEventName = document.getElementById('announcement-event-name');
-
-            btnsAnnouncement.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const eventId = this.getAttribute('data-id');
-                    const eventName = this.getAttribute('data-name');
-                    formAnnouncement.action = "/events/" + eventId + "/announcement";
-                    announcementEventName.textContent = 'Evento: ' + eventName;
-                    modalAnnouncement.style.display = 'flex';
-                });
+            window.addEventListener('click', function(event) {
+                if (event.target == modalViewJudges) {
+                    modalViewJudges.style.display = 'none';
+                }
             });
-
-            if(closeAnnouncement) {
-                closeAnnouncement.addEventListener('click', function() {
-                    modalAnnouncement.style.display = 'none';
-                });
-            }
 
             // Global Window Click
             window.onclick = function(event) {

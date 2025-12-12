@@ -22,7 +22,7 @@
                 </div>
             </div>
 
-            @if(isset($rank) && $rank <= 3)
+            @if(isset($rank) && $rank <= 3 && $evento->status_manual == 'Finalizado')
                 <div class="seccion-ganador" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 2px solid #fbbf24; border-radius: 12px; padding: 20px; margin-bottom: 30px; text-align: center;">
                     <x-icon name="emoji_events" style="font-size: 48px; color: #d97706; margin-bottom: 10px;" />
                     <h2 style="color: #92400e; margin-bottom: 10px;">¡Felicidades!</h2>

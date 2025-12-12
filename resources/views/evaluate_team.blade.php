@@ -102,6 +102,16 @@
                     </div>
                 @endif
 
+                @if($errors->any())
+                    <div style="background-color: #fee2e2; color: #991b1b; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #fecaca;">
+                        <ul style="margin: 0; padding-left: 20px;">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
                 <form action="{{ route('events.evaluate.store', $evento->id) }}" method="POST">
                     @csrf
                     <input type="hidden" name="team_id" value="{{ $equipo->id }}">
@@ -154,14 +164,14 @@
                         <h3 style="font-size: 1.1rem; font-weight: 600; color: #374151; margin-bottom: 15px;">Acciones Finales</h3>
                         
                         <div style="display: flex; gap: 15px; flex-direction: column;">
-                            <form action="{{ route('events.evaluate.finalize', ['id' => $evento->id, 'team' => $equipo->id]) }}" method="POST" onsubmit="return confirm('¿Estás seguro de finalizar la evaluación? No podrás editarla después.');">
+                            <form action="{{ route('events.evaluate.finalize', ['eventId' => $evento->id, 'teamId' => $equipo->id]) }}" method="POST" onsubmit="return confirm('¿Estás seguro de finalizar la evaluación? No podrás editarla después.');">
                                 @csrf
                                 <button type="submit" style="width: 100%; padding: 12px; background-color: #059669; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
                                     <x-icon name="check_circle" /> Finalizar Evaluación
                                 </button>
                             </form>
 
-                            <form action="{{ route('events.evaluate.conflict', ['id' => $evento->id, 'team' => $equipo->id]) }}" method="POST" onsubmit="return confirm('¿Declarar conflicto de interés? Esto anulará tu evaluación para este equipo.');">
+                            <form action="{{ route('events.evaluate.conflict', ['eventId' => $evento->id, 'teamId' => $equipo->id]) }}" method="POST" onsubmit="return confirm('¿Declarar conflicto de interés? Esto anulará tu evaluación para este equipo.');">
                                 @csrf
                                 <button type="submit" style="width: 100%; padding: 12px; background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
                                     <x-icon name="warning" /> Declarar Conflicto de Interés

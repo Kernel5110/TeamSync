@@ -21,7 +21,7 @@
 
                 @if(!$isAdmin)
                     @if(!$hasTeam && !$pendingRequest)
-                        <form action="{{ route('team.requestJoin', $team->id) }}" method="POST">
+                        <form action="{{ route('teams.join', $team->id) }}" method="POST">
                             @csrf
                             <button type="submit" style="background-color: #10b981; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-weight: 500; cursor: pointer;">Solicitar Unirse</button>
                         </form>

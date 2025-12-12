@@ -7,13 +7,13 @@
         <nav>
             <ul id="main-nav-ul">
                 <li><a href="{{ route('index') }}">Inicio</a></li>
-                <li><a href="{{ route('events.index') }}">Eventos</a></li>
                 @auth
+                    <li><a href="{{ route('events.index') }}">Eventos</a></li>
                     <li><a href="{{ route('start') }}">Dashboard</a></li>
+                    @unlessrole('juez')
+                        <li><a href="{{ route('teams.index') }}">Equipo</a></li>
+                    @endunlessrole
                 @endauth
-                @unlessrole('juez')
-                    <li><a href="{{ route('teams.index') }}">Equipo</a></li>
-                @endunlessrole
                 @auth
                     <li class="user-profile-item">
                         <a href="{{ route('profile.show') }}" class="user-profile-link">

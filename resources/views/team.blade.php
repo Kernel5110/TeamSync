@@ -137,11 +137,13 @@
                                             @if($isLeader)
                                                 <td>
                                                     @if($participante->user_id !== auth()->id())
-                                                        <form action="{{ route('teams.remove_member', $equipo->id) }}" method="POST" onsubmit="return confirm('¿Eliminar a {{ $participante->user->name }}?');" style="display:inline;">
+                                                        <form action="{{ route('teams.members.remove', $equipo->id) }}" method="POST" onsubmit="return confirm('¿Eliminar a {{ $participante->user->name }}?');" style="display:inline;">
                                                             @csrf
                                                             <input type="hidden" name="user_id" value="{{ $participante->user_id }}">
-                                                            <button type="submit" style="border: none; background: none; color: #ef4444; cursor: pointer; padding: 4px; border-radius: 4px;" title="Eliminar">
-                                                                <x-icon name="person_remove" />
+                                                            <button type="submit" style="border: none; background: #fee2e2; color: #ef4444; cursor: pointer; padding: 6px; border-radius: full; display: flex; align-items: center; justify-content: center; transition: background 0.2s;" title="Eliminar Miembro" onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                                                    <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                                                                </svg>
                                                             </button>
                                                         </form>
                                                     @endif
@@ -193,6 +195,50 @@
                     </div>
                 @endif
             @endunlessrole
+        @endif
+
+        {{-- Invitations Section for Users --}}
+        @if(isset($myInvitations) && count($myInvitations) > 0)
+            <div class="tarjeta-miembros" style="margin-top: 2rem; border-left: 4px solid #10b981;">
+                <div class="titulo-seccion" style="display: flex; align-items: center; gap: 10px;">
+                    <x-icon name="mail" style="color: #10b981;" />
+                    Invitaciones de Equipos
+                </div>
+                <p style="margin-bottom: 15px; color: #4b5563;">Has sido invitado a unirte a los siguientes equipos:</p>
+                <table class="tabla-miembros">
+                    <thead>
+                        <tr>
+                            <th>Equipo</th>
+                            <th>Evento</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($myInvitations as $invitation)
+                            <tr>
+                                <td style="font-weight: 600;">{{ $invitation->team->name }}</td>
+                                <td>{{ $invitation->team->event->name ?? 'N/A' }}</td>
+                                <td>
+                                    <div style="display: flex; gap: 10px;">
+                                        <form action="{{ route('invitations.accept', $invitation->id) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="btn-nuevo" style="background: #10b981; padding: 5px 15px; font-size: 0.9rem;">
+                                                Aceptar
+                                            </button>
+                                        </form>
+                                        <form action="{{ route('invitations.reject', $invitation->id) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="btn-nuevo" style="background: #ef4444; padding: 5px 15px; font-size: 0.9rem;">
+                                                Rechazar
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
         @endif
 
         {{-- Messages Section for Leaders --}}
@@ -267,17 +313,28 @@
                                 </p>
                             </div>
 
-                            @if(!$equipo && !$myPendingRequest && !Auth::user()->hasRole('admin'))
+                            @php
+                                $alreadyInEvent = $myTeams ? $myTeams->contains('event_id', $team->event_id) : false;
+                                // Check specific request for this team if myPendingRequest is single, 
+                                // ideally this should be a collection check but adhering to current controller data passed.
+                                $isPending = $myPendingRequest && $myPendingRequest->team_id == $team->id;
+                            @endphp
+
+                            @if(!$alreadyInEvent && !$isPending && !Auth::user()->hasRole('admin'))
                                 <form action="{{ route('teams.join', $team->id) }}" method="POST">
                                     @csrf
                                     <button type="submit" class="btn-nuevo" style="width: 100%; justify-content: center; background: #4f46e5;">
                                         Solicitar Unirse
                                     </button>
                                 </form>
-                            @elseif($myPendingRequest && $myPendingRequest->team_id == $team->id)
+                            @elseif($isPending)
                                 <button disabled class="btn-nuevo" style="width: 100%; justify-content: center; background: #9ca3af; cursor: not-allowed;">
                                     Solicitud Enviada
                                 </button>
+                            @elseif($alreadyInEvent)
+                                <div style="text-align: center; color: #059669; font-size: 0.9rem; padding: 8px;">
+                                    <x-icon name="check_circle" style="font-size: 16px; vertical-align: text-bottom;" /> Ya participas en este evento
+                                </div>
                             @endif
                         </div>
                     @endforeach
@@ -548,10 +605,7 @@
                     <label for="nombre">Nombre del Equipo</label>
                     <input type="text" id="nombre" name="nombre" required placeholder="Ej. Alpha Team">
                 </div>
-                <div class="form-group">
-                    <label for="logo">Logo del Equipo (Opcional)</label>
-                    <input type="file" id="logo" name="logo" accept="image/*">
-                </div>
+                <!-- Logo field removed as requested -->
                 <div class="form-group">
                     <label for="event_id">Evento</label>
                     <select id="event_id" name="event_id" required>

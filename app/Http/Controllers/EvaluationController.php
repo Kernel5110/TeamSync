@@ -114,7 +114,7 @@ class EvaluationController extends Controller
         }
 
         if ($evento->status === 'Finalizado') {
-             return redirect()->route('events.show', $eventId)->with('error', 'El evento ha finalizado y ya no se puede evaluar.');
+             return redirect()->route('events.index')->with('error', 'El evento ha finalizado y ya no se puede evaluar.');
         }
 
         // Get IDs of teams already evaluated by this user
@@ -136,7 +136,7 @@ class EvaluationController extends Controller
         }
 
         if ($evento->status === 'Finalizado') {
-            return redirect()->route('events.show', $eventId)->with('error', 'El evento ha finalizado.');
+            return redirect()->route('events.index')->with('error', 'El evento ha finalizado.');
         }
 
         if ($equipo->event_id !== $evento->id) {
@@ -161,7 +161,7 @@ class EvaluationController extends Controller
         $request->validate([
             'team_id' => 'required|exists:teams,id',
             'scores' => 'required|array',
-            'scores.*' => 'required|integer|min:0|max:10',
+            'scores.*' => 'required|integer|min:0',
             'comments' => 'nullable|string',
             'private_notes' => 'nullable|string',
         ]);
